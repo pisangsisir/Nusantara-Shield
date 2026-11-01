@@ -4,6 +4,18 @@ Seluruh kode dikembangkan sejak **15 Oktober 2026**, setelah publikasi program K
 
 ## Belum dirilis
 
+### v5.3.0 · Titik periksa Ed25519 dengan kunci berevolusi — 1 November 2026 (branch `feature/titik-periksa-ed25519`)
+- **Masalah:** HMAC memakai satu kunci untuk membuat sekaligus memeriksa. Penyerang yang membobol *server* dan memegang `NS_AUDIT_KEY` bisa menulis ulang riwayat dengan sidik jari yang sah (Dokumentasi Teknis §2.7, peta jalan §2.9).
+- **Baru: `app/titik_periksa.py`.**
+  - Saat pertama menyala dengan `NS_AUDIT_KEY`, *server* membuat kunci Ed25519 periode 1 dan mencatat sidik jari akarnya (`KUNCI_TITIK_PERIKSA_DIBUAT`).
+  - Setiap `NS_TITIK_PERIKSA_SETIAP` entri (bawaan 25) dan setiap ekspor LAPSIT, kepala log audit dan Buku Rantai Bukti (jumlah entri + SHA-256 kumulatif) ditandatangani kunci periode berjalan. Titik periksa itu mengesahkan kunci periode berikutnya, lalu kunci lama ditimpa (berkas status izin 600).
+  - Bila berkas titik periksa dan berkas status tidak cocok, titik periksa dinonaktifkan dan akar baru tidak dibuat diam-diam.
+- **Baru: `tools/verifikasi_titik_periksa.py`.** Auditor memeriksa dengan sidik jari akar saja, tanpa `NS_AUDIT_KEY`. Hanya pustaka bawaan Python (Ed25519 rujukan RFC 8032).
+- LAPSIT bagian 6 mencetak nomor titik periksa dan sidik jari akar; `GET /api/audit/verifikasi` ikut mengembalikan ringkasannya.
+- **14 uji baru** (`tests/test_titik_periksa.py`), ditulis lebih dulu. Termasuk penyerang yang memegang `NS_AUDIT_KEY` dan kunci periode berjalan sekaligus. Diuji balik dengan mutasi: tanpa cek tanda tangan, tanpa cek akar, tanpa cek pengesahan kunci, atau kunci lama tidak dihapus → uji gagal. Total **366 uji** dalam 19 kelompok.
+- **Batas:** entri sesudah titik periksa terakhir belum dilindungi; penghapusan kunci di SSD tidak dijamin tanpa enkripsi disk; kunci HMAC sendiri belum berevolusi.
+- Versi 5.3.0 (`app/versi.py`); README, Proposal §5.5, Dokumentasi Teknis §2.7.1 dan §2.9, dek (slide 4 dan 5), poster diperbarui.
+
 ### Tautan repositori baru — 1 November 2026 (branch `feature/tautan-repo-v5.2`)
 - Repositori berganti nama menjadi `Nusantara-Shield-v5.2`. Tautan di dek (slide 7 dan 8) dan poster ikut diganti; poster PDF/PNG dan slide PDF diekspor ulang. Tautan nama lama tetap dialihkan GitHub.
 

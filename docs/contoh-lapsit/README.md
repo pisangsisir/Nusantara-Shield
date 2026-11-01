@@ -1,7 +1,7 @@
 # Contoh LAPSIT (Laporan Situasi) PDF
 
-Dua berkas ini diekspor langsung dari aplikasi Nusantara Shield pada 30 Oktober 2026 (kode v5.2.1, branch
-`feature/satu-sumber-versi`; kop memuat nomor versi dari `app/versi.py`), lewat tombol **Ekspor LAPSIT (PDF)** (`POST /api/lapsit`). Isinya tidak disunting. **Seluruh data sintetis**: nama
+Dua berkas ini diekspor langsung dari aplikasi Nusantara Shield pada 1 November 2026 (kode v5.3.0, branch
+`feature/titik-periksa-ed25519`; kop memuat nomor versi dari `app/versi.py`), lewat tombol **Ekspor LAPSIT (PDF)** (`POST /api/lapsit`). Isinya tidak disunting. **Seluruh data sintetis**: nama
 layanan bertanda "(contoh)", alamat IP dari blok dokumentasi RFC 5737, dan perintah ke perangkat jaringan masih simulasi.
 Waktu di dalam PDF tertulis dalam WIB (atur dengan `NS_ZONA_WAKTU`).
 

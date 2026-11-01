@@ -356,7 +356,7 @@ def ringkasan_eksekutif(layanan: list[dict], rincian: dict, peringatan: list[dic
 
 
 def buat_pdf(layanan: list[dict], hasil_audit: dict, pembuat: str, peringatan: list[dict] | None = None,
-             rincian: dict | None = None) -> bytes:
+             rincian: dict | None = None, titik: dict | None = None) -> bytes:
     gaya = _gaya()
     rincian = rincian or {"insiden": {}, "ioc": []}
     peringatan = peringatan or []
@@ -478,12 +478,20 @@ def buat_pdf(layanan: list[dict], hasil_audit: dict, pembuat: str, peringatan: l
     if hasil_audit.get("hash_terakhir"):
         isi.append(Paragraph("Sidik jari terakhir (HMAC-SHA256): <font face='Courier' size='7'>"
                              f"{escape(hasil_audit['hash_terakhir'])}</font>", gaya["dasar"]))
+    if titik and titik.get("aktif") and titik.get("no"):
+        isi.append(Paragraph(
+            f"Titik periksa #{titik['no']} (Ed25519) dibuat saat laporan ini dicetak. Sidik jari kunci akar: "
+            f"<font face='Courier' size='7'>{escape(titik['sidik_jari_akar'])}</font>", gaya["dasar"]))
+    elif titik and titik.get("galat") and not titik.get("demo"):
+        isi.append(Paragraph(escape(titik["galat"]), gaya["catatan"]))
     isi += [Spacer(1, 4), _kotak([Paragraph(
         "<b>Cara memverifikasi.</b> Sidik jari di atas adalah HMAC-SHA256 entri terakhir log audit saat laporan "
         "ini dicetak. Cocokkan dengan <b>Verifikasi rantai</b> (tab Audit &amp; LAPSIT atau "
         "<font face='Courier'>GET /api/audit/verifikasi</font>), atau tanpa <i>server</i>: "
         "<font face='Courier'>python3 tools/verifikasi_audit.py --cocokkan &lt;sidik jari&gt;</font>. "
-        f"Telusuri nomor bukti di {escape(ISTILAH['buku_bukti'])}. Sidik jari ini menjamin keutuhan log audit, bukan "
+        + ("Titik periksa diperiksa tanpa kunci rahasia: <font face='Courier'>python3 tools/verifikasi_titik_periksa.py "
+           "--akar &lt;sidik jari akar&gt;</font>. " if titik and titik.get("aktif") else "")
+        + f"Telusuri nomor bukti di {escape(ISTILAH['buku_bukti'])}. Sidik jari ini menjamin keutuhan log audit, bukan "
         f"keutuhan berkas PDF; salinan yang diteruskan wajib bertanda tangan di bagian {escape(ISTILAH['ttd_judul'])}.",
         sel)],
         latar=colors.white)]

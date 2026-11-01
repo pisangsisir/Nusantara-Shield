@@ -29,6 +29,8 @@ KELOMPOK = {
     "test_ot_mitre_lapsit.py": "Aturan OT, label MITRE ATT&CK, label sumber data, dan pengesahan dua tanda tangan LAPSIT",
     "test_verifikasi_audit.py": "Verifikasi audit tanpa server: CLI mandiri menghitung ulang rantai HMAC log audit dan buku bukti",
     "test_paket_ubuntu.py": "Paket pasang Ubuntu 24.04: tanda tangan Ed25519, manifest SHA-256, pemasang menolak paket yang diubah",
+    "test_versi.py": "Satu sumber versi: dasbor, LAPSIT, dan paket memakai app/versi.py; nama peran berhuruf kapital",
+    "test_titik_periksa.py": "Titik periksa Ed25519: kunci berevolusi, auditor memeriksa dengan kunci publik saja",
 }
 _berkas_terakhir = {"nama": None}
 _CONFIG = {"config": None}
