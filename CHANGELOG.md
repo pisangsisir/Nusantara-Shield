@@ -4,6 +4,9 @@ Seluruh kode dikembangkan sejak **15 Oktober 2026**, setelah publikasi program K
 
 ## Belum dirilis
 
+### Tautan repositori baru — 1 November 2026 (branch `feature/tautan-repo-v5.2`)
+- Repositori berganti nama menjadi `Nusantara-Shield-v5.2`. Tautan di dek (slide 7 dan 8) dan poster ikut diganti; poster PDF/PNG dan slide PDF diekspor ulang. Tautan nama lama tetap dialihkan GitHub.
+
 ### Satu sumber versi dan nama peran berhuruf kapital — 30 Oktober 2026 (branch `feature/satu-sumber-versi`)
 - **Masalah:** rilis v5.2.0 masih menampilkan "v5.1" di judul tab, subjudul dasbor, kop LAPSIT, dan nama zip, karena nomor versi ditulis langsung di beberapa berkas dan tidak ikut diganti.
 - **Perbaikan:** nomor versi kini hanya ada di `app/versi.py` (`VERSI = "5.2.1"`).
