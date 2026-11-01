@@ -45,6 +45,7 @@ class LogAudit:
         self._berkas = None if self._kunci_sementara else Path(berkas)
         self._entri: list[dict] = []
         self._kunci_tulis = threading.Lock()
+        self._pengamat: list = []            # dipanggil sesudah entri tersimpan (titik periksa Ed25519)
         if self._kunci_sementara:
             print(f"[DEMO] NS_AUDIT_KEY belum diatur: {nama} hanya disimpan di memori.")
         elif self._berkas and self._berkas.exists():
@@ -82,7 +83,21 @@ class LogAudit:
                 self._berkas.parent.mkdir(parents=True, exist_ok=True)
                 with self._berkas.open("a", encoding="utf-8") as f:  # hanya menambah, tidak menimpa
                     f.write(json.dumps(entri, ensure_ascii=False) + "\n")
-            return entri
+        for fungsi in list(self._pengamat):         # di luar kunci tulis: pengamat boleh membaca buku ini
+            fungsi()
+        return entri
+
+    def saat_dicatat(self, fungsi) -> None:
+        """Daftarkan fungsi tanpa argumen yang dipanggil setiap kali entri baru tersimpan."""
+        self._pengamat.append(fungsi)
+
+    @property
+    def berkas(self):
+        return self._berkas
+
+    def salinan_entri(self) -> list[dict]:
+        with self._kunci_tulis:
+            return [dict(e) for e in self._entri]
 
     def daftar(self, batas: int = 50) -> list[dict]:
         return list(reversed(self._entri[-batas:]))  # terbaru di atas

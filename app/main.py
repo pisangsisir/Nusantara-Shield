@@ -49,6 +49,7 @@ from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, ConfigDict, Field
 
 from .audit import LOG
+from .titik_periksa import TitikPeriksa
 from .data_contoh import (BATAS_JAM_BACKUP, INDEKS_BERITA, INDEKS_INDIKATOR, LOG_PERINGATAN,
                           PLAYBOOK, SKENARIO, salin_layanan_awal)
 from .keamanan import (KONFIG, MIN_SANDI, SIARAN, Akun, BatasBody, GalatAkun, HeaderKeamanan, akun_dari_token,
@@ -136,6 +137,8 @@ MENARA.saat_ir = lambda ir: LOG.catat("sistem", "IR_OTOMATIS", {
     "darurat_hash_buku": ir["darurat"]["hash_buku"] if ir.get("darurat") else None})
 # Fase 4: setiap halaman buku rantai bukti dicerminkan ke log audit (dua buku, dua rantai HMAC).
 MENARA.saat_bukti = lambda petugas, aksi, detail: LOG.catat(petugas, aksi, detail)
+# Titik periksa Ed25519 atas kedua buku (Dokumentasi Teknis §2.7): auditor memeriksa dengan kunci publik saja.
+TITIK = TitikPeriksa({"audit_log": LOG, "rantai_bukti": MENARA.rantai.buku})
 
 
 def _waktu() -> str:
@@ -784,7 +787,7 @@ def lihat_audit(akun: Akun = Depends(butuh_izin("lihat"))) -> dict:
 
 @app.get("/api/audit/verifikasi", dependencies=[Depends(batasi("umum"))])
 def verifikasi_audit(akun: Akun = Depends(butuh_izin("lihat"))) -> dict:
-    return LOG.verifikasi()
+    return {**LOG.verifikasi(), "titik_periksa": TITIK.ringkasan()}
 
 
 @app.post("/api/lapsit", dependencies=[Depends(batasi("pdf"))])
@@ -794,7 +797,8 @@ def ekspor_lapsit(akun: Akun = Depends(butuh_izin("lihat"))) -> Response:
         rincian = MENARA.rincian_lapsit(LAYANAN)      # antrean SOAR & deteksi diproses dulu
         peringatan = MENARA.peringatan_lapsit(LAYANAN)
     LOG.catat(akun.nama, "EKSPOR_LAPSIT", {"jumlah_layanan": len(data)})
-    pdf = buat_pdf(data, LOG.verifikasi(), akun.nama, peringatan, rincian)
+    titik = TITIK.buat("EKSPOR_LAPSIT")
+    pdf = buat_pdf(data, LOG.verifikasi(), akun.nama, peringatan, rincian, titik=TITIK.ringkasan(titik))
     nama_berkas = f"LAPSIT-NusantaraShield-{datetime.now(timezone.utc):%Y%m%d-%H%M}.pdf"
     return Response(pdf, media_type="application/pdf",
                     headers={"Content-Disposition": f'attachment; filename="{nama_berkas}"'})

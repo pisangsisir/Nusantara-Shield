@@ -1,4 +1,4 @@
-# Nusantara Shield v5.2.1
+# Nusantara Shield v5.3.0
 
 <p align="center"><img src="docs/logo/banner.png" width="100%" alt="Nusantara Shield: perisai berisi Merah Putih, radar dua cincin, peta Nusantara, dan titik ancaman yang terkunci di cincin luar. Mendeteksi, mencegah, membantu merespons. Kartika Cyber Hackathon 2026, Kategori 02 Penangkalan."></p>
 
@@ -9,7 +9,7 @@ Dasbor pusat operasi keamanan siber (SOC) **defensif** untuk Kartika Cyber Hacka
 (bukti → isolasi → LAPSIT, otomatis setelah satu keputusan Operator; perintah ke perangkat masih simulasi).
 *Server* FastAPI + browser Vanilla JS/Canvas, siaran langsung (SSE), dan jejak audit berantai HMAC.
 
-Banyak sistem pertahanan berhenti di alarm. Nusantara Shield berlanjut sampai bukti tersegel, jalur terputus, dan LAPSIT terbit, dan otaknya (aturan deteksi, AI lokal, korelasi kabar ancaman) berjalan di *server* satuan sendiri, sehingga tidak ikut lumpuh saat koneksi internasional terganggu. Setiap klaim dikunci **352 uji** yang bisa dijalankan ulang siapa pun; angka di dasbor bukan animasi, dan asal setiap angka serta peta lima kriteria penilaian ada di [Proposal §7](docs/01-Proposal-Solusi-Nusantara-Shield.md#7-peta-kriteria-penilaian-dan-asal-angka).
+Banyak sistem pertahanan berhenti di alarm. Nusantara Shield berlanjut sampai bukti tersegel, jalur terputus, dan LAPSIT terbit, dan otaknya (aturan deteksi, AI lokal, korelasi kabar ancaman) berjalan di *server* satuan sendiri, sehingga tidak ikut lumpuh saat koneksi internasional terganggu. Setiap klaim dikunci **366 uji** yang bisa dijalankan ulang siapa pun; angka di dasbor bukan animasi, dan asal setiap angka serta peta lima kriteria penilaian ada di [Proposal §7](docs/01-Proposal-Solusi-Nusantara-Shield.md#7-peta-kriteria-penilaian-dan-asal-angka).
 
 - **Isolasi tidak pernah otomatis.** Isolasi otomatis terdengar cepat, sampai ia memutus segmen OT karena alarm keliru. Di sini isolasi selalu didahului bukti tersegel dan keputusan Operator; yang diputus jalurnya, genset tetap menyala.
 - **"Tanpa awan" berlaku sampai ke demonya.** Aplikasi dipasang dari paket bersidik jari tanpa internet, lalu seluruh uji dijalankan di mesin itu juga.
@@ -22,14 +22,14 @@ Banyak sistem pertahanan berhenti di alarm. Nusantara Shield berlanjut sampai bu
 ```
 app/            kode server: FastAPI, dapur situasi, rantai bukti, LAPSIT, AI lokal
 static/         dasbor (HTML, CSS, JavaScript polos; tanpa pustaka luar atau CDN)
-tests/          352 uji otomatis (pytest), dijalankan dengan ./run_tests.sh
+tests/          366 uji otomatis (pytest), dijalankan dengan ./run_tests.sh
 tools/          alat bantu: pengemasan rilis, paket pasang luring, paket Ubuntu bertanda tangan, verifikasi audit tanpa server
 installer/      pasang.sh, layanan systemd, dan pembungkus verifikasi audit untuk Ubuntu 24.04
 kunci/          kunci PUBLIK rilis (kunci privat tidak pernah ada di repo)
 docs/           Proposal, Dokumentasi Teknis, Panduan Belajar (PDF), contoh LAPSIT dan log, diagram alur, logo
 presentation/   dek presentasi: index.html (satu berkas mandiri, bisa dibuka luring)
 LICENSE         GNU GPL v3.0 (GPL-3.0-only)
-CHANGELOG.md    riwayat versi v1.0 (15 Okt 2026) sampai v5.2.1 (30 Okt 2026)
+CHANGELOG.md    riwayat versi v1.0 (15 Okt 2026) sampai v5.3.0 (1 Nov 2026)
 ```
 
 > **Folder proyek dipindah lalu muncul `cannot execute: No such file or directory` atau `No module named 'numpy'`?**
@@ -63,7 +63,7 @@ CHANGELOG.md    riwayat versi v1.0 (15 Okt 2026) sampai v5.2.1 (30 Okt 2026)
 
 ```bash
 # 1. Masuk ke folder proyek
-cd nusantara-shield-v5.2.1
+cd nusantara-shield-v5.3.0
 
 # 2. Buat ruang kerja Python milik Anda sendiri (sekali saja)
 python3 -m venv .venv
@@ -79,7 +79,7 @@ python -m uvicorn app.main:app --host 127.0.0.1 --port 8000 --no-access-log --no
 ### Windows (PowerShell)
 
 ```powershell
-cd nusantara-shield-v5.2.1
+cd nusantara-shield-v5.3.0
 python -m venv .venv
 .venv\Scripts\Activate.ps1          # CMD: .venv\Scripts\activate.bat
 pip install -r requirements.txt
@@ -106,6 +106,7 @@ berdiri sendiri (hanya pustaka bawaan Python, tidak mengimpor kode aplikasi, tid
 ```bash
 NS_AUDIT_KEY=... python3 tools/verifikasi_audit.py                       # kedua buku di data/
 python3 tools/verifikasi_audit.py --kunci-berkas kunci.txt --cocokkan <sidik jari dari LAPSIT>
+python3 tools/verifikasi_titik_periksa.py --akar <sidik jari akar dari LAPSIT>  # tanpa rahasia apa pun (v5.3.0)
 ```
 
 Setiap entri dihitung ulang: nomor urut, mata rantai (`hash_sebelumnya`), dan HMAC-SHA256. Kerusakan pertama
@@ -116,7 +117,7 @@ atau tidak cocok, 2 tidak bisa memeriksa. Kunci tidak diterima sebagai argumen d
 ### Mengemas zip untuk juri / repositori
 
 ```bash
-python tools/kemas_rilis.py            # → dist/nusantara-shield-v5.2.1.zip (versi dari app/versi.py)
+python tools/kemas_rilis.py            # → dist/nusantara-shield-v5.3.0.zip (versi dari app/versi.py)
 python tools/kemas_rilis.py --periksa  # hanya menampilkan daftar berkas
 ```
 
@@ -132,7 +133,7 @@ Untuk posko yang sama sekali tidak tersambung internet, kode dan seluruh pustaka
 python tools/kemas_luring.py --platform win_amd64 --python 3.12           # posko Windows 64-bit
 python tools/kemas_luring.py --platform macosx_14_0_arm64 --python 3.12   # posko Mac Apple Silicon
 python tools/kemas_luring.py                                              # posko sama dengan komputer ini
-#    → dist/nusantara-shield-v5.2.1-luring-<platform>.zip + dua sidik jari untuk berita acara
+#    → dist/nusantara-shield-v5.3.0-luring-<platform>.zip + dua sidik jari untuk berita acara
 
 # 2) Di posko tanpa internet: ekstrak zip, masuk ke foldernya, lalu
 python pasang_luring.py --periksa-saja    # cocokkan sidik jari SHA256SUMS dengan berita acara
@@ -157,13 +158,13 @@ sidik jari kunci (berita acara) → SHA256SUMS.sig (Ed25519) → SHA256SUMS → 
 python3 tools/kunci_rilis.py buat
 # Setiap rilis (pohon kerja git harus bersih):
 python3 tools/kemas_installer.py susun                         # payload + manifest + SHA256SUMS
-python3 tools/kunci_rilis.py tandatangani dist/nusantara-shield-5.2.1-ubuntu24.04-amd64/SHA256SUMS
-python3 tools/kemas_installer.py bungkus dist/nusantara-shield-5.2.1-ubuntu24.04-amd64
-#   → dist/nusantara-shield-5.2.1-ubuntu24.04-amd64.tar + SIDIK-JARI-PAKET-<tanggal>-v5.2.1.txt
+python3 tools/kunci_rilis.py tandatangani dist/nusantara-shield-5.3.0-ubuntu24.04-amd64/SHA256SUMS
+python3 tools/kemas_installer.py bungkus dist/nusantara-shield-5.3.0-ubuntu24.04-amd64
+#   → dist/nusantara-shield-5.3.0-ubuntu24.04-amd64.tar + SIDIK-JARI-PAKET-<tanggal>-v5.3.0.txt
 
 # Di Ubuntu 24.04 tanpa internet (langkah lengkap ada di BACA-SAYA.txt dalam paket):
-sha256sum nusantara-shield-5.2.1-ubuntu24.04-amd64.tar      # cocokkan dengan berita acara
-tar -xf nusantara-shield-5.2.1-ubuntu24.04-amd64.tar && cd nusantara-shield-5.2.1-ubuntu24.04-amd64
+sha256sum nusantara-shield-5.3.0-ubuntu24.04-amd64.tar      # cocokkan dengan berita acara
+tar -xf nusantara-shield-5.3.0-ubuntu24.04-amd64.tar && cd nusantara-shield-5.3.0-ubuntu24.04-amd64
 openssl pkeyutl -verify -pubin -inkey kunci-publik-rilis.pem -rawin -in SHA256SUMS -sigfile SHA256SUMS.sig
 sudo sh pasang.sh            # --uji: jalankan seluruh uji dulu · --kembali · --hapus · --bantuan
 ```
@@ -339,7 +340,7 @@ kelompok muncul setiap kali pytest pindah bagian, dan di akhir tampil ringkasan 
 Contoh memilih sebagian: `./run_tests.sh -k akun`, `./run_tests.sh tests/test_rantai_bukti.py`,
 `./run_tests.sh --lf` (ulangi yang gagal). **Jangan memakai `-q`** — opsi itu menyembunyikan nama uji.
 
-**Total: 352 uji** dalam 18 kelompok.
+**Total: 366 uji** dalam 19 kelompok.
 
 **Keamanan & akses** — `tests/test_keamanan.py` (38 uji)
 - Semua loket menolak permintaan tanpa login; token palsu & sandi salah ditolak; logout mencabut token
@@ -432,6 +433,11 @@ Contoh memilih sebagian: `./run_tests.sh -k akun`, `./run_tests.sh tests/test_ra
 - Versi sama/turun ditolak (14), naik dan `--kembali` berjalan; `--hapus` mempertahankan env dan data; bukan Ubuntu 24.04 → 20
 - Langkah yang terlewat (paket belum disusun) memberi pesan jelas; kata sandi tidak ditanyakan untuk berkas yang tidak ada
 
+**Titik periksa Ed25519** — `tests/test_titik_periksa.py` (14 uji)
+- Auditor memeriksa dengan sidik jari kunci akar saja; Ed25519 di alat auditor (pustaka bawaan Python) sama dengan pustaka *cryptography*
+- Entri sebelum titik periksa diubah, log dipotong, akar salah, titik periksa ditandatangani ulang dengan kunci curian → tertangkap; kunci periode lama tidak tersisa di disk
+- Status kunci tidak cocok → titik periksa dinonaktifkan, akar baru tidak dibuat diam-diam
+
 **Satu sumber versi** — `tests/test_versi.py` (5 uji)
 - Dasbor, kop LAPSIT, nama zip, dan paket Ubuntu memakai nomor dari `app/versi.py`; label versi yang ditulis langsung di kode tampilan → gagal
 - Nama peran tampil sebagai **Operator** dan **Pengamat** (dari kamus istilah), bukan nilai teknis huruf kecil
@@ -492,6 +498,7 @@ dibatasi lajunya dan dicatat di log audit.
 | Validasi input | Pydantic `extra="forbid"`, daftar nilai tetap, batas panjang | `app/main.py` |
 | Anti-XSS | Semua teks dipasang via `textContent` | `static/app.js` |
 | Jejak audit | Dua buku berantai HMAC-SHA256 (log audit & Buku Rantai Bukti); dapat diverifikasi auditor tanpa server | `app/audit.py`, `app/bukti.py`, `tools/verifikasi_audit.py` |
+| Titik periksa Ed25519 | Kepala kedua buku ditandatangani kunci periode berjalan; kunci berikutnya disahkan, kunci lama dihapus; auditor cukup memegang sidik jari akar | `app/titik_periksa.py`, `tools/verifikasi_titik_periksa.py` |
 | Siaran aman | Token di header (bukan URL), diperiksa ulang tiap 2 detik; maks 4 siaran/akun | `app/main.py` |
 
 Batas yang perlu diketahui: *server* berjalan sebagai **satu proses** (Hub siaran ada di memori proses itu).
@@ -522,9 +529,10 @@ static/peta.js        Peta Ancaman Global (Canvas)
 static/penjadwal.js   satu mesin animasi berbasis visibilitas
 static/style.css      tema gelap + aksen hijau neon
 docs/                 diagram alur (sumber Mermaid + SVG)
-tests/                352 uji otomatis (lihat bagian 6)
+tests/                366 uji otomatis (lihat bagian 6)
 tools/kemas_rilis.py  pembuat zip rilis bersih
 tools/verifikasi_audit.py  verifikasi rantai HMAC log audit & Buku Rantai Bukti tanpa server
+tools/verifikasi_titik_periksa.py  verifikasi titik periksa Ed25519 dengan sidik jari akar saja
 tools/kunci_rilis.py  kunci rilis Ed25519 (dibuat dan dipakai di komputer pembuat rilis)
 tools/kemas_installer.py  pembuat paket pasang Ubuntu 24.04 bertanda tangan
 installer/pasang.sh   pemasang luring Ubuntu 24.04 (verifikasi sebelum ekstraksi)
@@ -545,7 +553,7 @@ pytest.ini            pengaturan tampilan pytest
 
 **Status fitur — jujur dan tegas.**
 
-| Sudah berjalan (purwarupa v5.2.1) | Belum dibangun (peta jalan: Mode Hybrid dan eskalasi) |
+| Sudah berjalan (purwarupa v5.3.0) | Belum dibangun (peta jalan: Mode Hybrid dan eskalasi) |
 | --- | --- |
 | Operasi luring penuh di 1 satuan/RS (*on-premise*) | Pengiriman LAPSIT otomatis berjenjang ke Sansidam (Kodam) dan Kartika CSIRT (Pussiberad) |
 | Peran Pengamat dan Operator | Akses dan tampilan lintas satuan untuk pemantauan serentak di Mabes |
@@ -553,7 +561,7 @@ pytest.ini            pengaturan tampilan pytest
 | Rantai bukti HMAC-SHA256 | |
 | Korelasi CTI dan Mesin Deteksi Anomali (_anomaly detection engine_; Isolation Forest, luring) | **Respons bertingkat menurut kritikalitas aset:** aset vital tetap dua kunci; endpoint kantor berisiko rendah diisolasi otomatis dengan praotorisasi |
 | Mesin Deteksi Aturan: login gagal berulang, login tembus, pemindaian port, aturan OT (atas peristiwa sintetis), dan **impor log asli** (auth.log, firewall, CSV) | Sensor yang terus-menerus (Wazuh, Suricata, Zeek) dan peristiwa identitas dari Active Directory |
-| | **Penguatan hasil studi banding** (Proposal §5.5): evolusi kunci audit dan titik periksa Ed25519 (*forward security*), batas waktu *fail-safe* dan aturan dua orang, garis dasar Modbus, paket intelijen bertanda tangan |
+| **Titik periksa Ed25519 dengan kunci berevolusi** (*forward security*; v5.3.0) | **Penguatan hasil studi banding** (Proposal §5.5): batas waktu *fail-safe* dan aturan dua orang, garis dasar Modbus, paket intelijen bertanda tangan; evolusi kunci HMAC |
 | Linimasa 60 menit (data latihan), pita anomali AI per aset, KPI MTTC dan insiden | |
 | Simulasi OT genset (Modbus 502) | |
 | Pembuatan LAPSIT dan ekspor PDF | |
