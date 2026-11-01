@@ -154,21 +154,29 @@ def periksa(titik: list[dict], akar: str, log: dict[str, list[dict]]) -> tuple[b
             return False, pesan + [f"[RUSAK] Tanda tangan titik periksa #{i} tidak sah: isinya diubah sesudah "
                                    "ditandatangani, atau ditandatangani kunci lain."]
         for nama, kp in c.get("log", {}).items():
-            if nama not in log:
-                return False, pesan + [f"[RUSAK] Berkas buku '{nama}' tidak diberikan (pakai --log {nama}=BERKAS)."]
             n = kp["jumlah"]
+            if log.get(nama) is None:
+                if n:                                  # buku berisi, tetapi berkasnya tidak ada atau tidak diberikan
+                    return False, pesan + [f"[RUSAK] Berkas buku '{nama}' tidak diberikan atau tidak ditemukan, padahal "
+                                           f"titik periksa #{i} mencatat {n} entri (pakai --log {nama}=BERKAS)."]
+            entri_buku = log.get(nama) or []           # None + 0 entri: buku belum pernah berisi, berkas belum dibuat
             if n < jumlah_lama.get(nama, 0):
                 return False, pesan + [f"[RUSAK] Titik periksa #{i}: jumlah entri {nama} mundur."]
-            if len(log[nama]) < n:
+            if len(entri_buku) < n:
                 return False, pesan + [f"[RUSAK] {nama} dipotong: titik periksa #{i} mencatat {n} entri, berkas hanya "
-                                       f"berisi {len(log[nama])}."]
-            if kepala(log[nama], n) != kp["sha256_kumulatif"]:
+                                       f"berisi {len(entri_buku)}."]
+            if kepala(entri_buku, n) != kp["sha256_kumulatif"]:
                 return False, pesan + [f"[RUSAK] {nama}: entri 1–{n} tidak sama dengan yang ditandatangani di titik "
                                        f"periksa #{i}. Ada entri yang diubah, dihapus, atau disisipkan."]
             jumlah_lama[nama] = n
         pesan.append(f"[SAH]   Titik periksa #{i} · {c.get('waktu')} · {c.get('alasan')} · "
                      + ", ".join(f"{n} {v['jumlah']} entri" for n, v in c.get("log", {}).items()))
-    for nama, entri in log.items():
+    for nama in dict.fromkeys([*log, *jumlah_lama]):
+        entri = log.get(nama)
+        if entri is None:
+            if nama in jumlah_lama:
+                pesan.append(f"[UTUH]  {nama}: 0 entri (buku belum pernah berisi; berkasnya belum dibuat).")
+            continue
         n = jumlah_lama.get(nama, 0)
         pesan.append(f"[UTUH]  {nama}: {n} entri dilindungi tanda tangan"
                      + (f"; {len(entri) - n} entri sesudah titik periksa terakhir belum dilindungi." if len(entri) > n
@@ -192,7 +200,8 @@ def main(argv: list[str] | None = None, keluar=sys.stdout) -> int:
     peta = dict(x.split("=", 1) for x in a.log if "=" in x) or LOG_BAWAAN
     try:
         titik = baca_jsonl(Path(a.titik))
-        log = {n: baca_jsonl(Path(b)) for n, b in peta.items()}
+        # Berkas buku yang tidak ada = None: diterima hanya bila titik periksa mencatat buku itu 0 entri.
+        log = {n: (baca_jsonl(Path(b)) if Path(b).exists() else None) for n, b in peta.items()}
     except FileNotFoundError as e:
         tulis(f"GAGAL: berkas tidak ditemukan: {e.filename}")
         return 2

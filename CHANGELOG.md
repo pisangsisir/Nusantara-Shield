@@ -12,7 +12,8 @@ Seluruh kode dikembangkan sejak **15 Oktober 2026**, setelah publikasi program K
   - Bila berkas titik periksa dan berkas status tidak cocok, titik periksa dinonaktifkan dan akar baru tidak dibuat diam-diam.
 - **Baru: `tools/verifikasi_titik_periksa.py`.** Auditor memeriksa dengan sidik jari akar saja, tanpa `NS_AUDIT_KEY`. Hanya pustaka bawaan Python (Ed25519 rujukan RFC 8032).
 - LAPSIT bagian 6 mencetak nomor titik periksa dan sidik jari akar; `GET /api/audit/verifikasi` ikut mengembalikan ringkasannya.
-- **14 uji baru** (`tests/test_titik_periksa.py`), ditulis lebih dulu. Termasuk penyerang yang memegang `NS_AUDIT_KEY` dan kunci periode berjalan sekaligus. Diuji balik dengan mutasi: tanpa cek tanda tangan, tanpa cek akar, tanpa cek pengesahan kunci, atau kunci lama tidak dihapus → uji gagal. Total **366 uji** dalam 19 kelompok.
+- **15 uji baru** (`tests/test_titik_periksa.py`), ditulis lebih dulu. Termasuk penyerang yang memegang `NS_AUDIT_KEY` dan kunci periode berjalan sekaligus. Diuji balik dengan mutasi: tanpa cek tanda tangan, tanpa cek akar, tanpa cek pengesahan kunci, atau kunci lama tidak dihapus → uji gagal. Total **367 uji** dalam 19 kelompok.
+- **Perbaikan sebelum terbit (PR #32):** uji pemasangan produksi menemukan bahwa pada pemasangan baru Buku Rantai Bukti belum punya berkas, sehingga alat auditor berhenti dengan "berkas tidak ditemukan". Kini buku yang dicatat titik periksa dengan 0 entri boleh belum punya berkas; buku yang sudah berisi tetapi berkasnya tidak ada tetap ditolak. 1 uji baru.
 - **Batas:** entri sesudah titik periksa terakhir belum dilindungi; penghapusan kunci di SSD tidak dijamin tanpa enkripsi disk; kunci HMAC sendiri belum berevolusi.
 - Versi 5.3.0 (`app/versi.py`); README, Proposal §5.5, Dokumentasi Teknis §2.7.1 dan §2.9, dek (slide 4 dan 5), poster diperbarui.
 
