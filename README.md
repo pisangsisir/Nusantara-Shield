@@ -9,7 +9,7 @@ Dasbor pusat operasi keamanan siber (SOC) **defensif** untuk Kartika Cyber Hacka
 (bukti → isolasi → LAPSIT, otomatis setelah satu keputusan Operator; perintah ke perangkat masih simulasi).
 *Server* FastAPI + browser Vanilla JS/Canvas, siaran langsung (SSE), dan jejak audit berantai HMAC.
 
-Banyak sistem pertahanan berhenti di alarm. Nusantara Shield berlanjut sampai bukti tersegel, jalur terputus, dan LAPSIT terbit, dan otaknya (aturan deteksi, AI lokal, korelasi kabar ancaman) berjalan di *server* satuan sendiri, sehingga tidak ikut lumpuh saat koneksi internasional terganggu. Setiap klaim dikunci **366 uji** yang bisa dijalankan ulang siapa pun; angka di dasbor bukan animasi, dan asal setiap angka serta peta lima kriteria penilaian ada di [Proposal §7](docs/01-Proposal-Solusi-Nusantara-Shield.md#7-peta-kriteria-penilaian-dan-asal-angka).
+Banyak sistem pertahanan berhenti di alarm. Nusantara Shield berlanjut sampai bukti tersegel, jalur terputus, dan LAPSIT terbit, dan otaknya (aturan deteksi, AI lokal, korelasi kabar ancaman) berjalan di *server* satuan sendiri, sehingga tidak ikut lumpuh saat koneksi internasional terganggu. Setiap klaim dikunci **367 uji** yang bisa dijalankan ulang siapa pun; angka di dasbor bukan animasi, dan asal setiap angka serta peta lima kriteria penilaian ada di [Proposal §7](docs/01-Proposal-Solusi-Nusantara-Shield.md#7-peta-kriteria-penilaian-dan-asal-angka).
 
 - **Isolasi tidak pernah otomatis.** Isolasi otomatis terdengar cepat, sampai ia memutus segmen OT karena alarm keliru. Di sini isolasi selalu didahului bukti tersegel dan keputusan Operator; yang diputus jalurnya, genset tetap menyala.
 - **"Tanpa awan" berlaku sampai ke demonya.** Aplikasi dipasang dari paket bersidik jari tanpa internet, lalu seluruh uji dijalankan di mesin itu juga.
@@ -22,7 +22,7 @@ Banyak sistem pertahanan berhenti di alarm. Nusantara Shield berlanjut sampai bu
 ```
 app/            kode server: FastAPI, dapur situasi, rantai bukti, LAPSIT, AI lokal
 static/         dasbor (HTML, CSS, JavaScript polos; tanpa pustaka luar atau CDN)
-tests/          366 uji otomatis (pytest), dijalankan dengan ./run_tests.sh
+tests/          367 uji otomatis (pytest), dijalankan dengan ./run_tests.sh
 tools/          alat bantu: pengemasan rilis, paket pasang luring, paket Ubuntu bertanda tangan, verifikasi audit tanpa server
 installer/      pasang.sh, layanan systemd, dan pembungkus verifikasi audit untuk Ubuntu 24.04
 kunci/          kunci PUBLIK rilis (kunci privat tidak pernah ada di repo)
@@ -340,7 +340,7 @@ kelompok muncul setiap kali pytest pindah bagian, dan di akhir tampil ringkasan 
 Contoh memilih sebagian: `./run_tests.sh -k akun`, `./run_tests.sh tests/test_rantai_bukti.py`,
 `./run_tests.sh --lf` (ulangi yang gagal). **Jangan memakai `-q`** — opsi itu menyembunyikan nama uji.
 
-**Total: 366 uji** dalam 19 kelompok.
+**Total: 367 uji** dalam 19 kelompok.
 
 **Keamanan & akses** — `tests/test_keamanan.py` (38 uji)
 - Semua loket menolak permintaan tanpa login; token palsu & sandi salah ditolak; logout mencabut token
@@ -433,10 +433,11 @@ Contoh memilih sebagian: `./run_tests.sh -k akun`, `./run_tests.sh tests/test_ra
 - Versi sama/turun ditolak (14), naik dan `--kembali` berjalan; `--hapus` mempertahankan env dan data; bukan Ubuntu 24.04 → 20
 - Langkah yang terlewat (paket belum disusun) memberi pesan jelas; kata sandi tidak ditanyakan untuk berkas yang tidak ada
 
-**Titik periksa Ed25519** — `tests/test_titik_periksa.py` (14 uji)
+**Titik periksa Ed25519** — `tests/test_titik_periksa.py` (15 uji)
 - Auditor memeriksa dengan sidik jari kunci akar saja; Ed25519 di alat auditor (pustaka bawaan Python) sama dengan pustaka *cryptography*
 - Entri sebelum titik periksa diubah, log dipotong, akar salah, titik periksa ditandatangani ulang dengan kunci curian → tertangkap; kunci periode lama tidak tersisa di disk
 - Status kunci tidak cocok → titik periksa dinonaktifkan, akar baru tidak dibuat diam-diam
+- Pemasangan baru (Buku Rantai Bukti belum berisi, berkasnya belum ada) tetap lolos; buku berisi yang berkasnya hilang ditolak
 
 **Satu sumber versi** — `tests/test_versi.py` (5 uji)
 - Dasbor, kop LAPSIT, nama zip, dan paket Ubuntu memakai nomor dari `app/versi.py`; label versi yang ditulis langsung di kode tampilan → gagal
@@ -529,7 +530,7 @@ static/peta.js        Peta Ancaman Global (Canvas)
 static/penjadwal.js   satu mesin animasi berbasis visibilitas
 static/style.css      tema gelap + aksen hijau neon
 docs/                 diagram alur (sumber Mermaid + SVG)
-tests/                366 uji otomatis (lihat bagian 6)
+tests/                367 uji otomatis (lihat bagian 6)
 tools/kemas_rilis.py  pembuat zip rilis bersih
 tools/verifikasi_audit.py  verifikasi rantai HMAC log audit & Buku Rantai Bukti tanpa server
 tools/verifikasi_titik_periksa.py  verifikasi titik periksa Ed25519 dengan sidik jari akar saja

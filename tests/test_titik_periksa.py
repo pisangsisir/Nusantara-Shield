@@ -271,3 +271,29 @@ def test_titik_periksa_lanjutan_diganti_kunci_curian_tertangkap(sistem, monkeypa
     tulis(tp, [asli[0], c])
     kode, teks = periksa(sistem, monkeypatch=monkeypatch)
     assert kode == 1 and "disahkan" in teks, teks
+
+
+def test_buku_yang_belum_berisi_tidak_menggagalkan_auditor(tmp_path, monkeypatch):
+    """Pemasangan baru: Buku Rantai Bukti belum punya entri, jadi berkasnya belum ada. Titik periksa mencatatnya
+    dengan 0 entri; alat auditor harus menerimanya, termasuk dengan susunan berkas bawaan (data/ di folder kerja)."""
+    monkeypatch.setenv("NS_AUDIT_KEY", KUNCI_HMAC)
+    monkeypatch.chdir(tmp_path)
+    for v in ("NS_AUDIT_FILE", "NS_BUKTI_FILE", "NS_TITIK_PERIKSA_FILE", "NS_TITIK_PERIKSA_KUNCI"):
+        monkeypatch.delenv(v, raising=False)
+    log = LogAudit()
+    bukti = LogAudit("NS_BUKTI_FILE", "data/rantai_bukti.jsonl", "buku rantai bukti")
+    t = TitikPeriksa({"audit_log": log, "rantai_bukti": bukti}, setiap=5)
+    log.catat("operator", "EKSPOR_LAPSIT", {})
+    assert t.buat("EKSPOR_LAPSIT")["log"]["rantai_bukti"]["jumlah"] == 0
+    assert not (tmp_path / "data" / "rantai_bukti.jsonl").exists()
+    monkeypatch.delenv("NS_AUDIT_KEY")
+    for argv in (["--akar", t.sidik_jari_akar], ["--akar", t.sidik_jari_akar, "--log", "audit_log=data/audit_log.jsonl"]):
+        keluar = io.StringIO()
+        kode = alat.main(argv, keluar=keluar)
+        assert kode == 0 and "[SAH]" in keluar.getvalue() and "rantai_bukti: 0 entri" in keluar.getvalue(), keluar.getvalue()
+    # Buku yang SUDAH berisi tetapi berkasnya tidak diberikan tetap ditolak.
+    bukti.catat("operator", "BUKTI_DIAMANKAN", {"nomor": "BB-2026-001"})
+    t.buat("UJI")
+    keluar = io.StringIO()
+    assert alat.main(["--akar", t.sidik_jari_akar, "--log", "audit_log=data/audit_log.jsonl"], keluar=keluar) == 1
+    assert "tidak diberikan" in keluar.getvalue()
