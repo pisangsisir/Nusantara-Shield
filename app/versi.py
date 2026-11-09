@@ -10,4 +10,4 @@ dan versi bawaan paket Ubuntu semuanya membaca nilai ini. Alat pengemas di tools
 tests/test_versi.py gagal bila label versi ditulis langsung di tempat lain.
 """
 
-VERSI = "5.3.0"
+VERSI = "5.4.0"

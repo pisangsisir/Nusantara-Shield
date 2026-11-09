@@ -4,6 +4,19 @@ Seluruh kode dikembangkan sejak **15 Oktober 2026**, setelah publikasi program K
 
 ## Belum dirilis
 
+(kosong)
+
+## v5.4.0 — 9 November 2026
+
+Rilis ini menggabungkan semua perubahan sejak v5.2.0. Versi 5.3.0 tidak diterbitkan sebagai rilis tersendiri; isinya (titik periksa Ed25519 dan tinjauan CTO) ikut di sini.
+
+### Penyegaran materi v5.4.0 — 9 November 2026 (branch `feature/rilis-540`)
+- `app/versi.py` → **5.4.0**; nomor versi di dek, poster, README, Proposal, dan Dokumentasi Teknis ikut diperbarui. Penyebutan "(v5.3.0)" yang merujuk sejarah dibiarkan.
+- Jumlah uji **411** (20 kelompok, ≈55 detik di Linux) di semua bahan; ringkasan doktrin Tangkal 122, Manusia 123, Bukti 36, Jejak 27, Luring 32, Pendukung 71. Tabel uji Dokumentasi Teknis kini punya baris Drill Kesiapan (36) dan blok terminalnya dibangkitkan ulang.
+- Dek: Drill Kesiapan dan impor Wazuh/Suricata masuk slide Mode Berdaulat dan Lampiran B (Fungsionalitas); dua jawaban tanya jawab baru di catatan pembicara.
+- Poster: fungsi Detect kini memuat **impor berkas Wazuh dan Suricata** (BERJALAN) menggantikan butir peta jalan "sensor jaringan nyata"; fungsi Protect memuat **Drill Kesiapan berskor** (BERJALAN). Sambungan langsung ke sensor tetap belum dibangun.
+- Unduhan situs dibangun ulang dari sumber terbaru (`tools/bangun_situs.py`).
+
 ### Situs bergaya layar posko — 9 November 2026 (branch `feature/situs-hud`)
 - Situs dirombak memakai gaya asli dasbor: latar biru malam, hijau neon untuk AMAN/siap, kuning WASPADA, merah KRITIS, label HUD huruf mono, dan ikon garis yang sama dengan aplikasi.
 - Pembuka: radar beranimasi (zona DMZ, internal, kendali OT) dan panel status sistem; pita kata kunci doktrin.
