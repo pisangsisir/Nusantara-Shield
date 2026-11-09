@@ -65,7 +65,7 @@ from .telemetri import (AKSI_GABUNGAN, ASET_BERPORT, MENARA, MIN_ALASAN_DARURAT,
 from .ai_anomali import POLA
 from .deteksi import JENIS_LATIHAN
 from .impor_log import GalatImpor
-from .drill import DRILL, KATALOG as KATALOG_DRILL, GalatDrill, log_cerita
+from .drill import DRILL, KATALOG as KATALOG_DRILL, GalatDrill, awal_cerita, log_cerita
 
 JALUR_IMPOR = "/api/deteksi/impor"
 MAKS_ISI_IMPOR = 2_000_000                # karakter isi berkas log (≈2 MB)
@@ -803,7 +803,7 @@ def mulai_drill(f: DrillMulaiMasuk, akun: Akun = Depends(butuh_izin("ubah"))) ->
             raise HTTPException(409, f"Drill {DRILL.aktif['id']} masih berjalan: selesaikan dulu")
         if LAYANAN[k["layanan_id"]]["insiden"]:
             raise HTTPException(409, f"{LAYANAN[k['layanan_id']]['nama']} masih dalam insiden: pulihkan dulu")
-        awal = time.time() - 240                    # cerita terjadi ≈4 menit sebelum drill dibuka
+        awal = awal_cerita(f.kode, time.time())     # ≈4 menit sebelum drill, atau jam tetap skenario OT
         teks = log_cerita(f.kode, awal)
         nama = f"drill-{f.kode}.log"
         impor = MENARA.impor_log(LAYANAN, nama, teks, k["aset_ssh"])

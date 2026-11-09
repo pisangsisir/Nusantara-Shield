@@ -24,16 +24,18 @@ Alur satu drill:
      angkanya. Hasil masuk log audit berantai dan LAPSIT, ditandai LATIHAN.
 
 Batas yang jujur:
-  - Satu skenario dulu (cadangan dilepas, pola awal kasus PDNS). Tabletop exercise untuk pimpinan belum dibangun.
+  - Dua skenario: cadangan dilepas (auth.log, pola awal kasus PDNS) dan perintah asing ke pengendali genset
+    (Suricata eve.json). Skenario perubahan halaman situs satuan dan tabletop exercise untuk pimpinan belum dibangun.
   - Ambang kecepatan adalah target latihan purwarupa, bukan standar resmi; satuan dapat menyesuaikannya.
   - Drill mengukur keputusan dan kecepatan di purwarupa ini, bukan kemampuan forensik Operator.
 """
 
 from __future__ import annotations
 
+import json
 import uuid
 from collections import deque
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 
 from .deteksi import ATURAN
 from .istilah import ISTILAH
@@ -79,40 +81,32 @@ _CERITA_CADANGAN = (
     ]
 )
 
-KATALOG: dict[str, dict] = {
-    "cadangan_dilepas": {
-        "judul": "Cadangan dilepas sebelum serangan",
-        "ringkas": "Akun layanan cadangan dibobol lewat tebakan sandi, lalu jadwal pencadangan dimatikan dan "
-                   "direktori cadangan dilepas. Pola awal kasus PDNS 2024: tanda bahaya ada sebelum enkripsi.",
-        "layanan_id": "kesehatan",
-        "skenario": "backup_dimatikan",
-        "aset_ssh": "ssh",
-        "aturan_harus": ["login_gagal", "login_tembus"],
-        "cerita": _CERITA_CADANGAN,
-    },
-}
+# Cerita OT dalam format Suricata eve.json (sensor yang mungkin sudah dimiliki satuan). (detik, objek tanpa timestamp).
+# HMI resmi 192.0.2.140 membaca register (bukan temuan); stasiun kerja kantor 192.0.2.183 menyeberang ke zona kendali,
+# membaca, lalu menulis register jadwal start genset. Dinilai mesin deteksi aturan lewat jalur impor yang sama.
+HMI, PENYUSUP_OT, GENSET = "192.0.2.140", "192.0.2.183", "192.0.2.120"
 
 
-def _iso_lokal(epoch: float) -> str:
-    return datetime.fromtimestamp(epoch, zona()[1]).isoformat(timespec="seconds")
+def _aliran(src: str, sport: int) -> dict:
+    return {"event_type": "flow", "src_ip": src, "src_port": sport, "dest_ip": GENSET, "dest_port": 502, "proto": "TCP",
+            "app_proto": "modbus"}
 
 
-def _jam(epoch: float) -> str:
-    return datetime.fromtimestamp(epoch, zona()[1]).strftime("%H:%M:%S")
+def _modbus(src: str, sport: int, fungsi: int, nama: str) -> dict:
+    return {"event_type": "modbus", "src_ip": src, "src_port": sport, "dest_ip": GENSET, "dest_port": 502, "proto": "TCP",
+            "modbus": {"request": {"unit_id": 1, "function_raw": fungsi, "function_code": nama}}}
 
 
-def log_cerita(kode: str, awal: float) -> str:
-    """Teks log sintetis satu cerita; detik ke-0 = epoch `awal`, ditulis dalam zona waktu satuan (NS_ZONA_WAKTU)."""
-    nama_zona = zona()[0]
-    baris = [f"# SIMULASI drill kesiapan «{KATALOG[kode]['judul']}». Data sintetis, alamat RFC 5737, "
-             f"zona waktu {nama_zona}."]
-    baris += [f"{_iso_lokal(awal + dt)} {HOST} {isi}" for dt, isi in KATALOG[kode]["cerita"]]
-    return "\n".join(baris) + "\n"
+_CERITA_OT = [
+    (0, _aliran(HMI, 50200)), (1, _modbus(HMI, 50200, 3, "ReadHoldingRegisters")),
+    (30, _aliran(PENYUSUP_OT, 50310)), (32, _modbus(PENYUSUP_OT, 50310, 3, "ReadHoldingRegisters")),
+    (35, _modbus(PENYUSUP_OT, 50310, 6, "WriteSingleRegister")),
+    (37, _modbus(PENYUSUP_OT, 50310, 16, "WriteMultipleRegisters")),
+    (40, {"event_type": "stats", "stats": {"uptime": 3600}}),
+]
 
 
-def _pertanyaan(kode: str, awal: float) -> list[dict]:
-    """Empat pertanyaan per fase IR. Jam di pertanyaan deteksi diambil dari log cerita yang sama."""
-    j = {dt: _jam(awal + dt) for dt, _ in KATALOG[kode]["cerita"]}
+def _soal_cadangan(j: dict[int, str]) -> list[dict]:
     return [
         {"fase": "Deteksi", "teks": "Pukul berapa penyerang PERTAMA KALI berhasil masuk menurut log?",
          "opsi": {"a": f"{j[0]} (login gagal pertama)", "b": f"{j[140]} (direktori cadangan dilepas)",
@@ -148,6 +142,120 @@ def _pertanyaan(kode: str, awal: float) -> list[dict]:
                        "belum pernah diuji pulih ibarat payung yang belum pernah dibuka. Restart atau laporan tidak "
                        "menutup celah yang dipakai penyerang."},
     ]
+
+
+def _soal_ot(j: dict[int, str]) -> list[dict]:
+    return [
+        {"fase": "Deteksi", "teks": "Pukul berapa perintah TULIS pertama yang tidak sah sampai ke pengendali genset?",
+         "opsi": {"a": f"{j[1]} (HMI resmi membaca register)", "b": f"{j[30]} (koneksi dari jaringan kantor dibuka)",
+                  "c": f"{j[32]} (register dibaca dari jaringan kantor)", "d": f"{j[35]} (WriteSingleRegister)"},
+         "kunci": "d",
+         "penjelasan": "Fungsi Modbus 6 (WriteSingleRegister) dan 16 (WriteMultipleRegisters) mengubah isi register; "
+                       "fungsi 3 hanya membaca. Perintah tulis pertama dari stasiun kerja kantor adalah saat jadwal "
+                       "genset mulai diubah."},
+        {"fase": "Analisis", "teks": f"Mengapa {PENYUSUP_OT} dianggap tidak sah, sedangkan {HMI} tidak?",
+         "opsi": {"a": f"{PENYUSUP_OT} memakai port yang berbeda.",
+                  "b": f"{HMI} hanya membaca, jadi alamat apa pun yang membaca pasti aman.",
+                  "c": f"{HMI} adalah stasiun rekayasa (HMI) yang terdaftar; {PENYUSUP_OT} tidak ada di daftar jalur OT "
+                       "dan menulis register di luar jendela pemeliharaan 22.00–02.00.",
+                  "d": "Pengendali genset menolak perintah dari alamat itu."},
+         "kunci": "c",
+         "penjelasan": "Zona kendali dijaga dengan daftar jalur yang diizinkan dan jendela pemeliharaan. Koneksi dari "
+                       "alamat di luar daftar, disusul perintah tulis di luar jendela, membentuk rantai IT ke OT: tanda "
+                       "penyerang sudah menyeberang dari jaringan kantor."},
+        {"fase": "Penahanan", "teks": "Apa langkah pertama yang paling tepat sekarang?",
+         "opsi": {"a": "Matikan genset supaya perintah asing tidak berpengaruh.",
+                  "b": "Segel bukti (rekaman Modbus, log stasiun kerja, konfigurasi pengendali), lalu putus jalur kantor "
+                       "ke zona kendali. Genset tetap menyala dengan kendali lokal.",
+                  "c": "Blokir semua lalu lintas Modbus, termasuk dari HMI resmi.",
+                  "d": "Tunggu sampai jadwal start genset benar-benar berubah agar yakin."},
+         "kunci": "b",
+         "penjelasan": "Di rumah sakit, genset adalah cadangan daya IGD, ICU, dan ruang operasi; mematikannya justru "
+                       "menyelesaikan pekerjaan penyerang. Yang diputus adalah jalur antara jaringan kantor dan zona "
+                       "kendali (NIST SP 800-82), setelah bukti tersegel. Memblokir HMI resmi membutakan teknisi sendiri."},
+        {"fase": "Pemulihan", "teks": "Kapan jalur kendali jarak jauh boleh disambung lagi?",
+         "opsi": {"a": "Setelah stasiun kerja kantor di-restart.",
+                  "b": "Segera setelah laporan ke pimpinan terkirim.",
+                  "c": "Setelah satu jam tanpa peringatan baru.",
+                  "d": "Setelah konfigurasi dan jadwal start genset dicek fisik, akses jarak jauh stasiun kerja dicabut, "
+                       "dan sidik jari bukti dicocokkan ulang dengan berita acara."},
+         "kunci": "d",
+         "penjelasan": "Penyerang sempat menulis register, jadi isi pengendali harus dicek langsung di ruang mesin, "
+                       "bukan dari layar yang mungkin sudah dimanipulasi. Restart, laporan, atau sepinya peringatan "
+                       "tidak membuktikan celahnya tertutup."},
+    ]
+
+
+KATALOG: dict[str, dict] = {
+    "cadangan_dilepas": {
+        "judul": "Cadangan dilepas sebelum serangan",
+        "ringkas": "Akun layanan cadangan dibobol lewat tebakan sandi, lalu jadwal pencadangan dimatikan dan "
+                   "direktori cadangan dilepas. Pola awal kasus PDNS 2024: tanda bahaya ada sebelum enkripsi.",
+        "layanan_id": "kesehatan",
+        "skenario": "backup_dimatikan",
+        "aset_ssh": "ssh",
+        "format": "auth.log",
+        "aturan_harus": ["login_gagal", "login_tembus"],
+        "cerita": _CERITA_CADANGAN,
+        "soal": _soal_cadangan,
+        "jam_tetap": None,
+    },
+    "genset_dari_kantor": {
+        "judul": "Perintah asing ke pengendali genset",
+        "ringkas": "Stasiun kerja kantor menyeberang ke zona kendali OT lalu menulis register jadwal start genset "
+                   "rumah sakit. Log dari sensor jaringan Suricata (eve.json), format yang sudah dipakai banyak SOC.",
+        "layanan_id": "listrik",
+        "skenario": "sabotase_ot",
+        "aset_ssh": "ssh",
+        "format": "Suricata eve.json",
+        "aturan_harus": ["ot_tanpa_izin", "tulis_ot_luar_jadwal", "rantai_it_ot"],
+        "cerita": _CERITA_OT,
+        "soal": _soal_ot,
+        # Perintah tulis wajar di jendela pemeliharaan 22.00–02.00. Supaya cerita selalu "di luar jendela", ia
+        # ditaruh pada pukul 14.00 terakhir yang sudah lewat (zona waktu satuan), bukan pada jam drill dibuka.
+        "jam_tetap": 14,
+    },
+}
+
+
+def _iso_lokal(epoch: float) -> str:
+    return datetime.fromtimestamp(epoch, zona()[1]).isoformat(timespec="seconds")
+
+
+def _jam(epoch: float) -> str:
+    return datetime.fromtimestamp(epoch, zona()[1]).strftime("%H:%M:%S")
+
+
+def awal_cerita(kode: str, sekarang: float) -> float:
+    """Epoch detik ke-0 cerita: ≈4 menit sebelum drill, atau pukul `jam_tetap` terakhir yang sudah lewat."""
+    jam = KATALOG[kode]["jam_tetap"]
+    if jam is None:
+        return sekarang - 240
+    kini = datetime.fromtimestamp(sekarang, zona()[1])
+    titik = kini.replace(hour=jam, minute=0, second=0, microsecond=0)
+    if titik.timestamp() > sekarang - 120:
+        titik -= timedelta(days=1)
+    return titik.timestamp()
+
+
+def log_cerita(kode: str, awal: float) -> str:
+    """Teks log sintetis satu cerita; detik ke-0 = epoch `awal`, ditulis dalam zona waktu satuan (NS_ZONA_WAKTU)."""
+    k, nama_zona = KATALOG[kode], zona()[0]
+    tanda = (f"SIMULASI drill kesiapan «{k['judul']}». Data sintetis, alamat RFC 5737, zona waktu {nama_zona}.")
+    if k["format"] == "auth.log":
+        baris = [f"# {tanda}"] + [f"{_iso_lokal(awal + dt)} {HOST} {isi}" for dt, isi in k["cerita"]]
+    else:   # JSON per baris ala eve.json; stempel waktu bergaya Suricata (+0700). Penanda simulasi = event "stats".
+        def stempel(t: float) -> str:
+            return datetime.fromtimestamp(t, zona()[1]).strftime("%Y-%m-%dT%H:%M:%S.000%z")
+        baris = [json.dumps({"timestamp": stempel(awal - 1), "event_type": "stats", "catatan": tanda}, ensure_ascii=False)]
+        baris += [json.dumps({"timestamp": stempel(awal + dt), **o}, ensure_ascii=False) for dt, o in k["cerita"]]
+    return "\n".join(baris) + "\n"
+
+
+def _pertanyaan(kode: str, awal: float) -> list[dict]:
+    """Empat pertanyaan per fase IR. Jam di pertanyaan diambil dari log cerita yang sama."""
+    k = KATALOG[kode]
+    return k["soal"]({dt: _jam(awal + dt) for dt, _ in k["cerita"]})
 
 
 # ---------------------------------------------------------------- rumus nilai (terbuka)
@@ -204,8 +312,8 @@ class PengelolaDrill:
         self.riwayat: deque[dict] = deque(maxlen=MAKS_RIWAYAT)
 
     def katalog(self) -> list[dict]:
-        return [{"kode": k, "judul": v["judul"], "ringkas": v["ringkas"], "layanan_id": v["layanan_id"]}
-                for k, v in KATALOG.items()]
+        return [{"kode": k, "judul": v["judul"], "ringkas": v["ringkas"], "layanan_id": v["layanan_id"],
+                 "format": v["format"]} for k, v in KATALOG.items()]
 
     def mulai(self, kode: str, oleh: str, log: str, awal: float, impor: dict) -> dict:
         if self.aktif:
@@ -214,7 +322,7 @@ class PengelolaDrill:
         muncul = {t["aturan"] for t in impor.get("temuan", [])}
         self.aktif = {
             "id": f"DRL-{uuid.uuid4().hex[:6].upper()}", "kode": kode, "judul": k["judul"], "ringkas": k["ringkas"],
-            "layanan_id": k["layanan_id"], "mulai": _iso(), "oleh": oleh, "log": log,
+            "layanan_id": k["layanan_id"], "mulai": _iso(), "oleh": oleh, "log": log, "format": k["format"],
             "impor": {x: impor[x] for x in ("format", "baris", "dikenali", "diabaikan")},
             "deteksi": [{"aturan": a, "nama": ATURAN[a]["nama"], "muncul": a in muncul} for a in k["aturan_harus"]],
             "pertanyaan": [{**p, "dijawab": None, "benar": None} for p in _pertanyaan(kode, awal)],

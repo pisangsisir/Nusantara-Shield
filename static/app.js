@@ -1405,7 +1405,8 @@ async function resetDemo() {
 
 // ---------------------------------------------------------------- Alat: drill kesiapan (app/drill.py)
 // Kunci jawaban tidak pernah ada di browser sebelum pertanyaan dijawab; nilai dihitung server dari jejak tercatat.
-const KELAS_BARIS_LOG = [[/^#/, "catatan"], [/Accepted /, "diterima"], [/Failed /, "gagal"], [/sudo:/, "sudo"]];
+const KELAS_BARIS_LOG = [[/^#|"event_type": "stats"/, "catatan"], [/Accepted |"function_raw": (5|6|15|16),/, "diterima"],
+  [/Failed |"src_ip": "192\.0\.2\.183"/, "gagal"], [/sudo:/, "sudo"]];   // auth.log dan Suricata eve.json
 const durasi = (detik) => `${Math.floor(detik / 60)}:${String(detik % 60).padStart(2, "0")}`;
 
 async function muatDrill(diam = false) {
@@ -1429,7 +1430,7 @@ function gambarDrill() {
     for (const d of katalog) {
       const sibukLayanan = Boolean(S.layanan.find((l) => l.id === d.layanan_id)?.insiden);
       isi.push(el("div", { kelas: "kartu drill-katalog" },
-        el("div", {}, el("p", { kelas: "label-kecil", teks: `Skenario drill · ${namaLayanan(d.layanan_id)}` }),
+        el("div", {}, el("p", { kelas: "label-kecil", teks: `Skenario drill · ${namaLayanan(d.layanan_id)} · log ${d.format}` }),
           el("h3", { teks: d.judul }), el("p", { kelas: "redup kecil", teks: d.ringkas }),
           sibukLayanan ? el("p", { kelas: "kecil drill-peringatan", teks: `${namaLayanan(d.layanan_id)} masih dalam insiden: pulihkan dulu dari Action Center, lalu mulai drill.` }) : null),
         el("button", { type: "button", kelas: "tombol utama", "data-ubah": "", "data-kunci": `drill-mulai-${d.kode}`,
@@ -1472,14 +1473,14 @@ function kartuDrillAktif(a) {
         el("p", { kelas: "redup kecil", teks: `Dimulai ${jamLokal(a.mulai)} oleh ${a.oleh} · sasaran ${namaLayanan(a.layanan_id)}` })),
       el("div", { kelas: "drill-stopwatch", "aria-label": "Waktu sejak drill dimulai" }, ikon("jam"), el("b", { id: "drill-stopwatch", teks: "0:00" }))),
     el("ol", { kelas: "drill-langkah" },
-      el("li", { teks: "Baca log di bawah: apa yang terjadi, kapan, dengan akun apa?" }),
+      el("li", { teks: "Baca log di bawah: apa yang terjadi, kapan, dan dari mana?" }),
       el("li", {}, "Tangani insiden ", el("b", { teks: namaLayanan(a.layanan_id) }), " di ", el("b", { teks: "Action Center" }),
         ". Tombol isolasi mengamankan bukti lebih dulu; stopwatch penahanan sudah berjalan."),
       el("li", { teks: "Jawab satu pertanyaan per fase. Jawaban tidak bisa diubah." }),
       el("li", { teks: "Tekan Selesai & hitung nilai." })),
     el("div", { kelas: "drill-dua" },
-      el("div", {}, el("p", { kelas: "label-kecil", teks: "Log sintetis (auth.log)" }), el("pre", { kelas: "drill-log", tabindex: 0 }, ...baris),
-        el("p", { kelas: "redup kecil", teks: `${a.impor.dikenali} dari ${a.impor.baris} baris dibaca aturan deteksi (${a.impor.format}); ${a.impor.diabaikan} baris lain (sudo, sesi) diabaikan aturan, tetapi tetap bisa dibaca Operator.` })),
+      el("div", {}, el("p", { kelas: "label-kecil", teks: `Log sintetis (${a.format})` }), el("pre", { kelas: "drill-log", tabindex: 0 }, ...baris),
+        el("p", { kelas: "redup kecil", teks: `${a.impor.dikenali} dari ${a.impor.baris} baris dibaca aturan deteksi (${a.impor.format}); ${a.impor.diabaikan} baris lain (sudo, sesi, statistik sensor) diabaikan aturan, tetapi tetap bisa dibaca Operator.` })),
       el("div", {}, el("p", { kelas: "label-kecil", teks: "Kunci jawaban deteksi" }),
         el("p", { kelas: "redup kecil", teks: "Aturan yang seharusnya menangkap cerita ini. Bila ada yang tidak muncul, aturannya yang perlu diperiksa." }),
         el("ul", { kelas: "drill-deteksi" }, ...det))),

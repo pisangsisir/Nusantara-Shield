@@ -4,6 +4,13 @@ Seluruh kode dikembangkan sejak **15 Oktober 2026**, setelah publikasi program K
 
 ## Belum dirilis
 
+### Drill Kesiapan: skenario OT dari Suricata — 9 November 2026 (branch `feature/drill-ot`)
+- Skenario kedua **"Perintah asing ke pengendali genset"**: log cerita dalam format **Suricata `eve.json`**, dinilai lewat jalur impor yang sama (butuh PR impor Wazuh/Suricata). HMI resmi membaca register (bukan temuan); stasiun kerja kantor menyeberang ke zona kendali lalu menulis register jadwal start genset → tiga aturan OT harus muncul.
+- Insiden latihan *Sabotase OT* di Genset RS Kesdam; pertanyaan per fase menekankan **genset tidak dimatikan** dan jalur kantor → zona kendali yang diputus (NIST SP 800-82).
+- Cerita OT ditaruh pada pukul 14.00 terakhir yang sudah lewat (zona waktu satuan) agar selalu di luar jendela pemeliharaan 22.00–02.00, kapan pun drill dibuka.
+- Katalog drill kini membawa format log, cerita, dan pertanyaan per skenario; tampilan menyesuaikan format.
+- **8 uji baru**; total **411 uji**. *Deface* situs satuan masuk peta jalan (butuh jenis insiden dan aturan baru).
+
 ### Impor keluaran Wazuh dan Suricata — 9 November 2026 (branch `feature/impor-wazuh-suricata`)
 - **Alasan:** satuan yang sudah memasang Wazuh (IT) dan Suricata (OT) tidak perlu mengubah apa pun untuk mencoba Nusantara Shield. Keluaran sensornya cukup diimpor.
 - `app/impor_log.py` kini membaca **Wazuh `alerts.json`** dan **Suricata `eve.json`** (JSON per baris, atau satu larik JSON hasil ekspor) lewat jalur impor yang sama:
