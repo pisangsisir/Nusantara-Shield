@@ -501,6 +501,7 @@ class Menara:
         self._antre_det: list[tuple[float, dict]] = []     # deteksi: peristiwa mentah latihan yang menunggu waktunya
         self._meta_insiden: dict[str, dict] = {}            # peringatan: judul & waktu mulai insiden aktif
         self._riwayat_insiden: deque[dict] = deque(maxlen=5)  # peringatan: insiden yang sudah dipulihkan
+        self._respons: dict[str, dict] = {}                 # drill: jejak respons per layanan (tetap ada setelah pulih)
         self.catat("info", "Pemantauan jaringan dimulai. Semua data adalah data sintetis.")
 
     def ubah(self) -> None:
@@ -713,6 +714,8 @@ class Menara:
         self._jumlah_insiden += 1
         self._meta_insiden[layanan_id] = {"judul": judul, "nama": nama, "skenario": skenario, "mulai": _iso()}
         self._mttc.pop(layanan_id, None)
+        self._respons[layanan_id] = {"bukti_detik": None, "bukti_nomor": None, "darurat_detik": None,
+                                     "mttc_detik": None, "mttc_metode": None, "bukti_cocok": None, "pulih_detik": None}
         self._ir_insiden.pop(layanan_id, None)        # insiden baru = laporan baru
         self._jejak.pop(layanan_id, None)
         self._perintah_isolasi.pop(layanan_id, None)
@@ -787,6 +790,7 @@ class Menara:
                     and layanan_id in self._mulai_insiden:
                 detik = round(self._jam() - self._mulai_insiden[layanan_id])
                 self._mttc[layanan_id] = {"detik": detik, "metode": metode}
+                self._jejak_respons(layanan_id, mttc_detik=detik, mttc_metode=metode)
                 self._mttc_semua.append(detik)
                 self.catat("info", f"Waktu penahanan (MTTC) {l['nama']}: {detik} detik "
                                    f"({'otomatis lewat SOAR' if metode == 'soar' else 'manual'})",
@@ -1026,6 +1030,7 @@ class Menara:
                  "detik": self._detik_insiden(layanan_id), "susulan": susulan,
                  "barang": [{k: b[k] for k in ("nama", "ket", "ukuran", "sha256")} for b in d["barang"]]}
         self._bukti[layanan_id] = rekam
+        self._jejak_respons(layanan_id, bukti_detik=rekam["detik"], bukti_nomor=rekam["nomor"])
         ir = self._ir_insiden.get(layanan_id)
         self._cermin(oleh, BUKTI_DIAMANKAN, {"layanan": layanan_id, "nomor": d["nomor"], "sha256": d["sha256"],
                                             "hash_buku": e["hash"], "susulan": susulan,
@@ -1074,6 +1079,7 @@ class Menara:
             "status_bukti": "BELUM DIAMANKAN saat jaringan diputus", "tindakan": [a["id"] for a in sisa]})
         self._darurat[layanan_id] = {"alasan": alasan, "petugas": oleh, "waktu": e["waktu"], "hash_buku": e["hash"],
                                      "urutan_buku": e["urutan"], "detik": self._detik_insiden(layanan_id)}
+        self._jejak_respons(layanan_id, darurat_detik=self._darurat[layanan_id]["detik"])
         self._cermin(oleh, ISOLASI_DARURAT, {"layanan": layanan_id, "alasan": alasan, "hash_buku": e["hash"]})
         self.catat("tinggi", f"⚠ {ISTILAH['tombol_darurat']} oleh {oleh} di {l['nama']}: bukti BELUM diamankan. "
                              f"Alasan: {alasan}", layanan=layanan_id, jenis="bukti")
@@ -1099,6 +1105,7 @@ class Menara:
                                            "layanan": layanan_id, "sha256": rekam["sha256"], "cocok": cocok,
                                            "pesan": pesan, "keperluan": "pemulihan"})
         self._cermin(oleh, aksi, {"layanan": layanan_id, "nomor": rekam["nomor"], "cocok": cocok, "hash_buku": e["hash"]})
+        self._jejak_respons(layanan_id, bukti_cocok=cocok)
         nama = layanan[layanan_id]["nama"]
         if not cocok:
             self.catat("kritis", f"✖ Verifikasi bukti {rekam['nomor']} GAGAL ({pesan}): pemulihan {nama} dikunci",
@@ -1149,7 +1156,18 @@ class Menara:
                           "gangguan": bool(l["insiden"].get("gangguan_bukti"))}
         return {"insiden": hasil, "buku": self.rantai.status_buku(), "min_alasan": MIN_ALASAN_DARURAT}
 
+    def _jejak_respons(self, layanan_id: str, **nilai) -> None:
+        if layanan_id in self._respons:
+            self._respons[layanan_id].update(nilai)
+
+    def respons(self, layanan: dict, layanan_id: str) -> dict:
+        """Jejak respons insiden terakhir di satu layanan (detik sejak insiden dimulai), untuk nilai drill.
+        Antrean SOAR yang sudah jatuh tempo diproses dulu supaya jejaknya terkini."""
+        self._proses_antre_soar(layanan)
+        return dict(self._respons.get(layanan_id, {}))
+
     def insiden_ditutup(self, layanan_id: str) -> None:
+        self._jejak_respons(layanan_id, pulih_detik=self._detik_insiden(layanan_id))
         meta, b = self._meta_insiden.pop(layanan_id, None), self._bukti.get(layanan_id)
         if meta:
             self._riwayat_insiden.appendleft({**meta, "layanan_id": layanan_id, "selesai": _iso(),

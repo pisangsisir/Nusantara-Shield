@@ -71,6 +71,8 @@ ISTILAH: dict = {
     "tutup_fp": "False Positive",
     "tombol_tutup_peringatan": "Tutup peringatan",
     "kesiapan": "Kesiapan Siber",
+    # cyber drill untuk Operator (app/drill.py); dasar: Perpres 82/2022 Pasal 15 (simulasi tanggap insiden)
+    "drill": "Drill Kesiapan",
 
     # --- nama resmi komponen (penyebutan pertama di dokumen disertai istilah aslinya dalam kurung) ---
     "mesin_aturan": "Mesin Deteksi Aturan",     # rule-based detection engine (app/deteksi.py)

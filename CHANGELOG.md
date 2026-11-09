@@ -4,6 +4,19 @@ Seluruh kode dikembangkan sejak **15 Oktober 2026**, setelah publikasi program K
 
 ## Belum dirilis
 
+### Drill Kesiapan — 9 November 2026 (branch `feature/drill-kesiapan`)
+- **Masalah:** narasumber diskusi komunitas (merujuk Satsiber TNI dan TTIS TNI AD) dan webinar pembekalan lomba menyebut masalah yang sama: SDM siber spesialis langka, dan tim yang jarang berlatih tidak siap saat insiden. Perpres 82/2022 Pasal 4 dan 15 mewajibkan simulasi tanggap Insiden Siber bagi sektor kesehatan dan pertahanan.
+- **Baru: `app/drill.py` dan tab Drill Kesiapan** (Alat Operator; pintasan di panel Latihan).
+  - Log cerita sintetis (18 baris auth.log, alamat RFC 5737) masuk lewat **jalur impor log yang sama** dengan log asli; tidak ada temuan yang disuntikkan. Kunci jawaban deteksi melaporkan aturan yang seharusnya menangkap, termasuk bila ada yang diam (*detection drill*).
+  - Insiden latihan *Cadangan mati* dimulai di RS Kesdam · SIMRS; Operator menanganinya dari Action Center seperti biasa.
+  - Empat pertanyaan per fase NIST SP 800-61 (Deteksi, Analisis, Penahanan, Pemulihan). Kunci jawaban tidak dikirim ke browser sebelum dijawab; sekali jawab.
+  - **Nilai 0–100 dari jejak tercatat**, rumus terbuka: ketepatan 40 · bukti sebelum putus 30 (susulan 15, darurat tanpa bukti 0) · kecepatan penahanan 30 (MTTC ≤180/420/900 detik = 30/20/10). Ambang kecepatan adalah target latihan purwarupa, bukan standar resmi.
+  - Log audit: `DRILL_MULAI`, `DRILL_JAWAB` (benar/salah, bukan isi pilihan), `DRILL_SELESAI`, `DRILL_DIBATALKAN`. LAPSIT memuat bagian Drill Kesiapan bertanda **LATIHAN** bila ada hasil; LAPSIT rutin tanpa drill tidak berubah.
+- `Menara.respons()` (app/telemetri.py): jejak respons per layanan (bukti, isolasi darurat, MTTC, verifikasi, pulih) yang tetap ada setelah insiden ditutup.
+- **28 uji baru** (`tests/test_drill.py`), ditulis lebih dulu, dan 1 uji kamus istilah. Diuji balik dengan 9 mutasi (kunci bocor, jawab ulang, darurat bernilai penuh, deteksi palsu, ambang diubah, loket terbuka untuk Pengamat, drill tidak dibatalkan saat reset, jejak bukti tidak dicatat, antrean SOAR tidak diproses); semuanya tertangkap. Total **396 uji** dalam 20 kelompok.
+- Dokumen: Dokumentasi Teknis §3.5 dan kamus istilah; Proposal §2.4 (kelemahan keempat), §3.3, §5.4, §6.4; README.
+- **Batas:** satu skenario; *tabletop exercise* untuk pimpinan belum dibangun; riwayat nilai di memori *server* (jejak permanennya di log audit).
+
 ### Tinjauan ahli TI (CTO) — 9 November 2026 (branch `fix/review-cto`, masuk v5.3.0)
 - **Satu definisi ≈1,2 detik** di semua slide dan dokumen: dari Operator selesai menahan tombol sampai jalur pertama terputus; bukti diamankan di awal jeda. Ditulis terus terang bahwa di purwarupa pengambilan bukti tersimulasi.
 - **Jawaban soal *memory dump*** (Dokumentasi Teknis §3.2, catatan Slide 6): salinan memori 8 GB bisa makan beberapa menit. Rancangan tiga lapis: bukti ringkas sebelum diputus, salinan memori penuh sesudah diputus, Isolasi Darurat bila macet. Lapis 1–2 belum dibangun; lapis 3 sudah berjalan.

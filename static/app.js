@@ -48,6 +48,7 @@ const S = {
   irTerlihat: null,                                     // nomor laporan yang sudah diumumkan (toast)
   menahan: false, playbookTertunda: false,              // render ditunda selama tombol sedang ditahan
   alasanDarurat: {}, daruratTerbuka: new Set(),         // Fase 4: draf alasan isolasi darurat per insiden
+  drill: null, drillHasil: null, timerDrill: null, drillJejak: "",   // drill kesiapan: state, hasil, stopwatch
 };
 
 // ---------------------------------------------------------------- Fase 1: kamus istilah (F-10)
@@ -1402,8 +1403,158 @@ async function resetDemo() {
   if (await coba(() => api("/api/reset-demo", { metode: "POST" }))) { toast("Demo direset."); setelahAksi(); muatAudit(); }
 }
 
+// ---------------------------------------------------------------- Alat: drill kesiapan (app/drill.py)
+// Kunci jawaban tidak pernah ada di browser sebelum pertanyaan dijawab; nilai dihitung server dari jejak tercatat.
+const KELAS_BARIS_LOG = [[/^#/, "catatan"], [/Accepted /, "diterima"], [/Failed /, "gagal"], [/sudo:/, "sudo"]];
+const durasi = (detik) => `${Math.floor(detik / 60)}:${String(detik % 60).padStart(2, "0")}`;
+
+async function muatDrill(diam = false) {
+  const j = diam ? await api("/api/drill").catch(() => null) : await coba(() => api("/api/drill"));
+  if (!j) return;
+  const jejak = JSON.stringify([j, S.layanan.map((l) => Boolean(l.insiden))]);   // tombol Mulai ikut status insiden sasaran
+  if (diam && jejak === S.drillJejak) return;          // tidak ada perubahan: jangan gambar ulang (posisi gulir log tetap)
+  S.drill = j;
+  S.drillJejak = jejak;
+  denganFokus(gambarDrill);
+  terapkanPeran();
+}
+function namaLayanan(id) { return S.layanan.find((l) => l.id === id)?.nama || id; }
+
+function gambarDrill() {
+  const { katalog, aktif, riwayat } = S.drill;
+  const isi = [];
+  if (aktif) isi.push(kartuDrillAktif(aktif));
+  else {
+    if (S.drillHasil) isi.push(kartuHasilDrill(S.drillHasil));
+    for (const d of katalog) {
+      const sibukLayanan = Boolean(S.layanan.find((l) => l.id === d.layanan_id)?.insiden);
+      isi.push(el("div", { kelas: "kartu drill-katalog" },
+        el("div", {}, el("p", { kelas: "label-kecil", teks: `Skenario drill · ${namaLayanan(d.layanan_id)}` }),
+          el("h3", { teks: d.judul }), el("p", { kelas: "redup kecil", teks: d.ringkas }),
+          sibukLayanan ? el("p", { kelas: "kecil drill-peringatan", teks: `${namaLayanan(d.layanan_id)} masih dalam insiden: pulihkan dulu dari Action Center, lalu mulai drill.` }) : null),
+        el("button", { type: "button", kelas: "tombol utama", "data-ubah": "", "data-kunci": `drill-mulai-${d.kode}`,
+          "data-terkunci": sibukLayanan ? true : null, teks: "Mulai drill", onclick: (e) => mulaiDrill(d, e.currentTarget) })));
+    }
+    if (!bolehUbah()) isi.push(el("p", { kelas: "redup kecil", teks: "Akun Pengamat hanya dapat melihat drill dan nilainya." }));
+  }
+  $("#drill-isi").replaceChildren(...isi);
+  $("#drill-riwayat").replaceChildren(...(riwayat.length ? riwayat.map((h) => el("tr", {},
+    el("td", {}, el("b", { teks: h.id }), el("br"), el("span", { kelas: "redup kecil", teks: h.judul })),
+    el("td", { title: h.selesai, teks: waktuLokal(h.selesai) }),
+    el("td", { teks: h.oleh }),
+    el("td", {}, el("span", { kelas: `drill-huruf h-${h.huruf}`, teks: h.huruf }), ` ${h.nilai}/100`),
+    el("td", { kelas: "kecil", teks: h.komponen.map((x) => `${x.label} ${x.nilai}/${x.maks}`).join(" · ") })))
+    : [el("tr", {}, el("td", { colspan: 5, kelas: "redup", teks: "Belum ada drill yang dinilai." }))]));
+  aturStopwatchDrill(aktif);
+}
+
+function kartuDrillAktif(a) {
+  const baris = a.log.trimEnd().split("\n").map((b) => {
+    const k = KELAS_BARIS_LOG.find(([pola]) => pola.test(b));
+    return el("span", { kelas: `baris ${k ? k[1] : ""}` }, `${b}\n`);
+  });
+  const soal = a.pertanyaan.map((p, i) => {
+    const dijawab = p.dijawab != null;
+    const opsi = Object.entries(p.opsi).map(([kode, teks]) => el("button", {
+      type: "button", kelas: `opsi-drill${dijawab && kode === p.kunci ? " benar" : ""}${dijawab && kode === p.dijawab && !p.benar ? " salah" : ""}`,
+      "data-ubah": dijawab ? null : "", "data-kunci": `drill-${i}-${kode}`, disabled: dijawab, "aria-pressed": dijawab ? String(kode === p.dijawab) : null,
+      onclick: (e) => jawabDrill(i, kode, e.currentTarget) }, el("b", { teks: `${kode.toUpperCase()}.` }), ` ${teks}`));
+    return el("div", { kelas: "kartu drill-soal", "data-status": dijawab ? (p.benar ? "benar" : "salah") : "terbuka" },
+      el("p", { kelas: "label-kecil", teks: `Fase ${i + 1} · ${p.fase}` }), el("p", { kelas: "drill-tanya", teks: p.teks }),
+      el("div", { kelas: "drill-opsi" }, ...opsi),
+      dijawab ? el("p", { kelas: "drill-penjelasan" }, el("b", { teks: p.benar ? "Benar. " : `Belum tepat. Jawaban: ${p.kunci.toUpperCase()}. ` }), p.penjelasan) : null);
+  });
+  const det = a.deteksi.map((d) => el("li", { kelas: d.muncul ? "ya" : "tidak" },
+    ikon(d.muncul ? "hijau" : "merah"), `${d.nama}: ${d.muncul ? "muncul" : "TIDAK muncul"}`));
+  return el("div", { kelas: "kartu drill-aktif" },
+    el("div", { kelas: "drill-kepala" },
+      el("div", {}, el("p", { kelas: "label-kecil", teks: `${a.id} · ${T("drill")} · berjalan` }), el("h3", { teks: a.judul }),
+        el("p", { kelas: "redup kecil", teks: `Dimulai ${jamLokal(a.mulai)} oleh ${a.oleh} · sasaran ${namaLayanan(a.layanan_id)}` })),
+      el("div", { kelas: "drill-stopwatch", "aria-label": "Waktu sejak drill dimulai" }, ikon("jam"), el("b", { id: "drill-stopwatch", teks: "0:00" }))),
+    el("ol", { kelas: "drill-langkah" },
+      el("li", { teks: "Baca log di bawah: apa yang terjadi, kapan, dengan akun apa?" }),
+      el("li", {}, "Tangani insiden ", el("b", { teks: namaLayanan(a.layanan_id) }), " di ", el("b", { teks: "Action Center" }),
+        ". Tombol isolasi mengamankan bukti lebih dulu; stopwatch penahanan sudah berjalan."),
+      el("li", { teks: "Jawab satu pertanyaan per fase. Jawaban tidak bisa diubah." }),
+      el("li", { teks: "Tekan Selesai & hitung nilai." })),
+    el("div", { kelas: "drill-dua" },
+      el("div", {}, el("p", { kelas: "label-kecil", teks: "Log sintetis (auth.log)" }), el("pre", { kelas: "drill-log", tabindex: 0 }, ...baris),
+        el("p", { kelas: "redup kecil", teks: `${a.impor.dikenali} dari ${a.impor.baris} baris dibaca aturan deteksi (${a.impor.format}); ${a.impor.diabaikan} baris lain (sudo, sesi) diabaikan aturan, tetapi tetap bisa dibaca Operator.` })),
+      el("div", {}, el("p", { kelas: "label-kecil", teks: "Kunci jawaban deteksi" }),
+        el("p", { kelas: "redup kecil", teks: "Aturan yang seharusnya menangkap cerita ini. Bila ada yang tidak muncul, aturannya yang perlu diperiksa." }),
+        el("ul", { kelas: "drill-deteksi" }, ...det))),
+    el("div", { kelas: "drill-soal-daftar" }, ...soal),
+    el("div", { kelas: "baris-aksi" },
+      el("p", { kelas: "redup kecil", teks: `${a.terjawab} dari ${a.pertanyaan.length} pertanyaan terjawab. Nilai: ketepatan 40 + bukti sebelum putus 30 + kecepatan penahanan 30.` }),
+      el("button", { type: "button", kelas: "tombol utama", "data-ubah": "", "data-kunci": "drill-selesai", teks: "Selesai & hitung nilai",
+        onclick: (e) => selesaiDrill(a, e.currentTarget) })));
+}
+
+/** Batang kecil nilai. Lebar lewat CSSOM, bukan atribut style: CSP style-src 'self' menolak gaya inline. */
+function batangNilai(rasio) {
+  const b = el("div", { kelas: "drill-batang" });
+  b.style.setProperty("--isi", `${Math.round(rasio * 100)}%`);
+  return b;
+}
+function kartuHasilDrill(h) {
+  return el("div", { kelas: "kartu drill-hasil" },
+    el("div", { kelas: "drill-kepala" },
+      el("div", {}, el("p", { kelas: "label-kecil", teks: `${h.id} · hasil · latihan` }), el("h3", { teks: h.judul }),
+        el("p", { kelas: "redup kecil", teks: `Oleh ${h.oleh} · ${h.benar} dari ${h.jumlah_pertanyaan} jawaban benar` })),
+      el("div", { kelas: "drill-skor" }, el("span", { kelas: `drill-huruf besar h-${h.huruf}`, teks: h.huruf }), el("b", { teks: `${h.nilai}` }), el("span", { kelas: "redup", teks: "/100" }))),
+    el("div", { kelas: "gulir" }, el("table", { kelas: "tabel" },
+      el("thead", {}, el("tr", {}, ...["Komponen", "Nilai", "Sumber angka", "Rincian"].map((t) => el("th", { scope: "col", teks: t })))),
+      el("tbody", {}, ...h.komponen.map((x) => el("tr", {},
+        el("td", { teks: x.label }),
+        el("td", {}, batangNilai(x.nilai / x.maks), `${x.nilai}/${x.maks}`),
+        el("td", { kelas: "kecil", teks: x.sumber }), el("td", { kelas: "kecil", teks: x.rincian })))))),
+    el("p", { kelas: `kecil ${h.deteksi_lengkap ? "redup" : "drill-peringatan"}`, teks: `Kunci jawaban deteksi: ${h.catatan_deteksi}` }),
+    el("div", { kelas: "baris-aksi" },
+      el("p", { kelas: "redup kecil", teks: "Hasil ini tercatat di log audit berantai dan ikut tercetak di LAPSIT sebagai LATIHAN." }),
+      el("button", { type: "button", kelas: "tombol halus", teks: "Buka Audit & LAPSIT", onclick: () => pilihTab("audit", true) })));
+}
+
+function aturStopwatchDrill(aktif) {
+  clearInterval(S.timerDrill);
+  if (!aktif) return;
+  const mulai = Date.parse(aktif.mulai);
+  const detak = () => { const s = $("#drill-stopwatch"); if (s) s.textContent = durasi(Math.max(0, Math.round((Date.now() - mulai) / 1000))); };
+  detak();
+  S.timerDrill = setInterval(detak, 1000);
+}
+
+async function mulaiDrill(d, tombol) {
+  const ok = await konfirmasi(`Mulai drill: ${d.judul}?`, `Log sintetis diputar lewat aturan deteksi, lalu insiden latihan dimulai di ${namaLayanan(d.layanan_id)}. Tangani seperti insiden sungguhan; stopwatch penahanan langsung berjalan.`, "Mulai drill");
+  if (!ok) return;
+  const j = await coba(() => sibuk(tombol, () => api("/api/drill/mulai", { metode: "POST", data: { kode: d.kode } })));
+  if (!j) return;
+  S.drillHasil = null;
+  toast(`${j.aktif.id} dimulai. Insiden latihan berjalan di ${namaLayanan(j.aktif.layanan_id)}.`, "peringatan");
+  await muatDrill();
+  setelahAksi();
+}
+async function jawabDrill(no, pilihan, tombol) {
+  const j = await coba(() => sibuk(tombol, () => api("/api/drill/jawab", { metode: "POST", data: { no, pilihan } })));
+  if (!j) return;
+  toast(j.benar ? `Fase ${j.fase}: benar.` : `Fase ${j.fase}: belum tepat. Baca penjelasannya.`, j.benar ? "info" : "peringatan");
+  muatDrill();
+}
+async function selesaiDrill(a, tombol) {
+  const sisa = a.pertanyaan.length - a.terjawab;
+  const ins = S.layanan.find((l) => l.id === a.layanan_id)?.insiden;
+  const pesan = [sisa ? `${sisa} pertanyaan belum dijawab (dinilai 0).` : null,
+    ins ? "Insiden latihan masih berjalan; nilai memakai jejak yang tercatat sampai saat ini." : null].filter(Boolean).join(" ");
+  if (pesan && !(await konfirmasi("Akhiri drill sekarang?", pesan, "Hitung nilai"))) return;
+  const j = await coba(() => sibuk(tombol, () => api("/api/drill/selesai", { metode: "POST" })));
+  if (!j) return;
+  S.drillHasil = j.hasil;
+  toast(`Nilai kesiapan ${j.hasil.nilai}/100 (${j.hasil.huruf}).`);
+  await muatDrill();
+  setelahAksi();
+}
+
 // ---------------------------------------------------------------- tab alat operator
-const TAB = ["indikator", "backup", "audit", "akun"];
+const TAB = ["indikator", "drill", "backup", "audit", "akun"];
 const tabTersedia = () => TAB.filter((t) => !$(`#tab-${t}`).hidden);   // tab Akun tersembunyi untuk pengamat
 function pilihTab(nama, fokus = false) {
   if ($(`#tab-${nama}`).hidden) nama = "indikator";
@@ -1415,6 +1566,7 @@ function pilihTab(nama, fokus = false) {
     if (aktif && fokus) tombol.focus();
   }
   if (nama === "audit") muatAudit();
+  if (nama === "drill") muatDrill();
   aturPemantauAkun(nama === "akun");
 }
 function navigasiTab(ev) {
@@ -1595,6 +1747,8 @@ function keluarLokal(pesan) {
   Peta.tampil(false);
   S.token = S.akun = S.peran = null;
   clearInterval(S.timerJam);
+  clearInterval(S.timerDrill);
+  S.drill = S.drillHasil = null;
   tutupLaci();
   aturKoneksi("mati");
   $("#pil-postur").hidden = true;
@@ -1682,6 +1836,9 @@ document.addEventListener("DOMContentLoaded", () => {
   $("#tombol-verifikasi").addEventListener("click", verifikasi);
   $("#tombol-lapsit").addEventListener("click", eksporLapsit);
   $("#tombol-reset").addEventListener("click", resetDemo);
+  $("#tombol-ke-drill").addEventListener("click", () => { pilihTab("drill", true); $("#panel-drill").scrollIntoView({ behavior: "smooth", block: "start" }); });
+  // drill berjalan: segarkan tiap 5 dtk selama tab terlihat (Pengamat ikut memantau jawaban dan nilai)
+  setInterval(() => { if (S.token && !$("#panel-drill").hidden && document.visibilityState === "visible") muatDrill(true); }, 5000);
   $("#saring-aksi").addEventListener("change", () => gambarAudit(true));
 
   $("#laci-tutup").addEventListener("click", tutupLaci);

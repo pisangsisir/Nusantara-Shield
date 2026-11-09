@@ -355,8 +355,26 @@ def ringkasan_eksekutif(layanan: list[dict], rincian: dict, peringatan: list[dic
     return paragraf
 
 
+def _bagian_drill(drill: list[dict], gaya: dict, nomor: int) -> list:
+    """Hasil drill kesiapan (LATIHAN): nilai per komponen beserta sumber angkanya (app/drill.py)."""
+    sel = gaya["kecil"]
+    isi = _judul(f"{nomor}. {ISTILAH['drill'].upper()} — LATIHAN", gaya)
+    isi.append(Paragraph("Simulasi tanggap insiden dengan log sintetis (Perpres 82/2022 Pasal 15). Nilai dihitung dari "
+                         "jejak yang tercatat sistem; rumus dan ambangnya terbuka di app/drill.py.", gaya["catatan"]))
+    for h in drill:
+        isi.append(Paragraph(f"{escape(h['id'])} · {escape(h['judul'])} · Operator {escape(h['oleh'])} · "
+                             f"selesai {waktu_lokal(h['selesai'])} · <b>{h['nilai']}/100 ({h['huruf']})</b>", gaya["sub"]))
+        baris = [["Komponen", "Nilai", "Sumber angka", "Rincian"]]
+        for x in h["komponen"]:
+            baris.append([Paragraph(escape(x["label"]), sel), f"{x['nilai']}/{x['maks']}",
+                          Paragraph(escape(x["sumber"]), sel), Paragraph(escape(x["rincian"]), sel)])
+        isi += [_tabel(baris, [38 * mm, 16 * mm, 44 * mm, 76 * mm]),
+                Paragraph(f"Kunci jawaban deteksi: {escape(h['catatan_deteksi'])}", gaya["catatan"])]
+    return isi
+
+
 def buat_pdf(layanan: list[dict], hasil_audit: dict, pembuat: str, peringatan: list[dict] | None = None,
-             rincian: dict | None = None, titik: dict | None = None) -> bytes:
+             rincian: dict | None = None, titik: dict | None = None, drill: list[dict] | None = None) -> bytes:
     gaya = _gaya()
     rincian = rincian or {"insiden": {}, "ioc": []}
     peringatan = peringatan or []
@@ -472,8 +490,13 @@ def buat_pdf(layanan: list[dict], hasil_audit: dict, pembuat: str, peringatan: l
                 Paragraph("Teknik MITRE ATT&amp;CK® dipetakan tim sendiri sebagai rujukan, bukan sertifikasi. "
                           "MITRE ATT&amp;CK® adalah merek dagang The MITRE Corporation.", gaya["catatan"])]
 
-    # 6. Integritas log audit
-    isi += _judul("6. Integritas log audit", gaya)
+    nomor_bagian = 6
+    if drill:
+        isi += _bagian_drill(drill, gaya, nomor_bagian)
+        nomor_bagian += 1
+
+    # Integritas log audit
+    isi += _judul(f"{nomor_bagian}. Integritas log audit", gaya)
     isi.append(Paragraph(escape(hasil_audit["pesan"]) + f" ({hasil_audit['jumlah']} entri)", gaya["dasar"]))
     if hasil_audit.get("hash_terakhir"):
         isi.append(Paragraph("Sidik jari terakhir (HMAC-SHA256): <font face='Courier' size='7'>"
@@ -496,8 +519,8 @@ def buat_pdf(layanan: list[dict], hasil_audit: dict, pembuat: str, peringatan: l
         sel)],
         latar=colors.white)]
 
-    # 7. Blok tanda tangan
-    isi += [KeepTogether([*_judul(f"7. {ISTILAH['ttd_judul']}", gaya), _blok_pengesahan(gaya)])]
+    # Blok tanda tangan
+    isi += [KeepTogether([*_judul(f"{nomor_bagian + 1}. {ISTILAH['ttd_judul']}", gaya), _blok_pengesahan(gaya)])]
     kop = _penggambar_kop(nomor, waktu, jenis)
     dok.build(isi, canvasmaker=lambda *a, **kw: _KanvasBernomor(*a, kop=kop, **kw))
     return buffer.getvalue()

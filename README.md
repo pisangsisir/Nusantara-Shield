@@ -9,7 +9,7 @@ Dasbor pusat operasi keamanan siber (SOC) **defensif** untuk Kartika Cyber Hacka
 (bukti → isolasi → LAPSIT, otomatis setelah satu keputusan Operator; perintah ke perangkat masih simulasi).
 *Server* FastAPI + browser Vanilla JS/Canvas, siaran langsung (SSE), dan jejak audit berantai HMAC.
 
-Banyak sistem pertahanan berhenti di alarm. Nusantara Shield berlanjut sampai bukti tersegel, jalur terputus, dan LAPSIT terbit, dan otaknya (aturan deteksi, AI lokal, korelasi kabar ancaman) berjalan di *server* satuan sendiri, sehingga tidak ikut lumpuh saat koneksi internasional terganggu. Setiap klaim dikunci **367 uji** yang bisa dijalankan ulang siapa pun; angka di dasbor bukan animasi, dan asal setiap angka serta peta lima kriteria penilaian ada di [Proposal §7](docs/01-Proposal-Solusi-Nusantara-Shield.md#7-peta-kriteria-penilaian-dan-asal-angka).
+Banyak sistem pertahanan berhenti di alarm. Nusantara Shield berlanjut sampai bukti tersegel, jalur terputus, dan LAPSIT terbit, dan otaknya (aturan deteksi, AI lokal, korelasi kabar ancaman) berjalan di *server* satuan sendiri, sehingga tidak ikut lumpuh saat koneksi internasional terganggu. Setiap klaim dikunci **396 uji** yang bisa dijalankan ulang siapa pun; angka di dasbor bukan animasi, dan asal setiap angka serta peta lima kriteria penilaian ada di [Proposal §7](docs/01-Proposal-Solusi-Nusantara-Shield.md#7-peta-kriteria-penilaian-dan-asal-angka).
 
 - **Isolasi tidak pernah otomatis.** Isolasi otomatis terdengar cepat, sampai ia memutus segmen OT karena alarm keliru. Di sini isolasi selalu didahului bukti tersegel dan keputusan Operator; yang diputus jalurnya, genset tetap menyala.
 - **"Tanpa awan" berlaku sampai ke demonya.** Aplikasi dipasang dari paket bersidik jari tanpa internet, lalu seluruh uji dijalankan di mesin itu juga.
@@ -22,7 +22,7 @@ Banyak sistem pertahanan berhenti di alarm. Nusantara Shield berlanjut sampai bu
 ```
 app/            kode server: FastAPI, dapur situasi, rantai bukti, LAPSIT, AI lokal
 static/         dasbor (HTML, CSS, JavaScript polos; tanpa pustaka luar atau CDN)
-tests/          367 uji otomatis (pytest), dijalankan dengan ./run_tests.sh
+tests/          396 uji otomatis (pytest), dijalankan dengan ./run_tests.sh
 tools/          alat bantu: pengemasan rilis, paket pasang luring, paket Ubuntu bertanda tangan, verifikasi audit tanpa server
 installer/      pasang.sh, layanan systemd, dan pembungkus verifikasi audit untuk Ubuntu 24.04
 kunci/          kunci PUBLIK rilis (kunci privat tidak pernah ada di repo)
@@ -306,7 +306,7 @@ sequenceDiagram
 | Latihan | Satu bilah alat: target, 4 skenario, latihan deteksi (*login* gagal, pindai *port*, akses OT tanpa izin), **Impor log…** (log asli: auth.log, firewall, CSV; contoh di `docs/contoh-log/`), latih kegagalan forensik | Simulator latihan |
 | Aset (triase) | Status 6 layanan contoh; klik untuk laci PIC & Quick Call | Papan triase IGD |
 | Log | Peristiwa dari *server* (ringkas 2 baris ⇄ semua) | Rekam gejala pasien |
-| Alat Operator | Cek indikator, kepatuhan pencadangan, Audit & LAPSIT PDF, **Akun** (khusus Operator) | Pos satpam & buku piket |
+| Alat Operator | Cek indikator, **Drill Kesiapan** (latihan tanggap insiden bernilai: log sintetis, pertanyaan per fase, nilai 0–100 dari jejak tercatat), kepatuhan pencadangan, Audit & LAPSIT PDF, **Akun** (khusus Operator) | Pos satpam, lapangan latihan, & buku piket |
 
 ---
 
@@ -325,6 +325,8 @@ sequenceDiagram
 
 Latihan kegagalan forensik: centang **"Latih kegagalan agen forensik"** di panel Latihan sebelum memicu skenario.
 
+**Drill Kesiapan** (tab di Alat Operator, atau tombol di panel Latihan) melatih doktrin ini secara bernilai: log sintetis satu cerita dibaca aturan deteksi yang sama dengan log asli, insiden latihan dimulai, Operator menanganinya di Action Center sambil menjawab satu pertanyaan per fase, lalu *server* menghitung nilai 0–100 dari jejak yang tercatat (ketepatan 40 · bukti sebelum putus 30 · kecepatan penahanan 30). Dasarnya Perpres 82/2022 Pasal 15: simulasi tanggap insiden wajib bagi sektor kesehatan dan pertahanan. Rincian: Dokumentasi Teknis §3.5.
+
 ---
 
 ## 6. Menjalankan uji otomatis
@@ -340,7 +342,7 @@ kelompok muncul setiap kali pytest pindah bagian, dan di akhir tampil ringkasan 
 Contoh memilih sebagian: `./run_tests.sh -k akun`, `./run_tests.sh tests/test_rantai_bukti.py`,
 `./run_tests.sh --lf` (ulangi yang gagal). **Jangan memakai `-q`** — opsi itu menyembunyikan nama uji.
 
-**Total: 367 uji** dalam 19 kelompok. Di akhir `./run_tests.sh`, uji yang lulus juga diringkas **per aturan doktrin** (Tangkal lebih dulu 115 · Manusia memutuskan 87 · Bukti dulu, baru putus 36 · Jejak tidak bisa ditulis ulang 27 · Luring dan paket tepercaya 32 · pendukung 70), karena jumlah uji sendiri bukan ukuran mutu.
+**Total: 396 uji** dalam 20 kelompok. Di akhir `./run_tests.sh`, uji yang lulus juga diringkas **per aturan doktrin** (Tangkal lebih dulu 115 · Manusia memutuskan 115, termasuk drill kesiapan · Bukti dulu, baru putus 36 · Jejak tidak bisa ditulis ulang 27 · Luring dan paket tepercaya 32 · pendukung 71), karena jumlah uji sendiri bukan ukuran mutu.
 
 **Keamanan & akses** — `tests/test_keamanan.py` (38 uji)
 - Semua loket menolak permintaan tanpa login; token palsu & sandi salah ditolak; logout mencabut token
@@ -397,7 +399,7 @@ Contoh memilih sebagian: `./run_tests.sh -k akun`, `./run_tests.sh tests/test_ra
 - Isolasi darurat menolak alasan kosong; alasannya terikat ke buku bukti, log audit, dan LAPSIT
 - Bukti atau berita acara yang dirusak → pemulihan dikunci di semua pintu
 
-**Kamus istilah** — `tests/test_istilah.py` (40 uji)
+**Kamus istilah** — `tests/test_istilah.py` (41 uji)
 - Tidak ada label yang tertanam di luar `app/istilah.py`; playbook dirakit dari kamus
 
 **Mesin Deteksi Aturan** (_rule-based detection engine_) — `tests/test_deteksi.py` (24 uji)
@@ -439,6 +441,12 @@ Contoh memilih sebagian: `./run_tests.sh -k akun`, `./run_tests.sh tests/test_ra
 - Status kunci tidak cocok → titik periksa dinonaktifkan, akar baru tidak dibuat diam-diam
 - Pemasangan baru (Buku Rantai Bukti belum berisi, berkasnya belum ada) tetap lolos; buku berisi yang berkasnya hilang ditolak
 
+**Drill Kesiapan** — `tests/test_drill.py` (28 uji)
+- Log cerita sintetis (alamat RFC 5737) dinilai lewat jalur impor log yang sama dengan log asli; aturan yang seharusnya menangkap tetapi diam ikut dilaporkan
+- Kunci jawaban tidak dikirim ke browser sebelum dijawab; tiap pertanyaan sekali jawab; log audit mencatat benar/salah, bukan isi pilihan
+- Nilai dari jejak tercatat: bukti sebelum putus 30, bukti susulan 15, isolasi darurat tanpa bukti 0; ambang MTTC 180/420/900 detik; rumus berjumlah 100
+- Hanya Operator yang memulai, menjawab, dan mengakhiri; hasil tercetak di LAPSIT sebagai LATIHAN; reset demo membatalkan drill aktif tanpa menghapus riwayat
+
 **Satu sumber versi** — `tests/test_versi.py` (5 uji)
 - Dasbor, kop LAPSIT, nama zip, dan paket Ubuntu memakai nomor dari `app/versi.py`; label versi yang ditulis langsung di kode tampilan → gagal
 - Nama peran tampil sebagai **Operator** dan **Pengamat** (dari kamus istilah), bukan nilai teknis huruf kecil
@@ -476,6 +484,8 @@ dibatasi lajunya dan dicatat di log audit.
 | `POST /api/deteksi/latihan` | Operator | Latihan deteksi: putar peristiwa mentah sintetis `{jenis: login_gagal \| login_tembus \| pindai_port \| akses_ot, aset_id?}` |
 | `POST /api/deteksi/impor` | Operator | Impor log ASLI secara luring `{nama, isi, aset_id?}`: auth.log OpenSSH, log firewall UFW/iptables, atau CSV (maks. ≈2 MB; 6× per menit). Aturan sama dengan latihan; hanya menaikkan WASPADA |
 | `POST /api/playbook/langkah` · `POST /api/pulihkan` | Operator | Centang langkah · tutup insiden |
+| `GET /api/drill` | semua | Drill Kesiapan: katalog, drill aktif (tanpa kunci jawaban yang belum dijawab), riwayat nilai |
+| `POST /api/drill/mulai` · `/jawab` · `/selesai` | Operator | Mulai `{kode}` · jawab `{no, pilihan}` · akhiri dan hitung nilai dari jejak tercatat |
 | `POST /api/cti/siarkan` | Operator | Siarkan berita CTI sekarang (`NS_CTI_JEDA`, bawaan 30 dtk) |
 | `POST /api/komando/panggil` | Operator | Quick Call ke PIC cabang (simulasi) |
 | `GET /api/bukti` | semua | Buku Rantai Bukti + verifikasi rantai |
@@ -523,6 +533,7 @@ app/istilah.py        kamus label (satu-satunya sumber istilah)
 app/penomoran.py      nomor laporan & berita acara yang tidak pernah berulang
 app/data_contoh.py    data sintetis, skenario, playbook
 app/lapsit.py         pembuat PDF
+app/drill.py          Drill Kesiapan: log cerita sintetis, pertanyaan per fase IR, rumus nilai terbuka
 static/index.html     kerangka dasbor
 static/app.js         login & pendaftaran, siaran, semua panel, alat operator
 static/radar.js       Radar Anomali (Canvas)
@@ -530,7 +541,7 @@ static/peta.js        Peta Ancaman Global (Canvas)
 static/penjadwal.js   satu mesin animasi berbasis visibilitas
 static/style.css      tema gelap + aksen hijau neon
 docs/                 diagram alur (sumber Mermaid + SVG)
-tests/                367 uji otomatis (lihat bagian 6)
+tests/                396 uji otomatis (lihat bagian 6)
 tools/kemas_rilis.py  pembuat zip rilis bersih
 tools/verifikasi_audit.py  verifikasi rantai HMAC log audit & Buku Rantai Bukti tanpa server
 tools/verifikasi_titik_periksa.py  verifikasi titik periksa Ed25519 dengan sidik jari akar saja

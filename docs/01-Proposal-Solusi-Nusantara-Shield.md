@@ -7,7 +7,7 @@
 | **Kompetisi** | Kartika Cyber Hackathon 2026 · Pusat Siber Angkatan Darat (Pussiberad) × CODEPOLITAN |
 | **Kategori** | 02 · **Penangkalan (_Defensive Shield_)** — *Threat Intelligence Platform* dan *Automated Incident Response* |
 | **Tim** | Muhammad Isa Ananta · Hasan Basri · Melia Fajar Hasanah |
-| **Status purwarupa** | **Berfungsi penuh** · 367 uji otomatis lulus · AI deteksi anomali dan aturan deteksi berjalan lokal · luring tanpa internet |
+| **Status purwarupa** | **Berfungsi penuh** · 396 uji otomatis lulus · AI deteksi anomali dan aturan deteksi berjalan lokal · luring tanpa internet |
 | **Tanggal** | 27 Oktober 2026 |
 
 ---
@@ -48,7 +48,7 @@ Setiap langkah tercatat permanen dalam buku berantai Hash-based Message Authenti
 | Beban Central Processing Unit (CPU) _server_ untuk **300 layar** pemantau serentak, versi akhir | **≈1,5%** siaga · **≈1,7%** saat serangan |
 | Lalu lintas jaringan ke 300 layar saat serangan intensif, berkat siaran ralat (uji beban 17 Okt 2026) | **−80%** (8,4 → 1,7 MB/s) |
 | Waktu AI lokal menilai lalu lintas 9 aset (_Isolation Forest_, tanpa internet) | **≈10 milidetik** |
-| Perilaku sistem yang dikunci uji otomatis | **367 uji** |
+| Perilaku sistem yang dikunci uji otomatis | **396 uji** |
 
 <p class="sumber-kecil">Angka CPU diukur ulang 26 Okt 2026 dengan tools/ukur_beban.py (Linux 2 inti, 300 siaran SSE sungguhan). Angka 2,8% pada versi dokumen sebelumnya diukur dengan alat dan mesin lain, sehingga tidak dibandingkan langsung. Asal setiap angka dan pemetaan ke lima kriteria penilaian ada di §7.</p>
 
@@ -163,15 +163,18 @@ Rumah sakit adalah arena tempat konvergensi Information Technology (IT) dan OT p
 
 <p class="sumber-kecil">Sumber: <a href="https://inet.detik.com/security/d-7407568/kronologi-serangan-ransomware-bikin-pusat-data-kolaps-berhari-hari/amp">detikINET (PDNS)</a> · <a href="https://inet.detik.com/security/d-7409026/bssn-windows-defender-pusat-data-i-crash-i-sebelum-ransomware-beraksi">detikINET, kronologi BSSN (26 Juni 2024)</a> · <a href="https://kalsel.antaranews.com/berita/419220/menkominfo-jelaskan-kronologi-serangan-siber-pdns-2">ANTARA, Raker Komisi I DPR (27 Juni 2024)</a> · <a href="https://www.cnbcindonesia.com/tech/20240628080944-37-550082/alasan-backup-pusat-data-nasional-hanya-2-akhirnya-terungkap">CNBC Indonesia (cadangan 2%)</a> · <a href="https://teknologi.bisnis.com/read/20230514/84/1655787/cissrec-tim-it-bsi-cepat-dan-responsif">Bisnis (pemulihan BSI)</a> · <a href="https://finansial.bisnis.com/read/20230514/90/1655733/kronologi-bsi-diserang-ransomware-oleh-hacker-lockbit-30-diduga-beraksi-sejak-libur-lebaran-2023">Bisnis (kronologi BSI)</a> · <a href="https://www.cnnindonesia.com/teknologi/20210521115652-185-645201/kominfo-telusuri-279-juta-data-bocor-diduga-kuat-dari-bpjs">CNN Indonesia (279 juta data)</a> · <a href="https://www.nozominetworks.com/blog/when-ransomware-turns-off-the-hvac-lessons-from-the-winnipeg-hospital-incident">Nozomi Networks (Winnipeg HSC)</a></p>
 
-### 2.4 Tiga Kelemahan Pola Respons Manual
+### 2.4 Empat Kelemahan Pola Respons Manual
 
-Tiga kelemahan berikut lazim ditemui pada pola respons insiden manual:
+Empat kelemahan berikut lazim ditemui pada pola respons insiden manual:
 
 | # | Masalah | Gejala di lapangan | Akibat bagi satuan |
 | --- | --- | --- | --- |
 | **1** | **Banjir peringatan** (*alert fatigue*) | Ratusan peringatan per hari, sebagian besar tidak menyangkut aset satuan | Ancaman nyata tenggelam; Operator lelah dan terlambat bereaksi |
 | **2** | **Penahanan (*containment*) yang lambat dan ragu** | Izin berjenjang, tombol bermakna ganda, laporan disusun manual di tengah krisis | Penyerang leluasa menyebar selama keputusan tertunda |
 | **3** | **Rusaknya bukti forensik saat pemulihan darurat** | _Server_ di-*restart* atau dipulihkan dari cadangan sebelum bukti disalin | Pelaku tidak bisa diidentifikasi; rantai barang bukti (*chain of custody*) tidak dapat dipertanggungjawabkan |
+| **4** | **Petugas jaga bukan ahli siber, dan jarang berlatih** | Ahli siber di satuan hanya satu atau dua orang; latihan tanggap insiden jarang, mahal, dan tidak dinilai | Saat insiden datang, urutan tindakan dipelajari di tengah krisis |
+
+Kelemahan keempat muncul dari dua sumber. Diskusi komunitas peserta (November 2026), yang merujuk visi-misi Satuan Siber (Satsiber) TNI dan layanan Tim Tanggap Insiden Siber (TTIS) TNI AD, menyebut masalah terbesar di lingkungan TNI: *ransomware* dan *phishing*, sistem lama yang sulit diperbarui, dan **kurangnya SDM siber spesialis**. Misi Satsiber TNI sendiri memuat pembentukan prajurit siber dan sosialisasi keamanan informasi kepada personel. Webinar pembekalan Kartika Cyber Hackathon 2026 menyebut hal yang sama dan menunjuk latihan (*cyber drill*) sebagai cara membangun kesiapan yang terukur.
 
 > **Inti persoalannya:** kecepatan dan ketertiban forensik selama ini dianggap saling bertentangan. Nusantara Shield membuktikan keduanya bisa dicapai sekaligus.
 
@@ -264,6 +267,16 @@ Dalam bahasa _incident response_ militer, tahap Bertindak setara dengan siklus *
     - Satu "dapur" memasak gambaran situasi sekali per detik untuk semua layar.
     - Layar hanya menerima **ralat (delta)**, bukan gambar utuh, sehingga lalu lintas turun hingga **80%**.
     - Cocok untuk jaringan satuan berpita sempit.
+
+### 3.3 Terlatih Sebelum Insiden: Drill Kesiapan
+
+Perpres 82/2022 memasukkan sektor **kesehatan** dan **pertahanan** sebagai Infrastruktur Informasi Vital (Pasal 4) dan mewajibkan simulasi tanggap Insiden Siber (Pasal 15). **Drill Kesiapan** menjalankan simulasi itu di dasbor yang sama dengan yang dipakai saat insiden sungguhan:
+
+1. Log sintetis satu cerita (akun layanan cadangan dibobol, lalu pencadangan dimatikan) dibaca **Mesin Deteksi Aturan yang sama** dengan log asli. Aturan yang seharusnya menangkap tetapi diam ikut dilaporkan.
+2. Insiden latihan dimulai. Operator menanganinya dari Action Center dan menjawab **satu pertanyaan per fase** penanganan insiden (Deteksi, Analisis, Penahanan, Pemulihan).
+3. *Server* menghitung **nilai 0–100 dari jejak yang tercatat**, bukan dari pengakuan: ketepatan keputusan 40, bukti sebelum putus 30, kecepatan penahanan (MTTC) 30. Rumusnya terbuka; hasilnya masuk log audit berantai dan LAPSIT sebagai **LATIHAN**.
+
+Dengan begitu, Operator yang bukan ahli siber dilatih urutan tindakan yang benar sebelum insiden, lalu dipandu urutan yang sama saat insiden sungguhan. Rincian dan batasnya: Dokumentasi Teknis §3.5.
 
 Untuk posko yang dijaga 24 jam, panel Beban Jaringan menampilkan **linimasa 60 menit** berlabel "data latihan" beserta **pita anomali AI per aset** (nama aset, lama, dan alasannya). Tampilannya mengikuti tiga lapis yang dianjurkan untuk pusat komando siber: **_strategic heatmap_** (Peta Global dan kotak Postur), **_operational incident board_** (Action Center dan LAPSIT), dan **_tactical endpoint list_** (Topologi Internal dan daftar aset), dengan **_human-in-the-loop_** pada setiap keputusan pemutusan.
 
@@ -394,7 +407,7 @@ Seluruh keunggulan berikut **sudah berjalan** di purwarupa dan dapat didemonstra
 ### 5.2 Kesiapan Penerapan
 
 - **Ringan:** satu laptop atau _server_ kecil; satu proses Python. Untuk 300 layar serentak, CPU _server_ ≈1,5% saat siaga dan ≈1,7% saat serangan, dengan memori ≈207 MB termasuk pustaka AI (scikit-learn dan numpy), jauh di bawah 512 MB; diukur ulang 26 Okt 2026 dengan `tools/ukur_beban.py` (Linux 2 inti, 300 siaran SSE sungguhan). AI menambah kerja _server_ hanya ≈0,05 milidetik per detik karena model baru dijalankan saat keadaan lalu lintas berubah.
-- **Teruji:** 367 uji otomatis mengunci setiap aturan, termasuk ambang deteksi yang tertulis di dokumen ini, dan dapat dijalankan ulang oleh siapa pun dalam kurang dari satu menit (≈30 detik di Mac, ≈55 detik di Linux ruang kerja awan).
+- **Teruji:** 396 uji otomatis mengunci setiap aturan, termasuk ambang deteksi yang tertulis di dokumen ini, dan dapat dijalankan ulang oleh siapa pun dalam kurang dari satu menit (≈30 detik di Mac, ≈55 detik di Linux ruang kerja awan).
 - **Cakupan OT saat ini:** purwarupa memantau **pengendali genset rumah sakit** (Modbus/TCP, _port_ 502) di **zona kendali** topologi. Kabar ancaman Modbus menaikkannya ke **WASPADA (≈66%)** sebelum ada serangan. Pada skenario **Sabotase OT**, bukti diamankan, lalu jalur kantor → zona kendali diputus lewat _webhook_ (simulasi) ke sakelar terkelola ≈1,2 detik kemudian; genset tetap menyala dengan kendali lokal. Pemulihan jalur kendali terkunci sampai sidik jari bukti cocok.
 - **Langkah lanjutan** (semuanya sumber terbuka dan dapat berjalan _air-gapped_ atau _on-premise_):
     - telemetri nyata dari sensor dan SIEM satuan (Wazuh, Suricata, Zeek) serta sensor protokol industri Modbus/DNP3;
@@ -438,6 +451,7 @@ Pembedaan ini sengaja dibuat tegas agar juri dapat menilai apa yang benar-benar 
 | Label teknik MITRE ATT&CK (termasuk ATT&CK for ICS) di peringatan, log, dan LAPSIT; label sumber data di setiap peringatan; pengesahan dua tanda tangan di LAPSIT PDF | |
 | Linimasa 60 menit (data latihan), pita anomali AI per aset, KPI Waktu respons (MTTC) dan Insiden sejak posko aktif | |
 | Nilai Kesiapan Siber A–E (dua sub-skor: Kerawanan dan Insiden) dan triase peringatan: Selesai ditangani atau Positif Palsu (_False Positive_), beralasan dan tercatat di Buku Rantai Bukti | |
+| **Drill Kesiapan** untuk Operator: log sintetis lewat aturan deteksi yang sama, pertanyaan per fase penanganan insiden, nilai 0–100 dari jejak tercatat (satu skenario: cadangan dilepas) | **_Tabletop exercise_ untuk pimpinan** (Dansat, Kepala RS): *inject* bertahap, doktrin sebagai rubrik; skenario drill lain (*phishing*, perubahan halaman situs satuan) |
 
 ### 5.5 Peta Jalan Penguatan dari Studi Banding Arsitektur
 
@@ -486,7 +500,9 @@ Kode Nusantara Shield dilisensikan di bawah **GNU General Public License v3.0** 
 ### 6.4 Rujukan Kerangka
 
 - Purbo, O. W., dan Lumy, G. D. (2025). _Cyber Warfare & Pertahanan Siber Indonesia_. Kerangka OODA, tiga lapis komando siber, _incident response_ militer, dan _After-Action Review_.
-- Peraturan Presiden Nomor 82 Tahun 2022 tentang Pelindungan Infrastruktur Informasi Vital.
+- Peraturan Presiden Nomor 82 Tahun 2022 tentang Pelindungan Infrastruktur Informasi Vital: Pasal 4 (sektor kesehatan dan pertahanan) dan Pasal 15 (simulasi tanggap Insiden Siber), dasar Drill Kesiapan.
+- Satuan Siber TNI. _Visi dan Misi_. satsiber-tni.mil.id/visi-dan-misi-20181230531, diakses 9 November 2026.
+- National Institute of Standards and Technology (NIST) SP 800-61, panduan penanganan insiden keamanan komputer: fase deteksi dan analisis serta penahanan, pembersihan, dan pemulihan dipakai sebagai susunan pertanyaan Drill Kesiapan.
 - National Institute of Standards and Technology (NIST) SP 800-82, panduan keamanan sistem kendali industri (OT).
 - International Organization for Standardization/International Electrotechnical Commission (ISO/IEC) 27037:2012, pedoman identifikasi, pengumpulan, akuisisi, dan pelestarian bukti digital. Alur "bukti dulu, baru putus" dan buku berantai HMAC disusun **mengikuti prinsipnya**; purwarupa belum diaudit terhadap standar ini.
 - Wolsing, K., Wagner, E., Saillard, A., dan Henze, M. (2022). _IPAL: Breaking up Silos of Protocol-dependent and Domain-specific Industrial Intrusion Detection Systems_. RAID 2022. Rujukan format pesan OT lintas protokol (§5.5, peta jalan).
@@ -505,7 +521,7 @@ Bagian ini memudahkan Dewan Juri memeriksa klaim kami sendiri: setiap kriteria R
 | --- | --- | --- |
 | **Relevansi dan Manfaat** (25%) | Menjaga aset IT dan OT rumah sakit TNI AD dalam satu layar; alat lapis taktis (CDOC satuan) dengan LAPSIT untuk Dansat; usulan alur laporan ke Sansidam dan Kartika CSIRT (§5.3); label satuan diatur dari satu kamus istilah | §2 dan §5.3 dokumen ini; Dokumentasi Teknis §3 (SOP respons insiden) |
 | **Inovasi Teknis** (25%) | "Bukti dulu, baru putus" dikunci _server_ (isolasi tanpa bukti ditolak 409); rantai HMAC-SHA256 untuk log audit dan Buku Rantai Bukti; dua kunci (mesin hanya menaikkan WASPADA, manusia memutus); AI _Isolation Forest_ luring yang menjelaskan alasannya; korelasi kabar ancaman × aset sebelum serangan; aturan OT deterministik (jalur IT ke OT tanpa izin, perintah tulis Modbus di luar jendela pemeliharaan) yang hanya menaikkan WASPADA; label MITRE ATT&CK; isolasi OT dengan memutus **jalur**, bukan mematikan genset; siaran ralat (_delta_) yang menekan beban _server_ | Uji `test_rantai_bukti` (36), `test_ai` (10), `test_ot` (6), `test_deteksi` (24), `test_ot_mitre_lapsit` (23); Dokumentasi Teknis §2.3–2.8 |
-| **Fungsionalitas Purwarupa** (25%) | Aplikasi berjalan penuh dari satu perintah; 4 skenario latihan dan latihan deteksi di dasbor; **impor log asli** (auth.log OpenSSH, log firewall, CSV) dinilai aturan yang sama; 367 uji otomatis lulus; paket luring dipasang dan diuji tanpa internet di Mac dan di Ubuntu 24.04 (paket bertanda tangan). **Batas yang kami akui:** telemetri langsung dan kabar ancaman masih sintetis (log asli baru masuk lewat impor berkas, belum sensor terus-menerus), dan perintah ke sakelar jaringan masih simulasi | `./run_tests.sh`; halaman rilis v5.1.2 beserta sidik jari paket; video demo |
+| **Fungsionalitas Purwarupa** (25%) | Aplikasi berjalan penuh dari satu perintah; 4 skenario latihan dan latihan deteksi di dasbor; **impor log asli** (auth.log OpenSSH, log firewall, CSV) dinilai aturan yang sama; **Drill Kesiapan** bernilai untuk Operator; 396 uji otomatis lulus; paket luring dipasang dan diuji tanpa internet di Mac dan di Ubuntu 24.04 (paket bertanda tangan). **Batas yang kami akui:** telemetri langsung dan kabar ancaman masih sintetis (log asli baru masuk lewat impor berkas, belum sensor terus-menerus), dan perintah ke sakelar jaringan masih simulasi | `./run_tests.sh`; halaman rilis v5.1.2 beserta sidik jari paket; video demo |
 | **Kelayakan Implementasi** (15%) | Satu proses Python di laptop atau _server_ kecil; ≈1,5% CPU untuk 300 layar; berjalan dan dipasang tanpa internet dengan sidik jari SHA-256, dan untuk Ubuntu 24.04 dengan paket bertanda tangan Ed25519 serta layanan systemd yang dikeraskan; peran Operator dan Pengamat; peta jalan ke sensor sumber terbuka (Wazuh, Suricata, Zeek) dan MISP | §5 dokumen ini; Dokumentasi Teknis §4.4 (pemasangan luring) |
 | **Kualitas Dokumentasi** (10%) | Proposal ini, Dokumentasi Teknis, Panduan Belajar (PDF), dek presentasi, poster A4, README, CHANGELOG per perubahan, dan deklarasi serta atribusi (§6) | Folder `docs/` dan `presentation/` di repositori |
 
@@ -521,7 +537,7 @@ Bagian ini memudahkan Dewan Juri memeriksa klaim kami sendiri: setiap kriteria R
 | **≈1,5% siaga · ≈1,7% serangan**, **≈207 MB**, **0,28–0,40 MB/s** | CPU, memori, dan lalu lintas _server_ untuk 300 layar | `tools/ukur_beban.py`, 26 Okt 2026, Linux 2 inti, 300 siaran SSE sungguhan; Dokumentasi Teknis §2.3 | Bisa diulang siapa pun dengan alat yang sama |
 | **−80% (8,4 → 1,7 MB/s)** | Efek optimasi siaran ralat | Uji beban 15–17 Okt 2026; Dokumentasi Teknis §2.3 | Riwayat optimasi dengan mesin dan alat ukur awal yang tidak disertakan di repositori; tidak dibandingkan langsung dengan angka versi akhir |
 | **≈10 milidetik** | Waktu AI menilai 9 aset | `skor_ms` di `app/ai_anomali.py`; dikunci `test_ai` (di bawah 100 ms) | Ukuran di mesin pengembang; uji sengaja memberi batas longgar |
-| **367 uji** | Perilaku yang dikunci uji otomatis | `./run_tests.sh`; 367 lulus pada 1 Nov 2026 (Linux ≈46 detik) | Rilis v5.2.0 (334 uji saat itu) juga lulus semua setelah paket Ubuntu 24.04 bertanda tangan dipasang sebagai root dengan jaringan diputus |
+| **396 uji** | Perilaku yang dikunci uji otomatis | `./run_tests.sh`; 396 lulus pada 9 Nov 2026 (Linux ≈42 detik) | Rilis v5.2.0 (334 uji saat itu) juga lulus semua setelah paket Ubuntu 24.04 bertanda tangan dipasang sebagai root dengan jaringan diputus |
 | **200.000 putaran**, **5 percobaan/menit**, **16 KB** | PBKDF2-SHA256 untuk kata sandi, batas _login_, batas kiriman | `app/keamanan.py`; dikunci `test_keamanan` (`test_tebak_sandi_dibatasi`, uji batas kiriman) | — |
 
 ## Lampiran: Kamus Istilah
@@ -531,6 +547,7 @@ Kamus ini untuk pembaca yang tidak berlatar militer atau teknis. Istilah diurutk
 | Istilah | Kepanjangan atau arti | Penjelasan sederhana |
 | --- | --- | --- |
 | **_Air-gapped_** | Jaringan terpisah dari internet | Jaringan yang secara fisik tidak tersambung ke internet sama sekali. |
+| **_Cyber drill_** | Latihan tanggap insiden | Simulasi insiden dengan skenario khusus satu organisasi; kecepatan dan ketepatan tim dinilai. Di sistem ini: Drill Kesiapan. |
 | **_Explainability_** | Keterjelasan | AI wajib menyebut alasannya dalam bahasa manusia, misalnya "perintah tulis Modbus 10× normal". |
 | **_False Positive_** | Positif Palsu | Alarm yang ternyata bukan ancaman. Operator menutupnya dengan alasan tertulis; penutupan tercatat permanen dan tidak menghapus apa pun. |
 | **_Hash_ / SHA-256** | Sidik jari digital; SHA-256 = _Secure Hash Algorithm 256-bit_ | Rumus yang mengubah isi berkas menjadi 64 karakter. Isi berubah satu huruf, sidik jarinya berubah total. |
@@ -542,6 +559,7 @@ Kamus ini untuk pembaca yang tidak berlatar militer atau teknis. Istilah diurutk
 | **_Port_** | Pintu layanan | Nomor "pintu" di perangkat; tiap layanan punya nomornya sendiri. |
 | **_Ransomware_** | Program penyandera data | Program jahat yang mengunci data lalu meminta tebusan. |
 | **_Server_** | Komputer pelayan | Komputer yang melayani komputer lain; di sini tempat Nusantara Shield berjalan. |
+| **_Tabletop exercise_** (TTX) | Latihan diskusi skenario | Latihan untuk pimpinan: yang diuji keputusan saat insiden, bukan kemampuan teknis. Masuk peta jalan. |
 | **_Webhook_** | Panggilan otomatis | Pesan otomatis dari satu sistem ke sistem lain, misalnya perintah ke sakelar jaringan. |
 | **AAR** | _After-Action Review_ (tinjauan pascatindakan) | Rapat evaluasi setelah insiden: apa yang terjadi, apa penyebabnya, dan apa yang diperbaiki. |
 | **Action Center** | Pusat tindakan | Panel di dasbor tempat Operator melihat insiden dan menekan tombol isolasi. |
@@ -564,11 +582,13 @@ Kamus ini untuk pembaca yang tidak berlatar militer atau teknis. Istilah diurutk
 | **DDoS** | _Distributed Denial of Service_ | Serangan banjir permintaan agar layanan lumpuh karena kewalahan. |
 | **Deteksi anomali** | Pengenalan perilaku tidak wajar | Menandai lalu lintas yang menyimpang dari kebiasaan, tanpa perlu daftar serangan yang sudah dikenal. |
 | **DMZ** | Demilitarized Zone | Zona penyangga antara internet dan jaringan dalam, seperti lobi. |
+| **Drill Kesiapan** | Latihan tanggap insiden bernilai | Log sintetis satu cerita, satu pertanyaan per fase penanganan, nilai 0–100 dari jejak yang tercatat sistem (§3.3). |
 | **Enkripsi** | Penyandian data | Mengubah data menjadi sandi. _Ransomware_ memakainya untuk mengunci data korban. |
 | **Forensik digital** | Penyelidikan bukti elektronik | Mengamankan dan memeriksa jejak digital agar pelaku bisa ditelusuri dan bukti sah. |
 | **HMAC** | _Hash-based Message Authentication Code_ | Segel digital berkunci. Setiap catatan log disegel dan terhubung ke catatan sebelumnya, sehingga perubahan diam-diam langsung ketahuan. |
 | **HSTS** | HTTP Strict Transport Security | Aturan agar peramban selalu memakai sambungan terenkripsi. |
 | **HTTPS** | Hypertext Transfer Protocol Secure | Sambungan web yang dienkripsi. |
+| **IIV** | Infrastruktur Informasi Vital | Sistem elektronik yang gangguannya berdampak serius; menurut Perpres 82/2022 termasuk sektor kesehatan dan pertahanan. |
 | **IP** | Internet Protocol | Alamat IP: "nomor kamar" setiap perangkat di jaringan. |
 | **ISO/IEC 27037** | International Organization for Standardization/International Electrotechnical Commission, standar 27037:2012 | Pedoman internasional mengidentifikasi, mengumpulkan, mengambil, dan melestarikan bukti digital. Nusantara Shield mengikuti prinsipnya; belum diaudit terhadapnya. |
 | **Isolasi** | Pemutusan jaringan | Memutus jalur perangkat yang diserang agar serangan tidak menyebar. |
@@ -595,6 +615,7 @@ Kamus ini untuk pembaca yang tidak berlatar militer atau teknis. Istilah diurutk
 | **PDNS** | Pusat Data Nasional Sementara | Pusat data pemerintah yang lumpuh diserang _ransomware_ pada Juni 2024. |
 | **Pemindaian _port_** | _Port scan_ | Satu alamat mencoba banyak "pintu" perangkat dalam waktu singkat untuk mencari layanan yang terbuka; sering menjadi tanda awal serangan. |
 | **Perketat** | Pengerasan (_hardening_) | Tombol untuk mengurangi celah sebuah aset sebelum diserang. |
+| **Perpres** | Peraturan Presiden | Perpres 82/2022 mewajibkan simulasi tanggap insiden siber bagi Penyelenggara IIV (Pasal 15). |
 | **Purwarupa** | _Prototype_ | Versi percobaan untuk membuktikan gagasan, belum dipakai di lapangan. |
 | **Pussiberad** | Pusat Siber Angkatan Darat | Satuan pusat TNI AD yang menangani pertahanan siber; penyelenggara lomba. |
 | **RDP** | Remote Desktop Protocol | Cara mengendalikan komputer dari jarak jauh. |
@@ -611,6 +632,7 @@ Kamus ini untuk pembaca yang tidak berlatar militer atau teknis. Istilah diurutk
 | **SSH** | Secure Shell | Akses jarak jauh ke _server_ lewat baris perintah. |
 | **STIX** | Structured Threat Information Expression | Format standar untuk menulis kabar ancaman. |
 | **TAXII** | Trusted Automated Exchange of Intelligence Information | Cara standar mengirim kabar ancaman antarsistem. |
+| **TTIS** | Tim Tanggap Insiden Siber | Tim yang menangani insiden siber; di TNI AD, TTIS melayani pemantauan, analisis risiko, penanganan, dan pendampingan pemulihan. |
 | **TNI AD** | Tentara Nasional Indonesia Angkatan Darat | Matra darat dari angkatan bersenjata Indonesia. |
 | **Uji otomatis** | _Automated test_ | Daftar periksa yang dijalankan komputer untuk memastikan setiap aturan sistem benar. |
 | **WASPADA** | Status siaga | Tanda kuning: aset berisiko tinggi diserang, walaupun serangan belum terjadi. |
