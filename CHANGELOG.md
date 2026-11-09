@@ -16,6 +16,7 @@ Rilis ini menggabungkan semua perubahan sejak v5.2.0. Versi 5.3.0 tidak diterbit
 - Dek: Drill Kesiapan dan impor Wazuh/Suricata masuk slide Mode Berdaulat dan Lampiran B (Fungsionalitas); dua jawaban tanya jawab baru di catatan pembicara.
 - Poster: fungsi Detect kini memuat **impor berkas Wazuh dan Suricata** (BERJALAN) menggantikan butir peta jalan "sensor jaringan nyata"; fungsi Protect memuat **Drill Kesiapan berskor** (BERJALAN). Sambungan langsung ke sensor tetap belum dibangun.
 - Unduhan situs dibangun ulang dari sumber terbaru (`tools/bangun_situs.py`).
+- Situs: huruf judul dan isi diganti **Inter** (SIL OFL, disimpan sendiri di `situs/huruf/`). Judul tidak lagi dipadatkan; jarak huruf dan baris dilonggarkan agar nyaman dibaca. Huruf mono HUD tetap JetBrains Mono. Bricolage dan Plus Jakarta Sans masih dipakai untuk PDF unduhan.
 
 ### Situs bergaya layar posko — 9 November 2026 (branch `feature/situs-hud`)
 - Situs dirombak memakai gaya asli dasbor: latar biru malam, hijau neon untuk AMAN/siap, kuning WASPADA, merah KRITIS, label HUD huruf mono, dan ikon garis yang sama dengan aplikasi.
