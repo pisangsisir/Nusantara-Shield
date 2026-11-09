@@ -13,6 +13,14 @@ Format yang dikenali (dipilih otomatis per baris):
 1. Log autentikasi OpenSSH (auth.log / secure / journal): "Failed password ... from IP" dan "Accepted ... from IP".
 2. Log firewall UFW/iptables (kern.log / ufw.log): baris berisi SRC=, DST=, dan DPT=.
 3. CSV berkepala: waktu, jenis (login | koneksi | koneksi_ot | modbus), sumber, lalu kolom sesuai jenis.
+4. Keluaran sensor yang mungkin sudah dimiliki satuan, JSON per baris (atau satu larik JSON):
+   - Wazuh alerts.json: peringatan bergrup authentication_failed / invalid_login (gagal) dan authentication_success
+     (berhasil) → upaya login dari data.srcip. Peringatan agregat Wazuh (mis. 5763 "brute force") TIDAK dihitung:
+     yang menilai rentetan adalah aturan kita sendiri, dengan ambang terbuka.
+   - Suricata eve.json: event flow/alert/netflow → koneksi (ke port 502 aset OT → koneksi_ot); event modbus →
+     perintah Modbus (function_raw). Jam perintah diambil dari stempel waktu sensor, jadi jendela pemeliharaan
+     dinilai menurut jam di lokasi sensor, bukan zona waktu server.
+   Modul ini hanya MEMBACA berkas keluaran sensor; ia tidak memasang, mengatur, atau menghubungi sensor.
 
 Prinsip keamanan dan privasi:
 - Sepenuhnya defensif dan luring: modul ini hanya membaca teks yang diserahkan; ia tidak memindai atau menghubungi apa pun.
@@ -26,6 +34,7 @@ from __future__ import annotations
 import csv
 import io
 import ipaddress
+import json
 import re
 from datetime import datetime, timezone
 
@@ -40,6 +49,10 @@ _SSH_GAGAL = re.compile(r"sshd(?:\[\d+\])?: Failed (?:password|publickey|none|ke
 _SSH_MASUK = re.compile(r"sshd(?:\[\d+\])?: Accepted \S+ for \S+ from (?P<ip>[0-9A-Fa-f:.]+) port \d+")
 _FW = re.compile(r"\bSRC=(?P<src>[0-9A-Fa-f:.]+)\b.*\bDST=(?P<dst>[0-9A-Fa-f:.]+)\b.*\bDPT=(?P<dpt>\d+)\b")
 JENIS_CSV = ("login", "koneksi", "koneksi_ot", "modbus")
+PORT_OT = {502}                                    # Modbus/TCP: koneksi ke aset di port ini = koneksi ke zona kendali
+GRUP_WAZUH_GAGAL = {"authentication_failed", "invalid_login"}
+GRUP_WAZUH_BERHASIL = {"authentication_success"}
+EVENT_SURICATA_KONEKSI = {"flow", "alert", "netflow"}
 
 
 class GalatImpor(ValueError):
@@ -57,6 +70,15 @@ def _waktu_syslog(m: re.Match, tahun: int) -> float | None:
     try:
         return datetime(tahun, _BULAN[m["bln"]], int(m["hari"]), int(m["j"]), int(m["m"]), int(m["d"])).timestamp()
     except (KeyError, ValueError):
+        return None
+
+
+def _dt_iso(teks) -> datetime | None:
+    if not isinstance(teks, str):
+        return None
+    try:
+        return datetime.fromisoformat(teks.strip().replace("Z", "+00:00"))   # juga +0700 (Wazuh, Suricata)
+    except ValueError:
         return None
 
 
@@ -136,6 +158,76 @@ def _baris_csv(r: dict, aset_by_ip: dict[str, str], aset_dikenal: set[str],
         return None
 
 
+def _port(nilai) -> int | None:
+    try:
+        port = int(nilai)
+    except (TypeError, ValueError):
+        return None
+    return port if 0 < port < 65536 else None
+
+
+def _baris_json(o, aset_ssh: str, aset_by_ip: dict[str, str],
+                port_aset: dict[tuple[str, int], str]) -> tuple[str, float, dict] | None:
+    """Satu objek JSON keluaran sensor → (sumber, waktu, peristiwa mentah), atau None bila bukan yang dinilai aturan."""
+    if not isinstance(o, dict):
+        return None
+    d = _dt_iso(o.get("timestamp"))
+    if d is None:
+        return None
+    t = d.timestamp()
+    if isinstance(o.get("rule"), dict) and "agent" in o:                      # Wazuh
+        grup = set(o["rule"].get("groups") or [])
+        berhasil = True if grup & GRUP_WAZUH_BERHASIL else False if grup & GRUP_WAZUH_GAGAL else None
+        data = o.get("data") if isinstance(o.get("data"), dict) else {}
+        sumber = _ip(str(data.get("srcip", "")))
+        if berhasil is None or not sumber:
+            return None
+        agen = o.get("agent") if isinstance(o.get("agent"), dict) else {}
+        aset = aset_by_ip.get(_ip(str(agen.get("ip", ""))) or "") or aset_ssh
+        return "wazuh", t, {"jenis": "login", "sumber": sumber, "aset": aset, "berhasil": berhasil}
+    jenis = o.get("event_type")
+    if not isinstance(jenis, str):
+        return None
+    sumber, tujuan, port = _ip(str(o.get("src_ip", ""))), _ip(str(o.get("dest_ip", ""))), _port(o.get("dest_port"))
+    if not sumber or not tujuan or port is None:
+        return None
+    aset = port_aset.get((tujuan, port))
+    if jenis in EVENT_SURICATA_KONEKSI:                                        # Suricata: satu aliran = satu koneksi
+        if aset and port in PORT_OT:
+            return "suricata", t, {"jenis": "koneksi_ot", "sumber": sumber, "aset": aset}
+        return "suricata", t, {"jenis": "koneksi", "sumber": sumber, "ip": tujuan, "port": port, "aset": aset}
+    if jenis == "modbus" and aset and port in PORT_OT:
+        req = (o.get("modbus") or {}).get("request") if isinstance(o.get("modbus"), dict) else None
+        fungsi = req.get("function_raw") if isinstance(req, dict) else None
+        if not isinstance(fungsi, int) or isinstance(fungsi, bool) or not 0 < fungsi < 128:
+            return None
+        jam = d.hour if d.tzinfo else _jam_lokal(t)                           # jam di lokasi sensor
+        return "suricata", t, {"jenis": "modbus", "sumber": sumber, "aset": aset, "fungsi": fungsi, "jam": jam}
+    return None
+
+
+def _objek_json(isi: str, baris: list[str]) -> list | None:
+    """JSON per baris (alerts.json, eve.json) atau satu larik JSON (ekspor). None bila bukan JSON."""
+    awal = isi.lstrip()[:1]
+    if awal == "[":
+        try:
+            data = json.loads(isi)
+        except json.JSONDecodeError:
+            return None
+        return data if isinstance(data, list) else None
+    if awal != "{":
+        return None
+    hasil = []
+    for b in baris:
+        if not b.strip():
+            continue
+        try:
+            hasil.append(json.loads(b))
+        except json.JSONDecodeError:
+            hasil.append(None)                                                 # baris rusak: dihitung, tidak ditebak
+    return hasil
+
+
 def baca(isi: str, simpul: list[dict], aset_ssh: str = "ssh", tahun: int | None = None) -> tuple[list[tuple[float, dict]], dict]:
     """Teks berkas → ([(waktu epoch, peristiwa mentah)] berurutan waktu, ringkasan). GalatImpor bila tak ada yang dikenali."""
     baris = isi.splitlines()
@@ -147,7 +239,18 @@ def baca(isi: str, simpul: list[dict], aset_ssh: str = "ssh", tahun: int | None 
     port_aset = {(s["ip"], s["port"]): s["id"] for s in simpul if s.get("port")}
     kepala = baris[0].strip().lower().replace(" ", "") if baris else ""
     hasil: list[tuple[float, dict]] = []
-    if kepala.startswith("waktu,") or ",jenis," in kepala:
+    objek = _objek_json(isi, baris)
+    if objek is not None:
+        if len(objek) > MAKS_BARIS:
+            raise GalatImpor(f"Berkas terlalu panjang (lebih dari {MAKS_BARIS:,} peristiwa)".replace(",", "."))
+        jumlah, asal = len(objek), set()
+        for o in objek:
+            if (x := _baris_json(o, aset_ssh, aset_by_ip, port_aset)) is not None:
+                asal.add(x[0])
+                hasil.append((x[1], x[2]))
+        format_ = " + ".join(n for k, n in (("wazuh", "Wazuh alerts.json"), ("suricata", "Suricata eve.json")) if k in asal)
+        format_ = format_.replace("alerts.json + Suricata eve.json", "+ Suricata") if len(asal) == 2 else format_
+    elif kepala.startswith("waktu,") or ",jenis," in kepala:
         format_ = "csv"
         pembaca = csv.DictReader(io.StringIO(isi))
         pembaca.fieldnames = [f.strip().lower() for f in (pembaca.fieldnames or [])]
@@ -170,7 +273,8 @@ def baca(isi: str, simpul: list[dict], aset_ssh: str = "ssh", tahun: int | None 
                 else "auth.log + firewall"
     if not hasil:
         raise GalatImpor("Tidak ada baris yang dikenali. Format yang didukung: auth.log OpenSSH, log firewall "
-                         "UFW/iptables (SRC=, DST=, DPT=), atau CSV berkepala waktu,jenis,sumber,…")
+                         "UFW/iptables (SRC=, DST=, DPT=), CSV berkepala waktu,jenis,sumber,…, Wazuh alerts.json, "
+                         "atau Suricata eve.json")
     if len(hasil) > MAKS_PERISTIWA:
         raise GalatImpor(f"Terlalu banyak peristiwa (lebih dari {MAKS_PERISTIWA:,}); pecah berkasnya".replace(",", "."))
     hasil.sort(key=lambda x: x[0])

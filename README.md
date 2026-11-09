@@ -13,6 +13,8 @@ Banyak sistem pertahanan berhenti di alarm. Nusantara Shield berlanjut sampai bu
 
 - **Isolasi tidak pernah otomatis.** Isolasi otomatis terdengar cepat, sampai ia memutus segmen OT karena alarm keliru. Di sini isolasi selalu didahului bukti tersegel dan keputusan Operator; yang diputus jalurnya, genset tetap menyala.
 - **"Tanpa awan" berlaku sampai ke demonya.** Aplikasi dipasang dari paket bersidik jari tanpa internet, lalu seluruh uji dijalankan di mesin itu juga.
+- **Untuk aset TNI saja.** Insiden sipil tetap ranah BSSN, Komdigi, dan Polri; kasus PDNS 2024 dipakai sebagai pelajaran, bukan wilayah tugas (Proposal §5.3).
+- **Membaca sensor yang sudah ada.** Keluaran Wazuh (`alerts.json`) dan Suricata (`eve.json`) bisa diimpor dan dinilai aturan yang sama; tidak ada *active response* atau IPS yang memutus tanpa keputusan Operator.
 - Semua data **sintetis**: alamat IP dari blok dokumentasi RFC 5737, nama orang & instansi **fiktif**.
 - Berjalan **luring** (tanpa internet): tidak ada CDN, font, atau gambar dari luar.
 - Tidak menyimpan data pribadi; log audit tidak menyimpan alamat IP pengunjung.
@@ -303,7 +305,7 @@ sequenceDiagram
 | Action Center | Satu kartu per insiden: status bukti, ⚡ isolasi, isolasi darurat, langkah playbook, ♻ pemulihan | Panel komando |
 | Beban Jaringan | Gauge, **linimasa 60 menit** (berlabel data latihan, garis ambang waspada/kritis) dan **pita anomali AI per aset** (klik → sorot di topologi) | Meteran air |
 | Peringatan terbaru | **Tabel lebar penuh**: keparahan, peringatan, aset, status, waktu. Label dari data nyata (Operator dan nomor bukti), tag teknik **MITRE ATT&CK**, dan **sumber data** tiap peringatan (latihan sintetis atau log impor) | Papan pengumuman piket |
-| Latihan | Satu bilah alat: target, 4 skenario, latihan deteksi (*login* gagal, pindai *port*, akses OT tanpa izin), **Impor log…** (log asli: auth.log, firewall, CSV; contoh di `docs/contoh-log/`), latih kegagalan forensik | Simulator latihan |
+| Latihan | Satu bilah alat: target, 4 skenario, latihan deteksi (*login* gagal, pindai *port*, akses OT tanpa izin), **Impor log…** (log asli: auth.log, firewall, CSV, Wazuh `alerts.json`, Suricata `eve.json`; contoh di `docs/contoh-log/`), latih kegagalan forensik | Simulator latihan |
 | Aset (triase) | Status 6 layanan contoh; klik untuk laci PIC & Quick Call | Papan triase IGD |
 | Log | Peristiwa dari *server* (ringkas 2 baris ⇄ semua) | Rekam gejala pasien |
 | Alat Operator | Cek indikator, **Drill Kesiapan** (latihan tanggap insiden bernilai: log sintetis, pertanyaan per fase, nilai 0–100 dari jejak tercatat), kepatuhan pencadangan, Audit & LAPSIT PDF, **Akun** (khusus Operator) | Pos satpam, lapangan latihan, & buku piket |
@@ -414,8 +416,9 @@ Contoh memilih sebagian: `./run_tests.sh -k akun`, `./run_tests.sh tests/test_ra
 - Setiap aturan dan skenario berlabel MITRE ATT&CK (AI sengaja tanpa label); setiap peringatan menulis sumber datanya
 - LAPSIT PDF memuat teknik ATT&CK, label sumber data, dan blok pengesahan dua tanda tangan
 
-**Impor log luring** — `tests/test_impor_log.py` (18 uji)
-- auth.log OpenSSH, log firewall UFW/iptables, dan CSV dibaca menjadi peristiwa mentah; nama akun tidak disalin
+**Impor log luring** — `tests/test_impor_log.py` (25 uji)
+- auth.log OpenSSH, log firewall UFW/iptables, CSV, Wazuh `alerts.json`, dan Suricata `eve.json` dibaca menjadi peristiwa mentah; nama akun tidak disalin
+- Wazuh: agregat *brute force* bawaan, `sudo`, dan FIM tidak dihitung; Suricata: aliran ke *port* 502 menjadi koneksi OT, jam Modbus dari stempel sensor
 - Baris dengan IP, port, jenis, waktu, atau aset tidak sah dilewati dan dihitung; berkas tak dikenali ditolak 422
 - Aturan yang sama dengan latihan: auth.log → *login* gagal + *login* tembus; CSV OT → tiga temuan OT; firewall → pemindaian *port*
 - Dua kunci utuh: hanya WASPADA, tanpa insiden, bukti, atau isolasi; log audit hanya mencatat nama berkas dan jumlah
@@ -482,7 +485,7 @@ dibatasi lajunya dan dicatat di log audit.
 | `POST /api/peringatan/tutup` | Operator | Triase: tutup peringatan WASPADA `{aset_id, status: selesai \| false_positive, alasan}`; dicatat di Buku Rantai Bukti |
 | `POST /api/ai/latihan` | Operator | Latihan AI lokal: suntik pola lalu lintas tak wajar `{aset_id, pola?}` (data sintetis) |
 | `POST /api/deteksi/latihan` | Operator | Latihan deteksi: putar peristiwa mentah sintetis `{jenis: login_gagal \| login_tembus \| pindai_port \| akses_ot, aset_id?}` |
-| `POST /api/deteksi/impor` | Operator | Impor log ASLI secara luring `{nama, isi, aset_id?}`: auth.log OpenSSH, log firewall UFW/iptables, atau CSV (maks. ≈2 MB; 6× per menit). Aturan sama dengan latihan; hanya menaikkan WASPADA |
+| `POST /api/deteksi/impor` | Operator | Impor log ASLI secara luring `{nama, isi, aset_id?}`: auth.log OpenSSH, log firewall UFW/iptables, CSV, Wazuh `alerts.json`, atau Suricata `eve.json` (maks. ≈2 MB; 6× per menit). Aturan sama dengan latihan; hanya menaikkan WASPADA |
 | `POST /api/playbook/langkah` · `POST /api/pulihkan` | Operator | Centang langkah · tutup insiden |
 | `GET /api/drill` | semua | Drill Kesiapan: katalog, drill aktif (tanpa kunci jawaban yang belum dijawab), riwayat nilai |
 | `POST /api/drill/mulai` · `/jawab` · `/selesai` | Operator | Mulai `{kode}` · jawab `{no, pilihan}` · akhiri dan hitung nilai dari jejak tercatat |
@@ -572,7 +575,7 @@ pytest.ini            pengaturan tampilan pytest
 | Isolasi dengan tombol ditahan 0,6 detik | Mesin Asisten Narasi: LLM lokal (Llama 3 8B lewat Ollama) untuk draf LAPSIT |
 | Rantai bukti HMAC-SHA256 | |
 | Korelasi CTI dan Mesin Deteksi Anomali (_anomaly detection engine_; Isolation Forest, luring) | **Respons bertingkat menurut kritikalitas aset:** aset vital tetap dua kunci; endpoint kantor berisiko rendah diisolasi otomatis dengan praotorisasi |
-| Mesin Deteksi Aturan: login gagal berulang, login tembus, pemindaian port, aturan OT (atas peristiwa sintetis), dan **impor log asli** (auth.log, firewall, CSV) | Sensor yang terus-menerus (Wazuh, Suricata, Zeek) dan peristiwa identitas dari Active Directory |
+| Mesin Deteksi Aturan: login gagal berulang, login tembus, pemindaian port, aturan OT (atas peristiwa sintetis), dan **impor log asli** (auth.log, firewall, CSV, keluaran Wazuh dan Suricata) | Aliran langsung dari sensor (Wazuh, Suricata, Zeek) dan peristiwa identitas dari Active Directory |
 | **Titik periksa Ed25519 dengan kunci berevolusi** (*forward security*; v5.3.0) | **Penguatan hasil studi banding** (Proposal §5.5): batas waktu *fail-safe* dan aturan dua orang, garis dasar Modbus, paket intelijen bertanda tangan; evolusi kunci HMAC |
 | Linimasa 60 menit (data latihan), pita anomali AI per aset, KPI MTTC dan insiden | |
 | Simulasi OT genset (Modbus 502) | |

@@ -21,7 +21,7 @@ Nusantara Shield adalah perisai pertahanan siber (kategori **Penangkalan, _Defen
 | Dua peran: Pengamat dan Operator | **(2) Akses dan tampilan lintas satuan** untuk pemantauan serentak di Mabes |
 | Isolasi dengan tombol yang ditahan 0,6 detik | Mesin Asisten Narasi: LLM lokal Llama 3 8B lewat Ollama untuk draf LAPSIT |
 | Rantai bukti HMAC-SHA256 | Umpan indikator resmi (BSSN/MISP) lewat gerbang satu arah |
-| Korelasi CTI dan Mesin Deteksi Anomali (_Isolation Forest_, luring) | Sensor nyata (Wazuh, Suricata, Zeek) dan sakelar terkelola sungguhan |
+| Korelasi CTI dan Mesin Deteksi Anomali (_Isolation Forest_, luring) | Aliran langsung dari sensor (Wazuh, Suricata, Zeek; kini lewat impor berkas keluarannya) dan sakelar terkelola sungguhan |
 | Simulasi OT genset (Modbus, _port_ 502) | Peristiwa identitas nyata dari Active Directory (perubahan hak akses, akun baru) |
 | Pembuatan LAPSIT dan ekspor PDF | Pengamanan integrasi nyata: brankas kredensial, hak minimum per _playbook_, _playbook_ bertanda tangan |
 | Paket pasang luring bersidik jari SHA-256 (tanpa internet sama sekali) | **Respons bertingkat menurut kritikalitas aset:** aset vital tetap dua kunci; _endpoint_ kantor berisiko rendah diisolasi otomatis dengan praotorisasi |
@@ -321,15 +321,18 @@ Waktu ditulis dalam zona `NS_ZONA_WAKTU` (bawaan WIB). Contoh hasilnya ada di `d
 | Log autentikasi OpenSSH (auth.log, secure, journal; stempel syslog atau ISO 8601) | `Failed password/publickey … from IP` dan `Accepted … from IP` | _Login_ gagal / berhasil ke aset pilihan (bawaan: Akses admin SSH) |
 | Log firewall UFW/iptables | Baris berisi `SRC=`, `DST=`, `DPT=` | Koneksi masuk; aset dikenali dari pasangan alamat:_port_ di inventaris |
 | CSV berkepala `waktu,jenis,sumber,aset,berhasil,ip,port,fungsi,jam` | `jenis` = `login`, `koneksi`, `koneksi_ot`, atau `modbus` | Sesuai jenisnya; `aset` boleh id aset atau alamat IP-nya |
+| **Wazuh `alerts.json`** (JSON per baris, atau satu larik JSON hasil ekspor) | Peringatan bergrup `authentication_failed` / `invalid_login` dan `authentication_success`, alamat dari `data.srcip` | _Login_ gagal / berhasil; aset dari `agent.ip` bila ada di inventaris, selain itu aset pilihan. Peringatan agregat Wazuh (misalnya 5763 _brute force_), `sudo`, dan FIM tidak dihitung: rentetan dinilai aturan kita sendiri dengan ambang terbuka |
+| **Suricata `eve.json`** | `event_type` `flow`, `alert`, `netflow`; dan `modbus` (`request.function_raw`) | Koneksi (ke _port_ 502 aset OT: koneksi ke zona kendali); perintah Modbus. Jam perintah diambil dari stempel waktu sensor, jadi jendela pemeliharaan dinilai menurut jam di lokasi sensor |
 
 - **Validasi di batas kepercayaan:** IP harus sah, _port_ 1–65535, fungsi Modbus 1–127, jam 0–23, aset harus ada di inventaris. Baris yang tidak sah dilewati dan dihitung (`diabaikan`); berkas tanpa satu pun baris dikenali ditolak 422. Batas ≈2 MB dan 50.000 baris per berkas.
 - **Batas ukuran khusus jalur:** hanya `/api/deteksi/impor` yang boleh menerima kiriman sampai ≈2,6 MB, dan hanya bila membawa token; tanpa token, kiriman ditolak 401 sebelum body dibaca. Jalur lain tetap 16 KB.
 - **Waktu diputar ulang relatif:** peristiwa terakhir di log dianggap terjadi saat ini, jarak antarperistiwa tetap. Jam lokal untuk aturan Modbus diambil dari kolom `jam`, atau dari `waktu` menurut zona waktu _server_.
 - **Privasi:** nama akun dalam log tidak disalin ke peristiwa, dan isi log tidak masuk log audit; yang dicatat hanya nama berkas, jumlah baris, dan jumlah temuan.
 - **Dua kunci tetap:** temuan dari log asli hanya menaikkan WASPADA. Peringatannya diberi label "Sumber: log impor «nama berkas» dari Operator".
-- Contoh berkas sintetis untuk mencoba: `docs/contoh-log/` (auth.log, ufw.log, peristiwa-ot.csv).
+- **Sensor yang sudah dimiliki satuan:** Wazuh dan Suricata dibaca dari berkas keluarannya saja. Nusantara Shield tidak memasang, mengatur, atau menghubungi sensor, dan tidak menjalankan _active response_ atau IPS: pemutusan tetap keputusan Operator.
+- Contoh berkas sintetis untuk mencoba: `docs/contoh-log/` (auth.log, ufw.log, peristiwa-ot.csv, wazuh-alerts.json, suricata-eve.json).
 
-**Batas:** telemetri langsung di purwarupa masih sintetis. Log asli baru masuk lewat impor berkas oleh Operator, belum lewat sensor yang terus-menerus (Wazuh, Suricata, Zeek; Proposal §5.2). Penerapan nyata membacanya dari Active Directory, SIEM, atau sensor jaringan satuan (Proposal §5.2).
+**Batas:** telemetri langsung di purwarupa masih sintetis. Log asli dan keluaran Wazuh/Suricata baru masuk lewat impor berkas oleh Operator, belum dialirkan terus-menerus dari sensor (Proposal §5.2). Penerapan nyata membacanya dari Active Directory, SIEM, atau sensor jaringan satuan (Proposal §5.2).
 
 ### 2.9 Peta Jalan Penguatan dari Studi Banding Arsitektur
 
@@ -667,7 +670,7 @@ Setiap uji tampil satu baris beserta hasilnya. Target: `396 passed`.
 | Linimasa dan KPI | 6 | Data latihan bersih dan berbenih tetap; satu titik per 60 detik; tanda insiden; pita AI dan berakhirnya; KPI dari kejadian nyata |
 | AI lokal | 10 | Model dilatih lokal dengan benih tetap; tanpa alarm palsu; Modbus tak wajar → WASPADA beserta alasan; gabungan dengan CTI; Perketat; penilaian dalam milidetik; berjalan tanpa jaringan |
 | Paket pasang luring | 8 | Daftar sidik jari SHA-256 mencakup setiap berkas; satu bait berubah, berkas hilang, berkas selundupan, atau jalur keluar paket langsung ditolak; pemasangan memakai `--no-index`; paket tanpa `.env`/`.venv`/data |
-| Impor log luring | 18 | auth.log, firewall, dan CSV dibaca tanpa nama akun; baris tidak sah dilewati dan dihitung; aturan yang sama dengan latihan; dua kunci utuh; log audit tanpa isi log; hanya jalur impor boleh ≈2 MB dan hanya dengan token; batas laju |
+| Impor log luring | 25 | auth.log, firewall, CSV, Wazuh alerts.json, dan Suricata eve.json dibaca tanpa nama akun; jam Modbus dari stempel sensor; baris tidak sah dilewati dan dihitung; aturan yang sama dengan latihan; dua kunci utuh; log audit tanpa isi log; hanya jalur impor boleh ≈2 MB dan hanya dengan token; batas laju |
 | Aturan OT, label MITRE ATT&CK, label sumber data, pengesahan LAPSIT | 23 | Jalur OT resmi dan perintah baca bukan temuan; jendela pemeliharaan 22.00–02.00 diuji per jam; rantai IT → OT; dua kunci utuh (genset hanya WASPADA, tanpa insiden, bukti, atau isolasi); setiap aturan dan skenario berlabel ATT&CK; AI tanpa label; setiap peringatan menulis sumber datanya; LAPSIT memuat teknik ATT&CK dan dua tanda tangan |
 | Sinergi IT/OT | 6 | Genset (Modbus 502) terdaftar; kabar Modbus → WASPADA; Perketat; tanpa alarm palsu IT ⇄ OT; Sabotase OT: bukti → putus jalur ≈1,2 dtk, genset tetap menyala; pemulihan terkunci bila _hash_ beda |
 | Verifikasi audit tanpa _server_ | 12 | CLI mandiri menghitung ulang rantai HMAC log audit dan Buku Rantai Bukti; isi diubah, entri dihapus, entri dari log lain disisipkan, baris rusak, dan kunci salah tertangkap beserta letaknya; `--cocokkan` menangkap log yang dipotong di ujung; kunci tidak pernah dicetak; tanpa kode aplikasi dan tanpa jaringan |
