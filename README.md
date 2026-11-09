@@ -19,7 +19,7 @@ Banyak sistem pertahanan berhenti di alarm. Nusantara Shield berlanjut sampai bu
 - Berjalan **luring** (tanpa internet): tidak ada CDN, font, atau gambar dari luar.
 - Tidak menyimpan data pribadi; log audit tidak menyimpan alamat IP pengunjung.
 
-**Situs *all-in-one* untuk Dewan Juri:** https://pisangsisir.github.io/Nusantara-Shield-v5.2/ (sumber di `situs/`). Satu halaman berisi cara kerja, Drill Kesiapan, perbandingan, batas yang kami akui, dan semua unduhan (Proposal, Dokumentasi Teknis, dek PDF/PPTX, Panduan Belajar, poster, contoh LAPSIT, contoh log) beserta sidik jari SHA-256-nya.
+**Situs *all-in-one* untuk Dewan Juri:** https://pisangsisir.github.io/Nusantara-Shield/ (sumber di `situs/`). Satu halaman berisi cara kerja, Drill Kesiapan, perbandingan, batas yang kami akui, dan semua unduhan (Proposal, Dokumentasi Teknis, dek PDF/PPTX, Panduan Belajar, poster, contoh LAPSIT, contoh log) beserta sidik jari SHA-256-nya.
 
 ## Struktur Repositori
 

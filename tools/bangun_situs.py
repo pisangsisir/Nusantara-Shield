@@ -91,7 +91,7 @@ def md_ke_pdf(halaman, sumber: Path, tujuan: Path) -> None:
     gaya = GAYA_DOKUMEN % {"huruf": (SITUS / "huruf").as_uri()}
     dok = (f"<!doctype html><html lang='id'><head><meta charset='utf-8'><style>{gaya}</style></head><body>"
            f"<p class='kepala-dokumen'>Nusantara Shield · Kartika Cyber Hackathon 2026 · sumber: {html.escape(sumber.name)} "
-           f"di github.com/pisangsisir/Nusantara-Shield-v5.2</p>{isi}</body></html>")
+           f"di github.com/pisangsisir/Nusantara-Shield</p>{isi}</body></html>")
     with tempfile.NamedTemporaryFile("w", suffix=".html", delete=False, encoding="utf-8", dir=sumber.parent) as f:
         f.write(dok)                       # di folder sumbernya: gambar relatif di Markdown tetap ditemukan
         sementara = Path(f.name)

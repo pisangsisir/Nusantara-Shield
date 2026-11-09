@@ -4,7 +4,9 @@ Seluruh kode dikembangkan sejak **15 Oktober 2026**, setelah publikasi program K
 
 ## Belum dirilis
 
-(kosong)
+### Tautan repositori dan situs mengikuti nama baru — 9 November 2026 (branch `fix/tautan-nama-repo`)
+- Repositori berganti nama menjadi `Nusantara-Shield`. Tautan di dek, poster, README, dan situs diganti; poster dan unduhan situs dibangun ulang.
+- Alamat situs kini **https://pisangsisir.github.io/Nusantara-Shield/**. Alamat situs lama tidak dialihkan GitHub Pages; tautan `github.com` nama lama tetap dialihkan.
 
 ## v5.4.0 — 9 November 2026
 
