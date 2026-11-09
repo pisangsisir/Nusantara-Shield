@@ -4,6 +4,12 @@ Seluruh kode dikembangkan sejak **15 Oktober 2026**, setelah publikasi program K
 
 ## Belum dirilis
 
+### Situs bergaya layar posko — 9 November 2026 (branch `feature/situs-hud`)
+- Situs dirombak memakai gaya asli dasbor: latar biru malam, hijau neon untuk AMAN/siap, kuning WASPADA, merah KRITIS, label HUD huruf mono, dan ikon garis yang sama dengan aplikasi.
+- Pembuka: radar beranimasi (zona DMZ, internal, kendali OT) dan panel status sistem; pita kata kunci doktrin.
+- Bagian bernomor 01–10 dengan *punchline* masing-masing: masalah (angka besar bersumber), lima aturan doktrin beserta jumlah ujinya, pipeline OODA dan urutan saat isolasi, **layar asli** dalam bingkai jendela bertab, Drill Kesiapan (bento dengan contoh kartu nilai), alur sensor Wazuh/Suricata, perbandingan ✓/✗, penerapan dan batas peran, unduhan bersidik jari, serta tanya jawab berakordeon.
+- Tetap tanpa CDN dan tanpa font daring; gerak dimatikan bila perangkat meminta gerak dikurangi.
+
 ### Situs untuk Dewan Juri — 9 November 2026 (branch `feature/situs`)
 - **`situs/`**: satu halaman statis yang memuat semua bahan penilaian. Isinya: urutan doktrin sebagai jalur keputusan bercap waktu, masalah (pelajaran PDNS ≈49 jam dan empat kelemahan respons manual), siklus OODA dengan tangkapan layar, Drill Kesiapan, impor Wazuh/Suricata, perbandingan menurut jenis alat, batas yang kami akui, langkah penerapan dan batas peran, serta unduhan dengan sidik jari SHA-256 dan tiga perintah untuk juri.
 - **Huruf disimpan sendiri** (Bricolage Grotesque, Plus Jakarta Sans, JetBrains Mono; SIL OFL): tampil sama di semua sistem operasi, tanpa CDN dan tanpa font daring. Mode gelap mengikuti pengaturan perangkat. Video YouTube baru dimuat setelah tombol ditekan (`situs/situs.js`, isi `VIDEO_ID` setelah video diunggah).
