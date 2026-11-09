@@ -10,7 +10,7 @@ Prinsip yang dikunci:
   Berkas yang tidak dikenali sama sekali ditolak 422.
 - Privasi: nama akun dalam log tidak ikut ke peristiwa; isi log tidak masuk log audit.
 - Dua kunci tetap: temuan dari log asli hanya menaikkan WASPADA; tanpa insiden, bukti, isolasi, atau antrean SOAR.
-- Hanya jalur impor yang boleh menerima ±2 MB, dan hanya bila membawa token; jalur lain tetap 16 KB.
+- Hanya jalur impor yang boleh menerima ≈2 MB, dan hanya bila membawa token; jalur lain tetap 16 KB.
 """
 
 import json
@@ -175,13 +175,13 @@ def test_tanpa_token_body_besar_ditolak_sebelum_dibaca(k):
 
 def test_hanya_jalur_impor_yang_boleh_lebih_dari_16_kb(k):
     h = masuk(k)
-    besar = "\n".join([(CONTOH / "auth.log").read_text()] * 40)          # ±45 KB: lolos di jalur impor
+    besar = "\n".join([(CONTOH / "auth.log").read_text()] * 40)          # ≈45 KB: lolos di jalur impor
     assert len(besar.encode()) > 16 * 1024
     assert k.post("/api/deteksi/impor", headers=h, json={"nama": "besar.log", "isi": besar}).status_code == 200
     r = k.post("/api/simulasi", headers=h, json={"layanan_id": "imigrasi", "skenario": "ddos", "x": "y" * 20_000})
     assert r.status_code == 413                                         # jalur lain tetap 16 KB
     r = k.post("/api/deteksi/impor", headers=h, content=b"x" * 2_700_000)
-    assert r.status_code == 413                                         # di atas ±2,6 MB: ditolak sebelum router
+    assert r.status_code == 413                                         # di atas ≈2,6 MB: ditolak sebelum router
 
 
 def test_impor_dibatasi_laju(k):

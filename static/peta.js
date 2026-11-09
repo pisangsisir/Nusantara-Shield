@@ -66,7 +66,7 @@ const Peta = (() => {
     const u = 1 - t;
     return [u * u * k.x0 + 2 * u * t * k.cx + t * t * k.x1, u * u * k.y0 + 2 * u * t * k.cy + t * t * k.y1];
   };
-  // Proyektil yang diblokir berhenti di "perisai" (lingkar ±26 satuan peta dari markas)
+  // Proyektil yang diblokir berhenti di "perisai" (lingkar ≈26 satuan peta dari markas)
   function batasPerisai(k) {
     let t = 1;
     while (t > 0.5) { const [x, y] = titikPada(k, t); if (Math.hypot(x - k.x1, y - k.y1) > 26) break; t -= 0.01; }

@@ -12,7 +12,7 @@ sequenceDiagram
     SV->>BB: Salin bukti + SHA-256 + berita acara
     BB-->>LA: Dicerminkan
     alt Bukti berhasil diamankan
-        SV->>SV: ±1,2 detik kemudian: putus jaringan
+        SV->>SV: ≈1,2 detik kemudian: putus jaringan
     else Agen forensik gagal
         SV-->>UI: 409 · gunakan isolasi darurat
         Op->>UI: Isi alasan + tahan ⚠ 1,5 detik

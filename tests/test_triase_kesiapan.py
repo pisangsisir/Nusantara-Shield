@@ -86,7 +86,7 @@ def test_nilai_awal_mengikuti_rumus_terbuka(klien):
 def test_kabar_ancaman_menurunkan_kedua_sub_skor_dan_perketat_memulihkannya(klien):
     h = masuk(klien)
     awal = layanan(potret(klien, h)["kesiapan"], "listrik")
-    siarkan(klien, h, "CTI-109")                          # Modbus → genset ±66% → WASPADA
+    siarkan(klien, h, "CTI-109")                          # Modbus → genset ≈66% → WASPADA
     k = potret(klien, h)
     g = layanan(k["kesiapan"], "listrik")
     assert prediksi(k)["genset"]["proaktif"] and g["rincian"]["peringatan_terbuka"] == 1
@@ -110,7 +110,7 @@ def test_insiden_belum_ditahan_membatasi_nilai_posko_paling_tinggi_d(klien):
     assert k["nilai"] <= PLAFON_INSIDEN_AKTIF and k["huruf"] == "D" and k["batas"]
     JAM["t"] += 4
     klien.post("/api/soar/jalankan", headers=h, json={"layanan_id": "kesehatan", "aksi": "isolasi"})
-    JAM["t"] += 1.3                                       # bukti → ±1,2 dtk → pemutus selesai
+    JAM["t"] += 1.3                                       # bukti → ≈1,2 dtk → pemutus selesai
     k = potret(klien, h)["kesiapan"]
     assert layanan(k, "kesehatan")["insiden"] == 60 and k["batas"] is None
 
