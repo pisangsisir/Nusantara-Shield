@@ -1,12 +1,10 @@
 /* Situs Nusantara Shield — gaya layar posko yang sama dengan dasbor (static/style.css): latar biru malam, hijau neon
    untuk AMAN/siap, kuning WASPADA, merah KRITIS, label HUD huruf mono. Huruf disimpan sendiri (situs/huruf, SIL OFL):
    tanpa CDN, tanpa font daring, tampil sama di semua sistem operasi dan tetap terbaca tanpa internet. */
-@font-face { font-family: "Bricolage"; src: url(huruf/bricolage-grotesque.woff2) format("woff2-variations");
-  font-weight: 200 800; font-stretch: 75% 100%; font-display: swap; }
-@font-face { font-family: "Jakarta"; src: url(huruf/plus-jakarta-sans.woff2) format("woff2-variations");
-  font-weight: 200 800; font-display: swap; }
-@font-face { font-family: "Jakarta"; src: url(huruf/plus-jakarta-sans-italic.woff2) format("woff2-variations");
-  font-weight: 200 800; font-style: italic; font-display: swap; }
+@font-face { font-family: "Inter"; src: url(huruf/inter.woff2) format("woff2-variations");
+  font-weight: 100 900; font-display: swap; }
+@font-face { font-family: "Inter"; src: url(huruf/inter-italic.woff2) format("woff2-variations");
+  font-weight: 100 900; font-style: italic; font-display: swap; }
 @font-face { font-family: "JetBrains"; src: url(huruf/jetbrains-mono.woff2) format("woff2-variations");
   font-weight: 100 800; font-display: swap; }
 
@@ -17,8 +15,8 @@
   --kuning: #f2c14e; --kuning-lembut: rgba(242, 193, 78, .12);
   --merah: #ff5c74; --merah-lembut: rgba(255, 92, 116, .12);
   --biru: #7aa2d6;
-  --judul: "Bricolage", system-ui, sans-serif;
-  --isi: "Jakarta", system-ui, sans-serif;
+  --judul: "Inter", system-ui, sans-serif;
+  --isi: "Inter", system-ui, sans-serif;
   --mono: "JetBrains", ui-monospace, Menlo, Consolas, monospace;
   --radius: 14px;
   color-scheme: dark;
@@ -26,7 +24,7 @@
 * { box-sizing: border-box; }
 [hidden] { display: none !important; }
 html { scroll-behavior: smooth; -webkit-text-size-adjust: 100%; }
-body { margin: 0; color: var(--teks); font: 400 1rem/1.62 var(--isi); background: var(--latar);
+body { margin: 0; color: var(--teks); font: 400 1.03rem/1.68 var(--isi); letter-spacing: -.003em; background: var(--latar);
   background-image: radial-gradient(circle at 1px 1px, rgba(122, 162, 214, .09) 1px, transparent 0);
   background-size: 28px 28px; }
 img { max-width: 100%; height: auto; display: block; }
@@ -67,7 +65,7 @@ main { max-width: 1200px; margin: 0 auto; padding: 0 24px; }
 .pita-status { display: inline-flex; align-items: center; gap: 10px; font: 600 .74rem var(--mono); letter-spacing: .1em; text-transform: uppercase;
   color: var(--neon); border: 1px solid var(--neon-garis); background: var(--neon-lembut); padding: 6px 12px; border-radius: 999px; margin: 0 0 26px; }
 .led { width: 8px; height: 8px; border-radius: 50%; background: var(--neon); box-shadow: 0 0 10px var(--neon); animation: denyut 2.4s ease-in-out infinite; }
-h1 { font: 800 clamp(3rem, 7.4vw, 6.4rem)/.92 var(--judul); font-stretch: 78%; letter-spacing: -.02em; margin: 0; }
+h1 { font: 700 clamp(2.8rem, 6.2vw, 5.4rem)/1.02 var(--judul); letter-spacing: -.035em; margin: 0; }
 h1 em { font-style: normal; color: var(--neon); text-shadow: 0 0 34px rgba(62, 240, 161, .28); }
 .pengantar { font-size: 1.12rem; color: #b9c7da; max-width: 60ch; margin: 24px 0 0; }
 .semboyan { font: 600 .84rem var(--mono); letter-spacing: .08em; text-transform: uppercase; color: var(--kuning); margin: 18px 0 0; }
@@ -106,8 +104,8 @@ h1 em { font-style: normal; color: var(--neon); text-shadow: 0 0 34px rgba(62, 2
 .bagian { padding: 96px 0 0; }
 .nomor { font: 600 .78rem var(--mono); letter-spacing: .14em; text-transform: uppercase; color: var(--neon); margin: 0 0 14px; }
 .nomor::before { content: ""; display: inline-block; width: 28px; height: 1px; background: var(--neon); vertical-align: middle; margin-right: 12px; }
-h2 { font: 750 clamp(1.9rem, 3.9vw, 3.1rem)/1.04 var(--judul); font-stretch: 85%; letter-spacing: -.01em; margin: 0 0 22px; }
-h3 { font: 700 1.12rem/1.25 var(--judul); margin: 12px 0 6px; }
+h2 { font: 700 clamp(1.9rem, 3.6vw, 2.9rem)/1.1 var(--judul); letter-spacing: -.03em; margin: 0 0 22px; }
+h3 { font: 650 1.12rem/1.3 var(--judul); letter-spacing: -.01em; margin: 12px 0 6px; }
 .sempit { max-width: 64ch; margin: 0 0 22px; font-size: 1.02rem; }
 p { margin: 0 0 12px; }
 
@@ -115,7 +113,7 @@ p { margin: 0 0 12px; }
 .angka { border: 1px solid var(--garis); border-radius: var(--radius); background: var(--permukaan); padding: 22px; border-top: 3px solid var(--kuning); }
 .angka:first-child { border-top-color: var(--merah); }
 .angka:last-child { border-top-color: var(--neon); }
-.angka b { display: block; font: 800 clamp(2.4rem, 4.6vw, 3.4rem)/1 var(--judul); font-stretch: 80%; margin-bottom: 12px; }
+.angka b { display: block; font: 800 clamp(2.4rem, 4.6vw, 3.4rem)/1 var(--judul); margin-bottom: 12px; }
 .angka small { color: var(--redup); font-size: .74rem; display: block; margin-top: 10px; }
 .kelemahan { list-style: none; padding: 0; margin: 16px 0 0; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; }
 .kelemahan li { display: flex; gap: 10px; align-items: flex-start; font-size: .9rem; padding: 14px; border-radius: 12px;
@@ -156,7 +154,7 @@ p { margin: 0 0 12px; }
 
 .bento-angka { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; margin-top: 18px; }
 .bento-angka div { border: 1px solid var(--garis); border-radius: var(--radius); padding: 18px; background: var(--permukaan); }
-.bento-angka b { display: block; font: 800 1.9rem/1.05 var(--judul); font-stretch: 82%; margin-bottom: 6px; }
+.bento-angka b { display: block; font: 800 1.9rem/1.05 var(--judul); margin-bottom: 6px; }
 .bento-angka span { font-size: .84rem; color: var(--redup); }
 
 /* ---------------------------------------------------------------- layar asli */
@@ -179,7 +177,7 @@ p { margin: 0 0 12px; }
 .kartu p { font-size: .9rem; color: #b6c3d6; }
 .kartu.skor { grid-row: span 2; border-color: var(--neon-garis); }
 .skor-utama { display: flex; align-items: baseline; gap: 10px; margin: 16px 0 18px; }
-.skor-utama b { font: 800 4.6rem/1 var(--judul); font-stretch: 78%; }
+.skor-utama b { font: 800 4.6rem/1 var(--judul); }
 .skor-utama span { color: var(--redup); }
 .skor-utama .huruf { font: 800 1.7rem var(--judul); color: var(--neon); border: 2px solid var(--neon); border-radius: 8px; padding: 0 12px; align-self: center; }
 .komponen { display: grid; grid-template-columns: 1fr 70px 52px; gap: 10px; align-items: center; font-size: .84rem; padding: 8px 0; border-top: 1px dashed var(--garis); }
