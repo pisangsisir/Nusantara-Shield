@@ -1,0 +1,228 @@
+<!doctype html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Nusantara Shield — bukti dulu, baru putus</title>
+<meta name="description" content="Dasbor pertahanan siber luring untuk aset IT dan OT satuan TNI AD. Kartika Cyber Hackathon 2026, kategori Penangkalan. Semua karya, dokumen, paket, dan sidik jarinya bisa diperiksa di satu halaman.">
+<meta name="color-scheme" content="light dark">
+<meta property="og:title" content="Nusantara Shield — bukti dulu, baru putus">
+<meta property="og:description" content="Dasbor pertahanan siber luring untuk aset IT dan OT satuan TNI AD. Kartika Cyber Hackathon 2026.">
+<meta property="og:image" content="gambar/social-preview.png">
+<link rel="icon" href="gambar/simbol.svg" type="image/svg+xml">
+<link rel="stylesheet" href="gaya.css">
+</head>
+<body>
+<a class="lewati" href="#isi">Langsung ke isi</a>
+
+<header class="kepala">
+  <div class="kepala-isi">
+    <a class="merek" href="#isi"><img src="gambar/simbol.svg" alt="" width="30" height="30">Nusantara Shield</a>
+    <nav aria-label="Bagian halaman">
+      <a href="#masalah">Masalah</a>
+      <a href="#cara-kerja">Cara kerja</a>
+      <a href="#drill">Drill</a>
+      <a href="#sensor">Sensor</a>
+      <a href="#banding">Perbandingan</a>
+      <a href="#batas">Batas</a>
+      <a href="#periksa">Unduh &amp; periksa</a>
+    </nav>
+  </div>
+</header>
+
+<main id="isi">
+  <section class="pembuka" aria-labelledby="judul">
+    <h1 id="judul"><span>Bukti dulu,</span><span class="kedua">baru putus.</span></h1>
+    <p class="pengantar">Nusantara Shield adalah dasbor pertahanan siber <b>luring</b> untuk aset IT dan OT satuan TNI AD, dicontohkan pada rumah sakit Kesdam. Ia memperingatkan lebih dulu, memutus jalur penyerang dalam ≈1,2 detik setelah Operator memutuskan, dan tidak pernah menghapus barang bukti. Semuanya berjalan di <i>server</i> satuan sendiri, tanpa internet.</p>
+    <div class="aksi">
+      <a class="tombol utama" href="#periksa">Unduh dan periksa sendiri</a>
+      <a class="tombol" href="https://github.com/pisangsisir/Nusantara-Shield-v5.2">Kode di GitHub</a>
+      <a class="tombol" href="#video" id="tombol-video" hidden>Tonton video</a>
+    </div>
+
+    <ol class="jalur" aria-label="Urutan tindakan saat insiden">
+      <li><span class="waktu">sebelum serangan</span><b>Peringatan dini</b><span class="ket">Kabar ancaman, AI lokal, dan aturan deteksi menaikkan aset ke WASPADA, lengkap dengan alasan.</span></li>
+      <li><span class="waktu">0,6 dtk</span><b>Operator memutuskan</b><span class="ket">Tombol isolasi ditahan, bukan diklik. Mesin tidak pernah memutus sendiri.</span></li>
+      <li><span class="waktu">T+0</span><b>Bukti disegel</b><span class="ket">Salinan bukti diberi sidik jari SHA-256 dan dicatat di Buku Rantai Bukti.</span></li>
+      <li><span class="waktu">T+≈1,2 dtk</span><b>Jalur pertama putus</b><span class="ket">Tanpa bukti, pemutusan ditolak sistem. Genset tetap menyala.</span></li>
+      <li class="pulih"><span class="waktu">sesudahnya</span><b>LAPSIT dan pemulihan terkunci</b><span class="ket">Laporan terbit otomatis; pemulihan dibuka hanya bila sidik jari bukti cocok ulang.</span></li>
+    </ol>
+    <p class="keterangan-jalur">Di purwarupa, pengambilan bukti dan perintah ke sakelar jaringan masih simulasi; urutan dan kuncinya dijalankan sungguhan oleh <i>server</i>. Rincian: Dokumentasi Teknis §3.1.</p>
+  </section>
+
+  <section class="bagian video" id="video" aria-labelledby="judul-video" hidden>
+    <h2 id="judul-video">Lihat dalam video</h2>
+    <div class="video-wadah lebar">
+      <button type="button" id="putar-video" aria-label="Putar video (dimuat dari YouTube setelah tombol ditekan)">
+        <img src="gambar/thumbnail.jpg" alt="">
+        <span>Putar video</span>
+      </button>
+    </div>
+    <p class="catatan"><b>Privasi.</b> Video baru dimuat dari YouTube setelah tombol ditekan. Halaman ini sendiri tidak memuat apa pun dari luar.</p>
+  </section>
+
+  <section class="bagian" id="masalah" aria-labelledby="judul-masalah">
+    <h2 id="judul-masalah">Tanda bahayanya sudah ada. Tindakannya yang terlambat.</h2>
+    <p class="pengantar">Menurut kronologi BSSN, upaya mematikan Windows Defender di Pusat Data Nasional Sementara (PDNS) terekam 17 Juni 2024 pukul 23.15 WIB. Aktivitas jahat baru berjalan 20 Juni pukul 00.54. Ada ≈49 jam antara tanda bahaya dan kelumpuhan.</p>
+    <aside class="catatan">
+      <p><b>Sumber.</b> Kronologi BSSN yang dikutip media nasional; rincian di Proposal §2.1.</p>
+      <p><b>Batas peran.</b> PDNS adalah kasus sipil, ranah BSSN, Komdigi, dan Polri. Di sini ia dipakai sebagai pelajaran, bukan wilayah tugas sistem ini.</p>
+    </aside>
+    <p>Pola yang sama mengancam fasilitas satuan, terutama rumah sakit TNI AD yang memadukan sistem kantor dan mesin (genset, catu daya). Empat kelemahan respons manual:</p>
+    <ul class="daftar-lemah">
+      <li><b>Banjir peringatan.</b> Ancaman nyata tenggelam di antara ratusan alarm yang tidak menyangkut aset satuan.</li>
+      <li><b>Penahanan yang lambat dan ragu.</b> Izin berjenjang dan tombol bermakna ganda membuat penyerang leluasa menyebar.</li>
+      <li><b>Bukti rusak saat pemulihan darurat.</b> <i>Server</i> di-<i>restart</i> sebelum bukti disalin, sehingga pelaku tidak bisa diidentifikasi.</li>
+      <li><b>Petugas jaga bukan ahli siber, dan jarang berlatih.</b> Ahli di satuan hanya satu atau dua orang; urutan tindakan dipelajari di tengah krisis.</li>
+    </ul>
+  </section>
+
+  <section class="bagian" id="cara-kerja" aria-labelledby="judul-cara">
+    <h2 id="judul-cara">Satu siklus keputusan: amati, orientasi, putuskan, bertindak.</h2>
+    <aside class="catatan">
+      <p><b>66% → 20%.</b> Skor heuristik peluang serangan pengendali genset setelah kabar celah Modbus, sebelum dan sesudah tombol Perketat. Bukan probabilitas terkalibrasi. Proposal §7.2.</p>
+      <p><b>≈1,5% CPU</b> untuk 300 layar pemantau serentak, karena satu dapur memasak situasi sekali per detik dan layar hanya menerima ralat. Diukur dengan <code>tools/ukur_beban.py</code>.</p>
+    </aside>
+    <ol class="ooda">
+      <li><h3>Amati</h3><p>Kabar ancaman dicocokkan dengan <i>port</i> dan sektor aset satuan. AI lokal (<i>Isolation Forest</i>) menilai lalu lintas tiap aset, dan aturan deteksi berambang terbuka menghitung upaya <i>login</i>, pemindaian, dan perintah Modbus.</p></li>
+      <li><h3>Orientasi</h3><p>Hasilnya menaikkan aset ke WASPADA beserta alasan dalam bahasa biasa dan teknik MITRE ATT&amp;CK. Tidak ada yang diputus pada tahap ini.</p></li>
+      <li><h3>Putuskan</h3><p>Hanya akun Operator yang bisa memerintah isolasi, dengan menahan tombol 0,6 detik. Pengamat (misalnya Dansat) melihat, tidak menekan.</p></li>
+      <li><h3>Bertindak</h3><p>Bukti disegel, jalur diputus berurutan, LAPSIT terbit, dan pemulihan terkunci sampai sidik jari bukti cocok ulang. Semua tercatat di log audit berantai yang diperiksa dengan kunci publik.</p></li>
+    </ol>
+    <div class="lebar dua-gambar">
+      <figure><img src="gambar/peringatan-dini.webp" alt="Dasbor: topologi aset dengan pengendali genset berstatus WASPADA dan panel prediksi CTI" width="1600" height="864" loading="lazy">
+        <figcaption>Peringatan dini: pengendali genset naik ke WASPADA sebelum ada serangan.</figcaption></figure>
+      <figure><img src="gambar/action-center.webp" alt="Action Center: kartu insiden dengan status bukti, tombol isolasi, dan langkah playbook" width="1600" height="807" loading="lazy">
+        <figcaption>Action Center: bukti, isolasi, dan langkah <i>playbook</i> dalam satu kartu.</figcaption></figure>
+      <figure><img src="gambar/peta-global.webp" alt="Peta ancaman global dengan trayektori serangan dari wilayah asal fiktif" width="1600" height="874" loading="lazy">
+        <figcaption>Peta ancaman global untuk ruang komando (data sintetis).</figcaption></figure>
+      <figure><img src="gambar/audit-rantai-bukti.webp" alt="Tab Audit dan LAPSIT dengan daftar log audit bersidik jari" width="1600" height="868" loading="lazy">
+        <figcaption>Log audit berantai dan ekspor LAPSIT PDF.</figcaption></figure>
+    </div>
+  </section>
+
+  <section class="bagian" id="drill" aria-labelledby="judul-drill">
+    <h2 id="judul-drill">Operator baru dilatih dan dinilai sebelum insiden datang.</h2>
+    <p class="pengantar">Drill Kesiapan memutar log serangan sintetis lewat aturan deteksi yang sama dengan log asli, lalu memulai insiden latihan. Operator menanganinya di Action Center dan menjawab satu pertanyaan per fase penanganan insiden.</p>
+    <aside class="catatan">
+      <p><b>Dasar.</b> Perpres 82/2022 memasukkan sektor kesehatan dan pertahanan sebagai Infrastruktur Informasi Vital (Pasal 4) dan mewajibkan simulasi tanggap insiden siber (Pasal 15).</p>
+      <p><b>Rumus terbuka</b> di <code>app/drill.py</code>; ambang kecepatan adalah target latihan purwarupa, bukan standar resmi.</p>
+    </aside>
+    <p>Nilai 0–100 dihitung <i>server</i> dari jejak yang tercatat, bukan dari pengakuan: ketepatan keputusan 40, bukti diamankan sebelum jaringan diputus 30, dan kecepatan penahanan (MTTC) 30. Kunci jawaban tidak dikirim ke browser sebelum pertanyaan dijawab. Bila aturan deteksi yang seharusnya menangkap cerita itu ternyata diam, drill melaporkannya. Hasilnya masuk log audit dan LAPSIT dengan tanda LATIHAN.</p>
+    <p>Dua skenario sudah berjalan: cadangan dilepas sebelum serangan (auth.log, pola awal kasus PDNS) dan perintah asing ke pengendali genset (keluaran Suricata).</p>
+    <div class="lebar dua-gambar">
+      <figure><img src="gambar/drill-berjalan.webp" alt="Drill berjalan: log sintetis, kunci jawaban deteksi, dan empat pertanyaan per fase" width="888" height="1260" loading="lazy">
+        <figcaption>Drill berjalan: stopwatch, log, kunci jawaban deteksi, dan pertanyaan per fase.</figcaption></figure>
+      <figure><img src="gambar/drill-nilai.webp" alt="Hasil drill: nilai 90 dari 100 dengan rincian tiga komponen beserta sumber angkanya" width="888" height="843" loading="lazy">
+        <figcaption>Hasil: setiap komponen menyebut sumber angkanya.</figcaption></figure>
+    </div>
+  </section>
+
+  <section class="bagian" id="sensor" aria-labelledby="judul-sensor">
+    <h2 id="judul-sensor">Membaca sensor yang sudah dimiliki satuan.</h2>
+    <p class="pengantar">Keluaran Wazuh (<code>alerts.json</code>) dan Suricata (<code>eve.json</code>), juga auth.log, log firewall, dan CSV, bisa diimpor tanpa internet. Aturan deteksi yang sama menilainya, dan temuannya hanya menaikkan WASPADA.</p>
+    <aside class="catatan">
+      <p><b>Yang tidak dihitung.</b> Peringatan agregat Wazuh (misalnya <i>brute force</i> 5763), <code>sudo</code>, dan FIM. Rentetan dinilai aturan kita sendiri dengan ambang terbuka.</p>
+      <p><b>Jam Modbus</b> diambil dari stempel waktu sensor, jadi jendela pemeliharaan 22.00–02.00 dinilai menurut jam di lokasi sensor.</p>
+    </aside>
+    <p>Nusantara Shield hanya membaca berkas keluaran sensor. Ia tidak memasang, mengatur, atau menghubungi sensor, dan tidak menjalankan <i>active response</i> atau IPS: memutus tetap keputusan Operator. Nama akun di log tidak disimpan, dan isi log tidak masuk log audit. Contoh berkas sintetis ada di <a href="https://github.com/pisangsisir/Nusantara-Shield-v5.2/tree/master/docs/contoh-log"><code>docs/contoh-log/</code></a>.</p>
+    <figure><img src="gambar/peringatan-wazuh-suricata.webp" alt="Peringatan terbaru dari impor alerts.json dan eve.json: login gagal berulang, login tembus, rantai IT ke OT, dan pemindaian port" width="922" height="810" loading="lazy">
+      <figcaption>Hasil impor dua berkas contoh: enam peringatan, masing-masing dengan teknik ATT&amp;CK dan nama berkas sumbernya.</figcaption></figure>
+  </section>
+
+  <section class="bagian" id="banding" aria-labelledby="judul-banding">
+    <h2 id="judul-banding">Alatnya ada. Yang belum ada adalah urutan yang dijaga.</h2>
+    <p>Perbandingan menurut jenis alat, bukan produk tertentu. Penilaian ini dari sudut kebutuhan satuan: data tidak boleh keluar, Operator belum tentu ahli, dan bukti harus bisa dipertanggungjawabkan.</p>
+    <div class="tabel-wadah lebar">
+      <table>
+        <thead><tr><th scope="col">Kebutuhan satuan</th><th scope="col">SIEM / IDS</th><th scope="col">Asisten AI di awan</th><th scope="col">Pemblokiran otomatis penuh (IPS, <i>active response</i>)</th><th scope="col" class="kita">Nusantara Shield</th></tr></thead>
+        <tbody>
+          <tr><th scope="row">Data tetap di satuan</th><td class="ya">ya</td><td class="tidak">tidak</td><td class="ya">ya</td><td class="kita ya">ya, luring penuh</td></tr>
+          <tr><th scope="row">Bisa dipakai Operator yang bukan ahli</th><td class="tidak">perlu analis senior</td><td>sebagian</td><td>tidak perlu memutuskan</td><td class="kita ya">ya: alasan berbahasa Indonesia, tombol ditahan, drill bernilai</td></tr>
+          <tr><th scope="row">Bukti disegel sebelum jaringan diputus</th><td class="tidak">tidak</td><td class="tidak">tidak</td><td class="tidak">tidak</td><td class="kita ya">ya, dikunci <i>server</i></td></tr>
+          <tr><th scope="row">Siapa yang memutus jaringan vital</th><td>manusia, tanpa urutan baku</td><td>manusia</td><td class="tidak">mesin, bisa terpancing alarm keliru</td><td class="kita ya">Operator, setelah bukti aman</td></tr>
+          <tr><th scope="row">Jejak yang tidak bisa ditulis ulang</th><td>sebagian</td><td class="tidak">di luar kendali satuan</td><td>sebagian</td><td class="kita ya">HMAC berantai + titik periksa Ed25519</td></tr>
+          <tr><th scope="row">IT dan OT dalam satu dasbor</th><td>tergantung sensor</td><td>sebagian</td><td>sering terpisah</td><td class="kita ya">ya, genset tetap menyala saat diisolasi</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section class="bagian" id="batas" aria-labelledby="judul-batas">
+    <h2 id="judul-batas">Batas yang kami akui.</h2>
+    <aside class="catatan"><p>Daftar lengkap fitur yang sudah berjalan dan peta jalannya: Proposal §5.4.</p></aside>
+    <ul class="batas">
+      <li>Telemetri langsung dan kabar ancaman masih <b>sintetis</b>. Log asli dan keluaran Wazuh/Suricata masuk lewat impor berkas, belum dialirkan terus-menerus dari sensor.</li>
+      <li>Pengambilan bukti dan perintah ke sakelar jaringan masih <b>simulasi</b>; urutan dan kuncinya sungguhan.</li>
+      <li>Salinan memori penuh (<i>memory dump</i>) belum dibangun; rancangannya tiga lapis, dan baru lapis isolasi darurat yang berjalan.</li>
+      <li>Drill baru dua skenario. Skenario perubahan halaman situs satuan dan <i>tabletop exercise</i> untuk pimpinan masih peta jalan.</li>
+      <li>Belum diuji di jaringan satuan sungguhan, dan layanan systemd belum diuji di mesin Ubuntu fisik.</li>
+    </ul>
+  </section>
+
+  <section class="bagian" id="terap" aria-labelledby="judul-terap">
+    <h2 id="judul-terap">Masuk ke satuan tanpa mengubah yang sudah ada.</h2>
+    <ol class="langkah-terap lebar">
+      <li>Pasang satu <i>server</i> luring di posko siber satuan dari paket bertanda tangan.</li>
+      <li>Cocokkan sidik jari paket dan kunci rilis dengan berita acara serah terima.</li>
+      <li>Isi inventaris aset dan jalur OT resmi milik satuan.</li>
+      <li>Impor keluaran Wazuh dan Suricata yang sudah berjalan.</li>
+      <li>Latih Operator dengan Drill Kesiapan; Kasi Siber menetapkan <i>playbook</i>.</li>
+      <li>Uji coba di satu rumah sakit Kesdam, ukur hasilnya, lalu perluas.</li>
+    </ol>
+    <p class="peran lebar"><b>Batas peran.</b> Nusantara Shield hanya untuk jaringan dan aset milik TNI AD. Insiden pada instansi sipil, BUMN, atau pemerintah daerah ditangani BSSN, Komdigi, dan Polri.</p>
+  </section>
+
+  <section class="bagian" id="periksa" aria-labelledby="judul-periksa">
+    <h2 id="judul-periksa">Unduh, lalu periksa sendiri.</h2>
+    <p class="pengantar">Setiap berkas di bawah punya sidik jari SHA-256. Paket pemasangan ditandatangani Ed25519; cocokkan kunci rilisnya dengan sidik jari ini sebelum memasang.</p>
+    <aside class="catatan">
+      <p><b>Kunci rilis</b> (SHA-256 kunci publik Ed25519, tidak berubah sejak v5.2.0):</p>
+      <code class="sidik-kunci">00a223f10fe2848df6b5a1fcd016857dd0cfdb8506d9a96efbcb9bb006e5240a</code>
+    </aside>
+    <div class="tabel-wadah lebar">
+      <table class="unduhan">
+        <thead><tr><th scope="col">Dokumen</th><th scope="col">Isi</th><th scope="col">Berkas dan sidik jari SHA-256</th></tr></thead>
+        <tbody>
+<!-- UNDUH:MULAI -->
+          <tr><td>Proposal Solusi</td><td>Masalah, solusi, keunggulan taktis, kelayakan penerapan, peta kriteria penilaian, dan asal setiap angka</td><td><a class="berkas" href="unduh/Proposal-Solusi-Nusantara-Shield.pdf" download>PDF · 1,0 MB</a> <span class="sidik">278a9e8ef982ffbe40d0cbf01c855b819a3e3ed97a1d9ffb8519691fe5951730</span></td></tr>
+          <tr><td>Dek presentasi</td><td>9 slide yang disajikan ke Dewan Juri (PPTX: tiap slide satu gambar)</td><td><a class="berkas" href="unduh/Slide-Nusantara-Shield.pdf" download>PDF · 2,4 MB</a> <span class="sidik">ee89a688b689b0da9667d0792fc9476e2488aa14cfa72aa75cf52aea8b5dfd35</span><br><a class="berkas" href="unduh/Slide-Nusantara-Shield.pptx" download>PPTX · 2,1 MB</a> <span class="sidik">2031316706017d576068679925dcbd25c845cf6a7681d57cff7855bdee786c4b</span></td></tr>
+          <tr><td>Dokumentasi Teknis</td><td>Arsitektur, aturan deteksi, keamanan posko, SOP respons insiden, Drill Kesiapan, pemasangan, dan uji</td><td><a class="berkas" href="unduh/Dokumentasi-Teknis-Nusantara-Shield.pdf" download>PDF · 1,0 MB</a> <span class="sidik">73e9e81b418ee87fdf50ef3b3ddef8fc77e97a8dc3fb170e304849bef542b9c5</span></td></tr>
+          <tr><td>Panduan Belajar</td><td>Untuk pembaca non-IT: dari nol sampai bisa menjelaskan sistem ini</td><td><a class="berkas" href="unduh/Panduan-Belajar-Nusantara-Shield.pdf" download>PDF · 4,6 MB</a> <span class="sidik">b78c64010c07b6a642f814e1bab675d4696624af8cc54d3760a88dff8fad76a0</span></td></tr>
+          <tr><td>Poster</td><td>Satu halaman A4</td><td><a class="berkas" href="unduh/Poster-Nusantara-Shield.pdf" download>PDF · 479 KB</a> <span class="sidik">ce3213f6e25db1e2c31bd5f0a5fbcf9e54f172d92be430a2685116e8c1a23a85</span></td></tr>
+          <tr><td>Contoh LAPSIT (insiden)</td><td>Laporan situasi yang dicetak sistem saat insiden ditangani</td><td><a class="berkas" href="unduh/Contoh-LAPSIT-insiden.pdf" download>PDF · 17 KB</a> <span class="sidik">608da0fe2aba0389599ab193133995a41a3f6c6508fa8279fbe73630255b55b1</span></td></tr>
+          <tr><td>Contoh LAPSIT (rutin)</td><td>Laporan situasi saat kondisi normal</td><td><a class="berkas" href="unduh/Contoh-LAPSIT-kondisi-normal.pdf" download>PDF · 7 KB</a> <span class="sidik">e8e39c8f50d046b05a330f529a9cfc302c1ba07433deb090aa24d4dada8f398c</span></td></tr>
+          <tr><td>Contoh log</td><td>auth.log, firewall, CSV, Wazuh alerts.json, dan Suricata eve.json (sintetis) untuk mencoba fitur impor</td><td><a class="berkas" href="unduh/contoh-log.zip" download>ZIP · 5 KB</a> <span class="sidik">a7d74e57f5924ce3fb8cc849b02a1cd32dd118978f1379d31809cfe0ffe2beb4</span></td></tr>
+<!-- UNDUH:AKHIR -->
+          <tr><td>Paket pemasangan</td><td>Ubuntu 24.04 bertanda tangan (luring), Mac Apple Silicon (luring), dan zip kode bersih, beserta berkas sidik jari untuk berita acara</td><td><a class="berkas" href="https://github.com/pisangsisir/Nusantara-Shield-v5.2/releases/latest">Halaman rilis terbaru di GitHub</a></td></tr>
+        </tbody>
+      </table>
+    </div>
+    <h3>Tiga perintah untuk juri</h3>
+<pre class="perintah"><span class="ket"># 1. Jalankan seluruh uji (≈45 detik); ringkasannya per aturan doktrin</span>
+git clone https://github.com/pisangsisir/Nusantara-Shield-v5.2 &amp;&amp; cd Nusantara-Shield-v5.2
+python3 -m venv .venv &amp;&amp; . .venv/bin/activate &amp;&amp; pip install -r requirements.txt
+./run_tests.sh
+
+<span class="ket"># 2. Nyalakan dasbor (sandi awal dicetak di terminal), buka http://127.0.0.1:8000</span>
+python -m uvicorn app.main:app --host 127.0.0.1 --port 8000
+
+<span class="ket"># 3. Paket Ubuntu: periksa tanda tangan sebelum memasang (langkah lengkap di BACA-SAYA.txt)</span>
+openssl pkey -pubin -in kunci-publik-rilis.pem -outform DER | sha256sum
+openssl pkeyutl -verify -pubin -inkey kunci-publik-rilis.pem -rawin -in SHA256SUMS -sigfile SHA256SUMS.sig</pre>
+  </section>
+</main>
+
+<footer class="kaki">
+  <div>
+    <p><b>Nusantara Shield</b>, karya Tim Nusantara Shield untuk Kartika Cyber Hackathon 2026, kategori Penangkalan. Ketua dan penyaji: Muhammad Isa Ananta.</p>
+    <p>Semua data di dasbor sintetis: alamat IP dari blok dokumentasi RFC 5737, nama orang dan instansi fiktif. Tidak ada lambang instansi yang dipakai.</p>
+  </div>
+  <div>
+    <p>Kode berlisensi GNU GPL v3.0. Huruf Bricolage Grotesque, Plus Jakarta Sans, dan JetBrains Mono (SIL Open Font License) disimpan di situs ini sendiri: tanpa CDN dan tanpa font daring.</p>
+    <p><a href="https://github.com/pisangsisir/Nusantara-Shield-v5.2">github.com/pisangsisir/Nusantara-Shield-v5.2</a></p>
+  </div>
+</footer>
+<script src="situs.js"></script>
+</body>
+</html>

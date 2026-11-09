@@ -4,6 +4,12 @@ Seluruh kode dikembangkan sejak **15 Oktober 2026**, setelah publikasi program K
 
 ## Belum dirilis
 
+### Situs untuk Dewan Juri — 9 November 2026 (branch `feature/situs`)
+- **`situs/`**: satu halaman statis yang memuat semua bahan penilaian. Isinya: urutan doktrin sebagai jalur keputusan bercap waktu, masalah (pelajaran PDNS ≈49 jam dan empat kelemahan respons manual), siklus OODA dengan tangkapan layar, Drill Kesiapan, impor Wazuh/Suricata, perbandingan menurut jenis alat, batas yang kami akui, langkah penerapan dan batas peran, serta unduhan dengan sidik jari SHA-256 dan tiga perintah untuk juri.
+- **Huruf disimpan sendiri** (Bricolage Grotesque, Plus Jakarta Sans, JetBrains Mono; SIL OFL): tampil sama di semua sistem operasi, tanpa CDN dan tanpa font daring. Mode gelap mengikuti pengaturan perangkat. Video YouTube baru dimuat setelah tombol ditekan (`situs/situs.js`, isi `VIDEO_ID` setelah video diunggah).
+- **`tools/bangun_situs.py`**: Proposal dan Dokumentasi Teknis dicetak ulang dari Markdown ke PDF A4; dek 9 slide ke PDF dan PPTX; Panduan Belajar, poster, contoh LAPSIT, dan contoh log disalin; sidik jari ditulis ke `situs/unduh/SHA256SUMS` dan ke tabel unduhan.
+- **`.github/workflows/situs.yml`**: menerbitkan `situs/` ke GitHub Pages setiap kali master berubah (aktifkan sekali: Settings → Pages → Source: GitHub Actions).
+
 ### Drill Kesiapan: skenario OT dari Suricata — 9 November 2026 (branch `feature/drill-ot`)
 - Skenario kedua **"Perintah asing ke pengendali genset"**: log cerita dalam format **Suricata `eve.json`**, dinilai lewat jalur impor yang sama (butuh PR impor Wazuh/Suricata). HMI resmi membaca register (bukan temuan); stasiun kerja kantor menyeberang ke zona kendali lalu menulis register jadwal start genset → tiga aturan OT harus muncul.
 - Insiden latihan *Sabotase OT* di Genset RS Kesdam; pertanyaan per fase menekankan **genset tidak dimatikan** dan jalur kantor → zona kendali yang diputus (NIST SP 800-82).
