@@ -4,6 +4,17 @@ Seluruh kode dikembangkan sejak **15 Oktober 2026**, setelah publikasi program K
 
 ## Belum dirilis
 
+### Impor keluaran Wazuh dan Suricata — 9 November 2026 (branch `feature/impor-wazuh-suricata`)
+- **Alasan:** satuan yang sudah memasang Wazuh (IT) dan Suricata (OT) tidak perlu mengubah apa pun untuk mencoba Nusantara Shield. Keluaran sensornya cukup diimpor.
+- `app/impor_log.py` kini membaca **Wazuh `alerts.json`** dan **Suricata `eve.json`** (JSON per baris, atau satu larik JSON hasil ekspor) lewat jalur impor yang sama:
+  - Wazuh: grup `authentication_failed` / `invalid_login` / `authentication_success` → upaya *login* (alamat dari `data.srcip`, aset dari `agent.ip`). Peringatan agregat Wazuh (5763 *brute force*), `sudo`, dan FIM **tidak** dihitung: rentetan dinilai aturan kita sendiri dengan ambang terbuka.
+  - Suricata: `flow`/`alert`/`netflow` → koneksi (ke *port* 502 aset OT → koneksi ke zona kendali); `modbus` → perintah Modbus dari `request.function_raw`. Jam perintah diambil dari stempel waktu sensor, bukan zona waktu *server*.
+  - Hanya membaca berkas: tidak memasang, mengatur, atau menghubungi sensor; tidak ada *active response* atau IPS. Temuan tetap hanya menaikkan WASPADA.
+- Contoh sintetis baru: `docs/contoh-log/wazuh-alerts.json` (14 baris) dan `suricata-eve.json` (26 baris).
+- **7 uji baru** (ditulis lebih dulu; 5 mutasi tertangkap, termasuk agregat Wazuh ikut dihitung dan jam Modbus memakai zona waktu *server*). Total **403 uji**.
+- **Batas peran** ditulis di README dan Proposal §5.3: hanya aset TNI; insiden sipil ranah BSSN, Komdigi, dan Polri; PDNS dipakai sebagai pelajaran.
+- Angka uji di dek, poster, dan blok terminal Dokumentasi Teknis diperbarui di tahap penyegaran materi sebelum rilis.
+
 ### Drill Kesiapan — 9 November 2026 (branch `feature/drill-kesiapan`)
 - **Masalah:** narasumber diskusi komunitas (merujuk Satsiber TNI dan TTIS TNI AD) dan webinar pembekalan lomba menyebut masalah yang sama: SDM siber spesialis langka, dan tim yang jarang berlatih tidak siap saat insiden. Perpres 82/2022 Pasal 4 dan 15 mewajibkan simulasi tanggap Insiden Siber bagi sektor kesehatan dan pertahanan.
 - **Baru: `app/drill.py` dan tab Drill Kesiapan** (Alat Operator; pintasan di panel Latihan).

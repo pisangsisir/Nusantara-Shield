@@ -369,8 +369,8 @@
               <button type="button" class="opsi-deteksi" data-deteksi="pindai_port" data-ubah title="48 percobaan koneksi ke 24 port dua aset DMZ dalam ≈6 dtk (peristiwa sintetis; aturan: 15 kombinasi dalam 10 dtk)"><b>Pemindaian port</b></button>
               <button type="button" class="opsi-deteksi" data-deteksi="akses_ot" data-ubah title="Stasiun kerja kantor 192.0.2.183 menyeberang ke pengendali genset lalu mengirim 3 perintah tulis Modbus pukul 14.00 (peristiwa sintetis; aturan: jalur OT tidak terdaftar, tulis di luar jendela pemeliharaan 22.00–02.00). Hanya menaikkan WASPADA; isolasi tetap keputusan Operator."><b>Akses OT tanpa izin</b></button>
               <button type="button" class="opsi-deteksi drill" id="tombol-ke-drill" title="Latihan tanggap insiden bernilai: log sintetis, pertanyaan per fase, nilai dari jejak tercatat"><b data-istilah="drill"></b></button>
-              <button type="button" class="opsi-deteksi impor" id="tombol-impor-log" data-ubah title="Impor log ASLI secara luring: auth.log OpenSSH, log firewall UFW/iptables, atau CSV (maks. ≈2 MB). Aturan yang sama menilainya; hasilnya hanya menaikkan WASPADA. Contoh berkas: docs/contoh-log/."><b>Impor log…</b></button>
-              <input type="file" id="berkas-impor-log" accept=".log,.txt,.csv,text/plain,text/csv" hidden>
+              <button type="button" class="opsi-deteksi impor" id="tombol-impor-log" data-ubah title="Impor log ASLI secara luring: auth.log OpenSSH, log firewall UFW/iptables, CSV, atau keluaran sensor Wazuh (alerts.json) dan Suricata (eve.json) (maks. ≈2 MB). Aturan yang sama menilainya; hasilnya hanya menaikkan WASPADA. Contoh berkas: docs/contoh-log/."><b>Impor log…</b></button>
+              <input type="file" id="berkas-impor-log" accept=".log,.txt,.csv,.json,text/plain,text/csv,application/json" hidden>
             </div>
           </div>
           <label class="opsi-gangguan kecil"><input type="checkbox" id="sim-gangguan-bukti" data-ubah>

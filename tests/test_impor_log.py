@@ -2,7 +2,8 @@
 # Copyright (c) 2026 Nusantara Shield Team. Dikembangkan untuk Kartika Cyber Hackathon 2026.
 # Dilisensikan di bawah GNU General Public License v3.0; lihat berkas LICENSE.
 """
-Uji Fase 3: impor log ASLI secara luring (auth.log OpenSSH, log firewall UFW/iptables, CSV).
+Uji Fase 3: impor log ASLI secara luring (auth.log OpenSSH, log firewall UFW/iptables, CSV, dan keluaran sensor yang
+sudah dimiliki satuan: Wazuh alerts.json serta Suricata eve.json).
 
 Prinsip yang dikunci:
 - Aturan yang menilai log impor sama persis dengan aturan latihan; tidak ada jalan pintas.
@@ -99,7 +100,64 @@ def test_stempel_waktu_iso_rsyslog_dikenali():
     assert ev[0][1] == {"jenis": "login", "sumber": "203.0.113.9", "aset": "ssh", "berhasil": False}
 
 
-@pytest.mark.parametrize("isi", ["", "halo dunia\nini bukan log", "waktu,jenis,sumber\n"])
+def test_wazuh_alerts_json_menjadi_upaya_login_tanpa_nama_akun():
+    ev, r = baca((CONTOH / "wazuh-alerts.json").read_text(), SIMPUL)
+    assert r["format"] == "Wazuh alerts.json" and (r["baris"], r["dikenali"], r["diabaikan"]) == (14, 11, 3)
+    assert [e["berhasil"] for _, e in ev] == [False] * 10 + [True]
+    assert all(e == {"jenis": "login", "sumber": "203.0.113.77", "aset": "ssh", "berhasil": e["berhasil"]} for _, e in ev)
+    # agregat "brute force" Wazuh (5763), sudo, dan FIM tidak dihitung sebagai upaya login; nama akun tidak disalin
+    assert not any(n in json.dumps([e for _, e in ev]) for n in ("admin", "svc_backup", "root"))
+
+
+def test_suricata_eve_json_menjadi_koneksi_koneksi_ot_dan_modbus():
+    ev, r = baca((CONTOH / "suricata-eve.json").read_text(), SIMPUL)
+    assert r["format"] == "Suricata eve.json" and (r["baris"], r["dikenali"], r["diabaikan"]) == (26, 25, 1)
+    jenis = [e["jenis"] for _, e in ev]
+    assert jenis.count("koneksi") == 19 and jenis.count("koneksi_ot") == 2 and jenis.count("modbus") == 4
+    assert {e["aset"] for _, e in ev if e["jenis"] != "koneksi"} == {"genset"}
+    tulis = [e for _, e in ev if e["jenis"] == "modbus" and e["sumber"] == "192.0.2.183"]
+    assert [(e["fungsi"], e["jam"]) for e in tulis] == [(3, 14), (6, 14), (16, 14)]
+
+
+def test_jam_modbus_dari_zona_waktu_sensor_bukan_server(monkeypatch):
+    """Jendela pemeliharaan dinilai menurut jam di lokasi sensor (offset di stempel waktu), bukan zona waktu server."""
+    import time
+    monkeypatch.setenv("TZ", "UTC")
+    time.tzset()                                     # server ber-UTC: 23.30 WIB = 16.30 di jam server
+    baris = ('{"timestamp":"2026-11-06T23:30:00.000+0700","event_type":"modbus","src_ip":"192.0.2.183",'
+             '"dest_ip":"192.0.2.120","dest_port":502,"modbus":{"request":{"function_raw":6}}}')
+    try:
+        ev, _ = baca(baris, SIMPUL)
+    finally:
+        monkeypatch.undo()
+        time.tzset()
+    assert ev[0][1]["jam"] == 23
+
+
+def test_json_rusak_dan_peristiwa_asing_dilewati_dan_dihitung():
+    isi = "\n".join([
+        '{"timestamp":"2026-11-06T10:00:00+0700","event_type":"flow","src_ip":"999.1.1.1","dest_ip":"192.0.2.10","dest_port":443}',
+        '{"timestamp":"2026-11-06T10:00:01+0700","event_type":"flow","src_ip":"198.51.100.9","dest_ip":"192.0.2.10","dest_port":70000}',
+        '{"timestamp":"kemarin","event_type":"flow","src_ip":"198.51.100.9","dest_ip":"192.0.2.10","dest_port":443}',
+        '{"timestamp":"2026-11-06T10:00:02+0700","event_type":"modbus","src_ip":"198.51.100.9","dest_ip":"192.0.2.120",'
+        '"dest_port":502,"modbus":{"request":{"function_raw":"tulis"}}}',
+        '{"timestamp":"2026-11-06T10:00:03+0700","rule":{"groups":["sshd","authentication_failed"]},"agent":{},"data":{}}',
+        '{potong',
+        '[1, 2]',
+        '{"timestamp":"2026-11-06T10:00:04+0700","event_type":"flow","src_ip":"198.51.100.9","dest_ip":"192.0.2.10",'
+        '"dest_port":443}'])
+    ev, r = baca(isi, SIMPUL)
+    assert (r["baris"], r["dikenali"], r["diabaikan"]) == (8, 1, 7) and ev[0][1]["aset"] == "portal"
+
+
+def test_ekspor_berbentuk_larik_json_juga_diterima():
+    import json as j
+    larik = [j.loads(b) for b in (CONTOH / "wazuh-alerts.json").read_text().splitlines()]
+    ev, r = baca(j.dumps(larik, indent=2), SIMPUL)
+    assert r["format"] == "Wazuh alerts.json" and r["dikenali"] == 11 and r["baris"] == 14
+
+
+@pytest.mark.parametrize("isi", ["", "halo dunia\nini bukan log", "waktu,jenis,sumber\n", '{"event_type":"stats"}'])
 def test_berkas_tak_dikenali_ditolak(isi):
     with pytest.raises(GalatImpor):
         baca(isi, SIMPUL)
@@ -141,6 +199,19 @@ def test_impor_csv_ot_dan_firewall_memakai_aturan_yang_sama(k):
     assert ot["waspada"] == ["Pengendali genset"]
     fw = impor(k, h, "ufw.log").json()
     assert [t["aturan"] for t in fw["temuan"]] == ["pindai_port"] and fw["temuan"][0]["aset"] == ["portal"]
+
+
+def test_impor_wazuh_dan_suricata_dinilai_aturan_yang_sama_tanpa_memutus(k):
+    h = masuk(k)
+    w = impor(k, h, "wazuh-alerts.json").json()
+    assert {t["aturan"] for t in w["temuan"]} == {"login_gagal", "login_tembus"} and w["format"] == "Wazuh alerts.json"
+    s = impor(k, h, "suricata-eve.json").json()
+    assert {t["aturan"] for t in s["temuan"]} == {"pindai_port", "ot_tanpa_izin", "tulis_ot_luar_jadwal", "rantai_it_ot"}
+    assert all(t["sumber"] != "192.0.2.140" for t in s["temuan"])          # HMI resmi membaca register: bukan temuan
+    assert set(s["waspada"]) >= {"Pengendali genset"}
+    # dua kunci tetap utuh: keluaran sensor hanya menaikkan WASPADA, tidak memulai insiden atau memutus apa pun
+    assert not any(l["insiden"] for l in main.LAYANAN.values())
+    assert main.MENARA._antre_soar == [] and main.MENARA._bukti == {}
 
 
 def test_log_audit_hanya_mencatat_nama_berkas_dan_jumlah(k):

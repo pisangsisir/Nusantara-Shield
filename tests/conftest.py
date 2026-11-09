@@ -25,7 +25,7 @@ KELOMPOK = {
     "test_triase_kesiapan.py": "Triase & Kesiapan Siber: penutupan peringatan beralasan, nilai A–E terbuka",
     "test_deteksi.py": "Mesin Deteksi Aturan: login gagal berulang, login tembus, pemindaian port (ambang terbuka)",
     "test_linimasa.py": "Linimasa 60 menit (data latihan), pita anomali AI per aset, KPI MTTC dan insiden",
-    "test_impor_log.py": "Impor log luring: auth.log OpenSSH, firewall UFW/iptables, CSV; aturan sama, dua kunci utuh",
+    "test_impor_log.py": "Impor log luring: auth.log, firewall, CSV, Wazuh alerts.json, Suricata eve.json; aturan sama, dua kunci utuh",
     "test_ot_mitre_lapsit.py": "Aturan OT, label MITRE ATT&CK, label sumber data, dan pengesahan dua tanda tangan LAPSIT",
     "test_verifikasi_audit.py": "Verifikasi audit tanpa server: CLI mandiri menghitung ulang rantai HMAC log audit dan buku bukti",
     "test_paket_ubuntu.py": "Paket pasang Ubuntu 24.04: tanda tangan Ed25519, manifest SHA-256, pemasang menolak paket yang diubah",

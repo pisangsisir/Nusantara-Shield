@@ -432,6 +432,7 @@ Nusantara Shield dirancang dipasang **di posko siber atau _Security Operations C
 
 - **SOC dan ruang komando:** SOC memakai seluruh dasbor setiap hari. Saat krisis, ruang komando cukup menampilkan Executive Overview, Peta Global, dan LAPSIT dengan akun Pengamat.
 - **Kebutuhan minimum per satuan:** satu laptop atau PC (2 inti, 512 MB memori bebas), jaringan internal, minimal dua akun Operator dan satu akun Pengamat.
+- **Batas peran:** Nusantara Shield hanya untuk jaringan dan aset milik TNI AD. Insiden pada instansi sipil, BUMN, atau pemerintah daerah ditangani BSSN, Komdigi, dan Polri; TNI baru turun bila yang diserang aset militer atau ancamannya sudah setingkat pertahanan negara. Kasus PDNS 2024 dipakai sebagai **pelajaran** tentang tanda bahaya yang terlambat ditindak, bukan sebagai wilayah tugas sistem ini.
 ### 5.4 Status Fitur: Sudah Berjalan dan Peta Jalan
 
 Pembedaan ini sengaja dibuat tegas agar juri dapat menilai apa yang benar-benar didemonstrasikan.
@@ -442,12 +443,12 @@ Pembedaan ini sengaja dibuat tegas agar juri dapat menilai apa yang benar-benar 
 | Dua peran: Pengamat dan Operator | **(2) Akses dan tampilan lintas satuan** untuk pemantauan serentak di Mabes |
 | Isolasi dengan tombol yang ditahan 0,6 detik | Mesin Asisten Narasi: LLM lokal Llama 3 8B lewat Ollama untuk draf LAPSIT |
 | Rantai bukti HMAC-SHA256 | Umpan indikator resmi (BSSN/MISP) lewat gerbang satu arah |
-| Korelasi CTI dan Mesin Deteksi Anomali (_Isolation Forest_, luring) | Sensor nyata (Wazuh, Suricata, Zeek) dan sakelar terkelola sungguhan |
+| Korelasi CTI dan Mesin Deteksi Anomali (_Isolation Forest_, luring) | Aliran langsung dari sensor (Wazuh, Suricata, Zeek; kini lewat impor berkas keluarannya) dan sakelar terkelola sungguhan |
 | Simulasi OT genset (Modbus, _port_ 502) | Peristiwa identitas nyata dari Active Directory (perubahan hak akses, akun baru) |
 | Pembuatan LAPSIT dan ekspor PDF | Pengamanan integrasi nyata: brankas kredensial, hak minimum per _playbook_, _playbook_ bertanda tangan |
 | Paket pasang luring bersidik jari SHA-256 (tanpa internet sama sekali) | **Respons bertingkat menurut kritikalitas aset:** aset vital tetap dua kunci; _endpoint_ kantor berisiko rendah diisolasi otomatis dengan praotorisasi |
 | Mesin Deteksi Aturan: _login_ gagal berulang, _login_ tembus, pemindaian _port_, koneksi IT ke zona kendali OT tanpa izin, dan perintah tulis Modbus di luar jendela pemeliharaan (ambang terbuka; atas peristiwa sintetis) | |
-| **Impor log luring** (auth.log OpenSSH, log firewall UFW/iptables, CSV; maks. ≈2 MB) dinilai Mesin Deteksi Aturan yang sama; temuan berlabel sumber berkasnya | |
+| **Impor log luring** (auth.log OpenSSH, log firewall UFW/iptables, CSV, serta keluaran sensor **Wazuh `alerts.json`** dan **Suricata `eve.json`**; maks. ≈2 MB) dinilai Mesin Deteksi Aturan yang sama; temuan berlabel sumber berkasnya | |
 | Label teknik MITRE ATT&CK (termasuk ATT&CK for ICS) di peringatan, log, dan LAPSIT; label sumber data di setiap peringatan; pengesahan dua tanda tangan di LAPSIT PDF | |
 | Linimasa 60 menit (data latihan), pita anomali AI per aset, KPI Waktu respons (MTTC) dan Insiden sejak posko aktif | |
 | Nilai Kesiapan Siber A–E (dua sub-skor: Kerawanan dan Insiden) dan triase peringatan: Selesai ditangani atau Positif Palsu (_False Positive_), beralasan dan tercatat di Buku Rantai Bukti | |
