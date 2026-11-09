@@ -477,11 +477,12 @@ Purwarupa memantau aset OT **Pengendali genset** (`192.0.2.120`, **Modbus/TCP _p
 
 ### 3.5 Drill Kesiapan (*Cyber Drill* untuk Operator)
 
-**Status: sudah berjalan di purwarupa (satu skenario).** Masalah terbesar yang disebut narasumber Satsiber TNI dan webinar pembekalan lomba sama: SDM siber spesialis langka, dan tim yang tidak pernah berlatih tidak siap saat insiden datang. Perpres 82/2022 memasukkan sektor kesehatan dan pertahanan sebagai Infrastruktur Informasi Vital (Pasal 4), dan Pasal 15 mewajibkan simulasi tanggap Insiden Siber. Drill Kesiapan adalah simulasi itu, langsung di dasbor yang sama dengan yang dipakai saat insiden sungguhan.
+**Status: sudah berjalan di purwarupa (dua skenario).** Masalah terbesar yang disebut narasumber Satsiber TNI dan webinar pembekalan lomba sama: SDM siber spesialis langka, dan tim yang tidak pernah berlatih tidak siap saat insiden datang. Perpres 82/2022 memasukkan sektor kesehatan dan pertahanan sebagai Infrastruktur Informasi Vital (Pasal 4), dan Pasal 15 mewajibkan simulasi tanggap Insiden Siber. Drill Kesiapan adalah simulasi itu, langsung di dasbor yang sama dengan yang dipakai saat insiden sungguhan.
 
 | Langkah | Yang terjadi | Dikunci uji |
 | --- | --- | --- |
 | **1. Mulai** (tab **Drill Kesiapan**, hanya Operator) | Log cerita sintetis (auth.log, 18 baris, alamat RFC 5737) masuk lewat **jalur impor log yang sama** dengan log asli. Mesin Deteksi Aturan menilainya; tidak ada temuan yang disuntikkan. Insiden latihan *Cadangan mati* dimulai di RS Kesdam · SIMRS. | `test_mulai_drill_memutar_log_cerita_lewat_mesin_deteksi_yang_sama` |
+| **Skenario** | (1) **Cadangan dilepas sebelum serangan** — auth.log, RS Kesdam · SIMRS, insiden *Cadangan mati*. (2) **Perintah asing ke pengendali genset** — keluaran Suricata `eve.json`, Genset RS Kesdam, insiden *Sabotase OT*: HMI resmi membaca register (bukan temuan), stasiun kerja kantor menyeberang lalu menulis register. Cerita OT selalu ditaruh pada pukul 14.00 terakhir agar tetap di luar jendela pemeliharaan 22.00–02.00, kapan pun drill dibuka. | `test_drill_ot_membaca_eve_json_…`, `test_cerita_ot_selalu_di_luar_jendela_pemeliharaan` |
 | **2. Kunci jawaban deteksi** | Aturan yang seharusnya menangkap cerita ini (login gagal berulang, login tembus) ditampilkan beserta apakah benar-benar muncul. Aturan yang diam ikut dilaporkan, jadi drill sekaligus menguji aturan deteksi (*detection drill*). | `test_aturan_yang_diam_dilaporkan_di_kunci_jawaban` |
 | **3. Tangani** | Operator merespons dari **Action Center** seperti biasa: isolasi (bukti diamankan lebih dulu), isolasi darurat bila perlu, pemulihan terkunci. | uji rantai bukti yang sudah ada |
 | **4. Jawab** | Satu pertanyaan per fase (NIST SP 800-61): Deteksi, Analisis, Penahanan, Pemulihan. Kunci jawaban **tidak dikirim ke browser** sebelum pertanyaan dijawab; tiap pertanyaan sekali jawab. | `test_kunci_jawaban_tidak_dikirim_sebelum_dijawab`, `test_jawaban_dinilai_sekali_…` |
@@ -497,9 +498,9 @@ Purwarupa memantau aset OT **Pengendali genset** (`192.0.2.120`, **Modbus/TCP _p
 
 Huruf memakai skala yang sama dengan Kesiapan Siber (A ≥ 90 … E < 40). Ambang kecepatan adalah **target latihan purwarupa, bukan standar resmi**; satuan dapat menyesuaikannya di `AMBANG_KECEPATAN`. Uji mutasi: membocorkan kunci jawaban, mengizinkan jawab ulang, memberi nilai penuh pada isolasi darurat, memalsukan hasil deteksi, mengubah ambang, membuka loket untuk Pengamat, membiarkan drill hidup setelah reset, atau membaca jejak sebelum antrean SOAR diproses, masing-masing membuat uji gagal.
 
-Loket: `GET /api/drill` (semua peran; katalog, drill aktif, riwayat), `POST /api/drill/mulai {kode}`, `POST /api/drill/jawab {no, pilihan}`, `POST /api/drill/selesai` (Operator). 28 uji di `tests/test_drill.py`.
+Loket: `GET /api/drill` (semua peran; katalog, drill aktif, riwayat), `POST /api/drill/mulai {kode}`, `POST /api/drill/jawab {no, pilihan}`, `POST /api/drill/selesai` (Operator). 36 uji di `tests/test_drill.py`.
 
-> **Batas yang jujur:** baru satu skenario (pola awal kasus PDNS: cadangan dilepas sebelum serangan). *Tabletop exercise* untuk pimpinan (Dansat, Kepala RS) dengan *inject* bertahap belum dibangun dan masuk peta jalan; doktrin yang sama akan menjadi rubriknya. Drill mengukur keputusan dan kecepatan di purwarupa ini, bukan kemampuan forensik Operator. Riwayat nilai disimpan di memori *server* sampai aplikasi dimulai ulang; jejak permanennya ada di log audit.
+> **Batas yang jujur:** baru dua skenario. Skenario perubahan halaman situs satuan (kasus *deface* mil.id) belum dibangun karena butuh jenis insiden dan aturan deteksi baru. *Tabletop exercise* untuk pimpinan (Dansat, Kepala RS) dengan *inject* bertahap belum dibangun dan masuk peta jalan; doktrin yang sama akan menjadi rubriknya. Drill mengukur keputusan dan kecepatan di purwarupa ini, bukan kemampuan forensik Operator. Riwayat nilai disimpan di memori *server* sampai aplikasi dimulai ulang; jejak permanennya ada di log audit.
 
 ---
 

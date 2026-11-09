@@ -29,6 +29,7 @@ from test_ot_mitre_lapsit import teks_pdf
 
 JAM = {"t": 20000.0}
 KODE = "cadangan_dilepas"
+OT = "genset_dari_kantor"
 
 
 @pytest.fixture(autouse=True)
@@ -84,7 +85,7 @@ def audit(aksi):
 def test_pengamat_melihat_katalog_tetapi_tidak_bisa_memulai_atau_menjawab(k):
     hp = masuk(k, "pengamat", "sandi-pengamat-uji-123")
     j = k.get("/api/drill", headers=hp).json()
-    assert [d["kode"] for d in j["katalog"]] == [KODE] and j["aktif"] is None
+    assert [d["kode"] for d in j["katalog"]] == [KODE, OT] and j["aktif"] is None
     assert k.post("/api/drill/mulai", headers=hp, json={"kode": KODE}).status_code == 403
     mulai(k, masuk(k))
     assert k.post("/api/drill/jawab", headers=hp, json={"no": 0, "pilihan": "a"}).status_code == 403
@@ -104,9 +105,10 @@ def test_kode_drill_dan_kolom_asing_ditolak(k):
 
 
 # ---------------------------------------------------------------- log cerita = data sintetis lewat aturan yang sama
-def test_log_cerita_sintetis_hanya_memakai_alamat_dokumentasi():
-    teks = drill.log_cerita(KODE, 1_800_000_000.0)
-    assert teks.splitlines()[0].startswith("# SIMULASI")
+@pytest.mark.parametrize("kode", [KODE, OT])
+def test_log_cerita_sintetis_hanya_memakai_alamat_dokumentasi(kode):
+    teks = drill.log_cerita(kode, 1_800_000_000.0)
+    assert "SIMULASI" in teks.splitlines()[0]
     for ip in set(re.findall(r"\b\d{1,3}(?:\.\d{1,3}){3}\b", teks)):
         a = ipaddress.ip_address(ip)
         assert any(a in ipaddress.ip_network(n) for n in ("192.0.2.0/24", "198.51.100.0/24", "203.0.113.0/24")), ip
@@ -295,3 +297,55 @@ def test_riwayat_menampilkan_hasil_terbaru_lebih_dulu(k):
         main.MENARA.insiden_ditutup(a["layanan_id"])
     r = k.get("/api/drill", headers=h).json()["riwayat"]
     assert len(r) == 2 and r[0]["id"] != r[1]["id"] and r[0]["selesai"] >= r[1]["selesai"]
+
+
+# ---------------------------------------------------------------- skenario OT: keluaran Suricata eve.json
+def mulai_ot(k, h):
+    r = k.post("/api/drill/mulai", headers=h, json={"kode": OT})
+    assert r.status_code == 200, r.text
+    return r.json()["aktif"]
+
+
+def test_drill_ot_membaca_eve_json_lewat_aturan_ot_yang_sama(k):
+    h = masuk(k)
+    a = mulai_ot(k, h)
+    assert a["format"] == "Suricata eve.json" and a["impor"]["format"] == "Suricata eve.json"
+    assert all(d["muncul"] for d in a["deteksi"])
+    assert [d["aturan"] for d in a["deteksi"]] == ["ot_tanpa_izin", "tulis_ot_luar_jadwal", "rantai_it_ot"]
+    ins = main.LAYANAN["listrik"]["insiden"]
+    assert ins and ins["skenario"] == "sabotase_ot"
+    temuan = main.MENARA._deteksi_tampil({})["temuan"]
+    assert all(t["sumber"] == drill.PENYUSUP_OT for t in temuan)          # HMI resmi membaca: bukan temuan
+
+
+@pytest.mark.parametrize("sekarang_jam", [9, 15, 23, 1])
+def test_cerita_ot_selalu_di_luar_jendela_pemeliharaan(sekarang_jam):
+    """Perintah tulis wajar pukul 22.00–02.00. Cerita OT ditaruh pada pukul 14.00 terakhir agar tetap tertangkap,
+    kapan pun drill dibuka."""
+    from datetime import datetime
+    from app.lapsit import zona
+    kini = datetime(2026, 11, 9, sekarang_jam, 30, tzinfo=zona()[1]).timestamp()
+    awal = drill.awal_cerita(OT, kini)
+    d = datetime.fromtimestamp(awal, zona()[1])
+    assert (d.hour, d.minute) == (14, 0) and awal < kini
+    assert drill.awal_cerita(KODE, kini) == kini - 240
+
+
+def test_drill_ot_bukti_dulu_memberi_nilai_penuh(k):
+    h = masuk(k)
+    a = mulai_ot(k, h)
+    jawab_semua_benar(k, h)
+    JAM["t"] += 20
+    assert k.post("/api/soar/jalankan", headers=h, json={"layanan_id": a["layanan_id"], "aksi": "isolasi"}).status_code == 200
+    JAM["t"] += 1.3
+    hasil = selesai(k, h)["hasil"]
+    assert hasil["nilai"] == 100 and hasil["mttc_detik"] == 21 and hasil["deteksi_lengkap"]
+
+
+def test_kunci_jawaban_ot_tidak_bocor_dan_genset_tidak_dimatikan_adalah_jawabannya(k):
+    h = masuk(k)
+    a = mulai_ot(k, h)
+    assert all("kunci" not in p for p in a["pertanyaan"])
+    tahan = main.DRILL.aktif["pertanyaan"][2]
+    assert "Genset tetap menyala" in tahan["opsi"][tahan["kunci"]]
+    assert "Matikan genset" in tahan["opsi"]["a"] and tahan["kunci"] != "a"
