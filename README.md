@@ -19,6 +19,8 @@ Banyak sistem pertahanan berhenti di alarm. Nusantara Shield berlanjut sampai bu
 - Berjalan **luring** (tanpa internet): tidak ada CDN, font, atau gambar dari luar.
 - Tidak menyimpan data pribadi; log audit tidak menyimpan alamat IP pengunjung.
 
+**Situs *all-in-one* untuk Dewan Juri:** https://pisangsisir.github.io/Nusantara-Shield-v5.2/ (sumber di `situs/`). Satu halaman berisi cara kerja, Drill Kesiapan, perbandingan, batas yang kami akui, dan semua unduhan (Proposal, Dokumentasi Teknis, dek PDF/PPTX, Panduan Belajar, poster, contoh LAPSIT, contoh log) beserta sidik jari SHA-256-nya.
+
 ## Struktur Repositori
 
 ```
@@ -546,6 +548,8 @@ static/style.css      tema gelap + aksen hijau neon
 docs/                 diagram alur (sumber Mermaid + SVG)
 tests/                396 uji otomatis (lihat bagian 6)
 tools/kemas_rilis.py  pembuat zip rilis bersih
+tools/bangun_situs.py  membangun unduhan situs (PDF dari Markdown, dek PDF/PPTX) dan menulis sidik jarinya
+situs/                situs statis (GitHub Pages): huruf disimpan sendiri, tanpa CDN
 tools/verifikasi_audit.py  verifikasi rantai HMAC log audit & Buku Rantai Bukti tanpa server
 tools/verifikasi_titik_periksa.py  verifikasi titik periksa Ed25519 dengan sidik jari akar saja
 tools/kunci_rilis.py  kunci rilis Ed25519 (dibuat dan dipakai di komputer pembuat rilis)
