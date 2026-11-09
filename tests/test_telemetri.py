@@ -216,7 +216,7 @@ def test_biaya_masak_tidak_bertambah_dengan_jumlah_layar(monkeypatch, jumlah_lay
         hasil = asyncio.run(jalankan())
     finally:
         KONFIG.maks_siaran_per_akun = maks
-    # ±2,2 detik = ±3 kali masak, berapa pun jumlah layarnya (dulu: 3 x jumlah layar)
+    # ≈2,2 detik = ≈3 kali masak, berapa pun jumlah layarnya (dulu: 3 x jumlah layar)
     assert hitung["n"] <= 5
     assert all(b"event: keadaan" in p[0] for p in hasil)          # setiap layar tetap dapat potret
     assert len({p[0] for p in hasil}) == 1                         # ... dan bytes-nya identik

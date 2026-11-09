@@ -65,7 +65,7 @@ POLA_SKENARIO: dict[str, str] = {
 }
 
 AMBANG_AI = 0.58          # skor ≥ ambang = lalu lintas tidak wajar
-KEMIRINGAN = 4.0          # skor 0,58 → peluang 50%; skor 0,67 → ±86%
+KEMIRINGAN = 4.0          # skor 0,58 → peluang 50%; skor 0,67 → ≈86%
 PELUANG_MAKS = 0.95
 BENIH = 2026              # benih acak tetap: model selalu sama setiap server menyala (dapat diaudit)
 JUMLAH_SAMPEL = 1500
@@ -141,7 +141,7 @@ class DetektorAnomali:
         ids = list(ciri_aset)
         X = np.array([ciri_aset[i] for i in ids], dtype=float)
         mulai = time.perf_counter()
-        skor = -self.model.score_samples(X)          # 0..1; ±0,4 wajar, mendekati 1 sangat tidak wajar
+        skor = -self.model.score_samples(X)          # 0..1; ≈0,4 wajar, mendekati 1 sangat tidak wajar
         self.skor_ms = round((time.perf_counter() - mulai) * 1000, 2)
         hasil = {}
         for aid, s, ciri in zip(ids, skor, X):

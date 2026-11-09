@@ -13,7 +13,7 @@ Pemakaian (dari folder proyek):
     python tools/kemas_luring.py --platform win_amd64 --python 3.12 → untuk Windows 64-bit, Python 3.12
     python tools/kemas_luring.py --platform macosx_14_0_arm64 --python 3.12 → Mac Apple Silicon (macOS 14+)
     python tools/kemas_luring.py --platform manylinux2014_x86_64 --python 3.12
-Batas: versi Python di posko harus sama dengan --python; ukuran paket ±60–80 MB (numpy, scipy, scikit-learn).
+Batas: versi Python di posko harus sama dengan --python; ukuran paket ≈60–80 MB (numpy, scipy, scikit-learn).
 """
 
 from __future__ import annotations

@@ -122,7 +122,7 @@ python tools/kemas_rilis.py --periksa  # hanya menampilkan daftar berkas
 ```
 
 Alat ini membuang `.venv/`, `data/`, `.env`, cache, dan sampah sistem (`.DS_Store`, `__MACOSX`) —
-aturan yang sama dengan `.gitignore`. Hasilnya ±160 KB, bukan ±28 MB.
+aturan yang sama dengan `.gitignore`. Hasilnya ≈160 KB, bukan ≈28 MB.
 
 ### Paket pasang luring (jaringan *air-gapped*)
 
@@ -140,7 +140,7 @@ python pasang_luring.py --periksa-saja    # cocokkan sidik jari SHA256SUMS denga
 python pasang_luring.py                   # buat .venv, pasang dari wheels/ (--no-index), jalankan uji
 ```
 
-Batas: versi Python di posko harus sama dengan `--python`, dan ukuran paket ±50–80 MB per platform.
+Batas: versi Python di posko harus sama dengan `--python`, dan ukuran paket ≈50–80 MB per platform.
 
 ### Paket pasang Ubuntu 24.04 bertanda tangan (sejak v5.2.0)
 
@@ -270,7 +270,7 @@ sequenceDiagram
     SV->>BB: Salin bukti + SHA-256 + berita acara
     BB-->>LA: Dicerminkan
     alt Bukti berhasil diamankan
-        SV->>SV: ±1,2 detik kemudian: putus jaringan
+        SV->>SV: ≈1,2 detik kemudian: putus jaringan
     else Agen forensik gagal
         SV-->>UI: 409 · gunakan isolasi darurat
         Op->>UI: Isi alasan + tahan ⚠ 1,5 detik
@@ -320,7 +320,7 @@ sequenceDiagram
 | **LAPSIT otomatis** | Terbit hanya setelah SEMUA tindakan pemutus tuntas; nomor `IR-2026-001` tidak pernah berulang (+ UUID) |
 | **LAPSIT kapan saja** | *Ekspor LAPSIT (PDF)* di tab Audit & LAPSIT bisa dipakai kapan pun, termasuk saat kondisi normal sebagai **laporan rutin**: status layanan, insiden aktif (bila ada), peringatan terbaru dengan teknik ATT&CK, integritas log audit, dan blok pengesahan dua tanda tangan. Bentuknya laporan insiden formal: ringkasan eksekutif naratif, dampak operasional, tindakan playbook bercap waktu dan beraktor dengan MTTC, tabel indikator kompromi (IoC), dan cara memverifikasi log audit. Setiap halaman berkop logo Nusantara Shield, bernomor laporan, dan bernomor halaman. Contoh hasilnya ada di [`docs/contoh-lapsit/`](docs/contoh-lapsit/) |
 | **Pemulihan terkunci** | Pintu terpisah; terbuka hanya bila aset terisolasi, playbook dicentang, dan SHA-256 bukti **cocok ulang** |
-| **Isolasi OT** | Skenario *Sabotase OT*: bukti diamankan, lalu webhook (simulasi) ke sakelar terkelola memutus uplink kantor → zona kendali ± 1,2 detik. Genset **tidak dimatikan**; beralih ke kendali lokal (NIST SP 800-82) |
+| **Isolasi OT** | Skenario *Sabotase OT*: bukti diamankan, lalu webhook (simulasi) ke sakelar terkelola memutus uplink kantor → zona kendali ≈ 1,2 detik. Genset **tidak dimatikan**; beralih ke kendali lokal (NIST SP 800-82) |
 | **Kamus istilah** | Semua label dari `app/istilah.py` (kini istilah satuan: Dansat, Kasi Siber, TTIS Satuan); mengganti terminologi tidak memecahkan uji |
 
 Latihan kegagalan forensik: centang **"Latih kegagalan agen forensik"** di panel Latihan sebelum memicu skenario.
@@ -340,7 +340,7 @@ kelompok muncul setiap kali pytest pindah bagian, dan di akhir tampil ringkasan 
 Contoh memilih sebagian: `./run_tests.sh -k akun`, `./run_tests.sh tests/test_rantai_bukti.py`,
 `./run_tests.sh --lf` (ulangi yang gagal). **Jangan memakai `-q`** — opsi itu menyembunyikan nama uji.
 
-**Total: 367 uji** dalam 19 kelompok.
+**Total: 367 uji** dalam 19 kelompok. Di akhir `./run_tests.sh`, uji yang lulus juga diringkas **per aturan doktrin** (Tangkal lebih dulu 115 · Manusia memutuskan 87 · Bukti dulu, baru putus 36 · Jejak tidak bisa ditulis ulang 27 · Luring dan paket tepercaya 32 · pendukung 70), karena jumlah uji sendiri bukan ukuran mutu.
 
 **Keamanan & akses** — `tests/test_keamanan.py` (38 uji)
 - Semua loket menolak permintaan tanpa login; token palsu & sandi salah ditolak; logout mencabut token
@@ -371,10 +371,10 @@ Contoh memilih sebagian: `./run_tests.sh -k akun`, `./run_tests.sh tests/test_ra
 
 **Sinergi IT/OT** — `tests/test_ot.py` (6 uji)
 - Pengendali genset (Modbus/TCP, port 502) terdaftar di topologi (zona kendali), radar, dan profil Kendali Fasilitas
-- Kabar ancaman Modbus menaikkan genset ke waspada (± 66%) sebelum ada serangan
+- Kabar ancaman Modbus menaikkan genset ke waspada (≈ 66%) sebelum ada serangan
 - Perketat menurunkan peluang genset di bawah ambang
 - Kabar OT tidak memicu aset IT, dan sebaliknya (tidak ada alarm palsu)
-- Sabotase OT: bukti dulu, lalu webhook (simulasi) ke sakelar terkelola memutus uplink kantor → zona kendali ± 1,2 detik; genset tetap menyala (kendali lokal)
+- Sabotase OT: bukti dulu, lalu webhook (simulasi) ke sakelar terkelola memutus uplink kantor → zona kendali ≈ 1,2 detik; genset tetap menyala (kendali lokal)
 - Pemulihan jalur kendali terkunci bila sidik jari bukti tidak cocok
 
 **AI lokal: deteksi anomali** — `tests/test_ai.py` (10 uji)
@@ -417,7 +417,7 @@ Contoh memilih sebagian: `./run_tests.sh -k akun`, `./run_tests.sh tests/test_ra
 - Baris dengan IP, port, jenis, waktu, atau aset tidak sah dilewati dan dihitung; berkas tak dikenali ditolak 422
 - Aturan yang sama dengan latihan: auth.log → *login* gagal + *login* tembus; CSV OT → tiga temuan OT; firewall → pemindaian *port*
 - Dua kunci utuh: hanya WASPADA, tanpa insiden, bukti, atau isolasi; log audit hanya mencatat nama berkas dan jumlah
-- Hanya jalur impor yang boleh ±2 MB, dan hanya bila membawa token; jalur lain tetap 16 KB; dibatasi 6 kali per menit
+- Hanya jalur impor yang boleh ≈2 MB, dan hanya bila membawa token; jalur lain tetap 16 KB; dibatasi 6 kali per menit
 
 **Verifikasi audit tanpa server** — `tests/test_verifikasi_audit.py` (12 uji)
 - Log yang ditulis kelas server dinyatakan utuh, dan sidik jari terakhirnya sama dengan yang dicetak LAPSIT
@@ -474,7 +474,7 @@ dibatasi lajunya dan dicatat di log audit.
 | `POST /api/peringatan/tutup` | Operator | Triase: tutup peringatan WASPADA `{aset_id, status: selesai \| false_positive, alasan}`; dicatat di Buku Rantai Bukti |
 | `POST /api/ai/latihan` | Operator | Latihan AI lokal: suntik pola lalu lintas tak wajar `{aset_id, pola?}` (data sintetis) |
 | `POST /api/deteksi/latihan` | Operator | Latihan deteksi: putar peristiwa mentah sintetis `{jenis: login_gagal \| login_tembus \| pindai_port \| akses_ot, aset_id?}` |
-| `POST /api/deteksi/impor` | Operator | Impor log ASLI secara luring `{nama, isi, aset_id?}`: auth.log OpenSSH, log firewall UFW/iptables, atau CSV (maks. ±2 MB; 6× per menit). Aturan sama dengan latihan; hanya menaikkan WASPADA |
+| `POST /api/deteksi/impor` | Operator | Impor log ASLI secara luring `{nama, isi, aset_id?}`: auth.log OpenSSH, log firewall UFW/iptables, atau CSV (maks. ≈2 MB; 6× per menit). Aturan sama dengan latihan; hanya menaikkan WASPADA |
 | `POST /api/playbook/langkah` · `POST /api/pulihkan` | Operator | Centang langkah · tutup insiden |
 | `POST /api/cti/siarkan` | Operator | Siarkan berita CTI sekarang (`NS_CTI_JEDA`, bawaan 30 dtk) |
 | `POST /api/komando/panggil` | Operator | Quick Call ke PIC cabang (simulasi) |

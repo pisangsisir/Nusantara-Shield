@@ -2,7 +2,7 @@
 Uji v5.1 — Pre-Authorized Containment + laporan otomatis ke manajemen (simulasi).
 Prinsip yang diuji:
 - Isolasi TIDAK menunggu izin: operator tim insiden bisa langsung menekan SOAR
-  (Fase 4: peladen mengamankan bukti lebih dulu, ±1,2 detik, baru memutus jaringan).
+  (Fase 4: peladen mengamankan bukti lebih dulu, ≈1,2 detik, baru memutus jaringan).
 - Laporan otomatis terbit setelah SEMUA tindakan pemutus selesai (Fase 1, F-02).
 - Quick Call hanya ke PIC teknis cabang (koordinasi agar server tidak di-restart).
 Semua label dibaca dari app.istilah, sehingga mengganti istilah tidak memecahkan uji (F-01).

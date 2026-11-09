@@ -4,6 +4,19 @@ Seluruh kode dikembangkan sejak **15 Oktober 2026**, setelah publikasi program K
 
 ## Belum dirilis
 
+### Tinjauan ahli TI (CTO) — 9 November 2026 (branch `fix/review-cto`, masuk v5.3.0)
+- **Satu definisi ≈1,2 detik** di semua slide dan dokumen: dari Operator selesai menahan tombol sampai jalur pertama terputus; bukti diamankan di awal jeda. Ditulis terus terang bahwa di purwarupa pengambilan bukti tersimulasi.
+- **Jawaban soal *memory dump*** (Dokumentasi Teknis §3.2, catatan Slide 6): salinan memori 8 GB bisa makan beberapa menit. Rancangan tiga lapis: bukti ringkas sebelum diputus, salinan memori penuh sesudah diputus, Isolasi Darurat bila macet. Lapis 1–2 belum dibangun; lapis 3 sudah berjalan.
+- **66% → 20% diberi satuan:** skor peluang serangan pengendali genset (heuristik 0–100%: 0,80 × 0,75 × 1,1; Perketat ×0,3), bukan probabilitas terkalibrasi.
+- **Satu angka CPU utama ≈1,5%** (300 layar, versi akhir); −74% menjadi riwayat optimasi.
+- **Uji diringkas per aturan doktrin** di keluaran `./run_tests.sh` (`tests/conftest.py`); slide 4 menampilkan ringkasan itu dengan huruf lebih besar, dan kartu "367 uji" diganti "5 aturan doktrin".
+- **"±" diganti "≈"** di dek, poster, README, Proposal, Dokumentasi Teknis, dan teks kode (± berarti toleransi).
+- **"409" diterjemahkan "ditolak sistem"** di dek dan poster; kode HTTP tetap disebut dalam kurung untuk pembaca teknis.
+- **Kamus singkatan** dek, Proposal, dan Dokumentasi Teknis: ditambah ASGI, ATT&CK, Kesdam, Mabes, RSPAD (dek juga Dansat, Kodam, Pussiberad).
+- **Kronologi PDNS dibetulkan** sesuai keterangan BSSN (17 Juni 23.15 WIB upaya mematikan Windows Defender; 20 Juni 00.54 aktivitas jahat; ≈49 jam). Kalimat "cadangan dimatikan tiga menit sebelum enkripsi" dihapus karena tidak ada sumbernya.
+- **NIST CSF 2.0:** lencana dek kini "Dipetakan ke NIST CSF 2.0 · Dok. Teknis §2.6" (pemetaan per kategori dengan uji pembuktinya), bukan "selaras".
+- **Sampul** ditambahkan di dek (nama tim, ketua/penyaji, kategori, versi); dek kini 9 slide.
+
 ### v5.3.0 · Titik periksa Ed25519 dengan kunci berevolusi — 1 November 2026 (branch `feature/titik-periksa-ed25519`)
 - **Masalah:** HMAC memakai satu kunci untuk membuat sekaligus memeriksa. Penyerang yang membobol *server* dan memegang `NS_AUDIT_KEY` bisa menulis ulang riwayat dengan sidik jari yang sah (Dokumentasi Teknis §2.7, peta jalan §2.9).
 - **Baru: `app/titik_periksa.py`.**

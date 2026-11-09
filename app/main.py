@@ -67,7 +67,7 @@ from .deteksi import JENIS_LATIHAN
 from .impor_log import GalatImpor
 
 JALUR_IMPOR = "/api/deteksi/impor"
-MAKS_ISI_IMPOR = 2_000_000                # karakter isi berkas log (±2 MB)
+MAKS_ISI_IMPOR = 2_000_000                # karakter isi berkas log (≈2 MB)
 BATAS_BODY_IMPOR = 2_600_000              # byte kiriman JSON untuk jalur impor (isi + pembungkus JSON)
 
 FOLDER_STATIS = Path(__file__).resolve().parent.parent / "static"
@@ -115,7 +115,7 @@ app.add_middleware(
     allow_headers=["Authorization", "Content-Type"],
 )
 app.add_middleware(BatasBody, batas=KONFIG.batas_body_byte,    # F-08: sebelum router
-                   khusus={JALUR_IMPOR: BATAS_BODY_IMPOR})    # Fase 3: hanya impor log boleh ±2 MB
+                   khusus={JALUR_IMPOR: BATAS_BODY_IMPOR})    # Fase 3: hanya impor log boleh ≈2 MB
 app.add_middleware(TrustedHostMiddleware, allowed_hosts=KONFIG.host_diizinkan)
 app.add_middleware(HeaderKeamanan)                            # F-15: paling luar, ASGI murni
 app.mount("/static", StaticFiles(directory=FOLDER_STATIS), name="static")
@@ -520,7 +520,7 @@ def _sse(jenis: str, data: dict, eid: int | None = None) -> str:
 async def dapur() -> None:
     """SATU-SATUNYA pemasak (Fase 2, R1) yang kini hanya menyiarkan RALAT (Fase 3, R2).
 
-    Tiap detik (atau ±50 ms setelah ada perubahan):
+    Tiap detik (atau ≈50 ms setelah ada perubahan):
       1. masak potret utuh SEKALI, di thread pekerja (kunci tidak pernah dipegang event loop);
       2. bandingkan dengan potret sebelumnya → daftar operasi kecil (delta.beda);
       3. peristiwa log dikirim apa adanya (append-only), bukan dibandingkan;
@@ -569,7 +569,7 @@ async def dapur() -> None:
 async def _alirkan(token: str, nama: str):
     """Pelayan TIPIS untuk satu layar: tidak memasak apa pun, hanya meneruskan bytes dari Hub.
     - Layar baru menerima SATU potret utuh terkini, lalu tambalan-tambalan sesudahnya (Fase 3).
-    - Tiap ±2 detik token diperiksa ulang: logout/kedaluwarsa = siaran ditutup.
+    - Tiap ≈2 detik token diperiksa ulang: logout/kedaluwarsa = siaran ditutup.
     - Komentar SSE ': tetap-hidup' menjaga proxy tidak memutus sambungan yang sedang sepi."""
     # Kursi dihitung DI DALAM generator: bila browser pergi sebelum siaran dimulai,
     # kursi tidak pernah terpakai sehingga hitungan tidak bocor.

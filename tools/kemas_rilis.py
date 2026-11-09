@@ -6,7 +6,7 @@ kemas_rilis.py — membuat zip rilis yang BERSIH (tanpa .venv, cache, rahasia, m
 
 Analogi: mengirim resep ke juri, bukan mengirim dapur beserta kompornya. Folder .venv berisi
 Python yang dirakit khusus untuk komputer Anda; di komputer lain ia rusak dan hanya membuat zip
-membengkak (versi lama: ±28 MB, ±4.200 berkas). Juri cukup menjalankan `pip install -r requirements.txt`.
+membengkak (versi lama: ≈28 MB, ≈4.200 berkas). Juri cukup menjalankan `pip install -r requirements.txt`.
 
 Pemakaian (dari folder proyek, di Mac/Linux/Windows):
     python tools/kemas_rilis.py            → dist/nusantara-shield-v<versi>.zip (versi dari app/versi.py)

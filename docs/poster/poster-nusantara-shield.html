@@ -141,7 +141,7 @@ body { color: var(--teks); font: 10.5px/1.45 var(--huruf); -webkit-print-color-a
 
   <section class="judul">
     <h1>Sistem pendukung keputusan untuk posko siber satuan. <em>Mesin mempercepat, manusia memutuskan.</em></h1>
-    <p>Perisai pertahanan (<i>Defensive Shield</i>) luring yang <b>mendeteksi</b>, <b>mencegah</b>, dan <b>membantu merespons</b>: memutus dalam ±1,2 detik tanpa menghapus barang bukti. Jaringan kantor (IT) dan kendali fasilitas (OT) dalam satu layar.</p>
+    <p>Perisai pertahanan (<i>Defensive Shield</i>) luring yang <b>mendeteksi</b>, <b>mencegah</b>, dan <b>membantu merespons</b>: memutus dalam ≈1,2 detik tanpa menghapus barang bukti. Jaringan kantor (IT) dan kendali fasilitas (OT) dalam satu layar.</p>
     <div class="aset">
       <span>ASET DIJAGA (DATA LATIHAN):</span>
       <span class="chip"><svg class="ik" aria-hidden="true"><use href="#i-laptop"/></svg>Endpoint</span>
@@ -160,20 +160,20 @@ body { color: var(--teks); font: 10.5px/1.45 var(--huruf); -webkit-print-color-a
   </div>
 
   <section class="angka">
-    <div><i class="bulat"><svg class="ik" aria-hidden="true"><use href="#i-trending-down"/></svg></i><b>66% → 20%</b><span>peluang serangan genset setelah kabar celah Modbus, sebelum dan sesudah Perketat</span></div>
-    <div><i class="bulat"><svg class="ik" aria-hidden="true"><use href="#i-timer"/></svg></i><b>±1,2 dtk</b><span>dari keputusan Operator sampai jaringan terputus, bukti sudah disegel</span></div>
+    <div><i class="bulat"><svg class="ik" aria-hidden="true"><use href="#i-trending-down"/></svg></i><b>66% → 20%</b><span>skor peluang serangan genset (heuristik) setelah kabar celah Modbus, sebelum dan sesudah Perketat</span></div>
+    <div><i class="bulat"><svg class="ik" aria-hidden="true"><use href="#i-timer"/></svg></i><b>≈1,2 dtk</b><span>dari keputusan Operator sampai jalur pertama terputus, bukti sudah disegel</span></div>
     <div><i class="bulat"><svg class="ik" aria-hidden="true"><use href="#i-flask-conical"/></svg></i><b>367 uji</b><span>otomatis lulus, juga saat dipasang luring di Mac dan Ubuntu 24.04</span></div>
     <div><i class="bulat"><svg class="ik" aria-hidden="true"><use href="#i-wifi-off"/></svg></i><b>0</b><span>panggilan ke internet saat berjalan; AI dihitung di <i>server</i> satuan</span></div>
   </section>
 
   <section class="kotak">
-    <p class="label"><span class="kiri"><svg class="ik" aria-hidden="true"><use href="#i-network"/></svg>Satu alur utuh, dari peringatan sampai pulih</span><small>urutan dikunci di server; jalan pintas ditolak (409)</small></p>
+    <p class="label"><span class="kiri"><svg class="ik" aria-hidden="true"><use href="#i-network"/></svg>Satu alur utuh, dari peringatan sampai pulih</span><small>urutan dikunci di server; jalan pintas ditolak sistem</small></p>
     <div class="alur">
       <div class="langkah" style="--warna: var(--biru)"><i class="ikon-langkah"><svg class="ik" aria-hidden="true"><use href="#i-radar"/></svg></i><b>Deteksi</b><span>CTI + AI lokal + aturan <i>login</i> gagal dan pindai <i>port</i></span><em class="panah">›</em></div>
       <div class="langkah" style="--warna: var(--kuning)"><i class="ikon-langkah"><svg class="ik" aria-hidden="true"><use href="#i-triangle-alert"/></svg></i><b>WASPADA</b><span>aset berisiko naik status sebelum diserang</span><em class="panah">›</em></div>
       <div class="langkah" style="--warna: var(--kuning)"><i class="ikon-langkah"><svg class="ik" aria-hidden="true"><use href="#i-lock-keyhole"/></svg></i><b>Perketat</b><span>paparan dipotong 70% <span class="tanda simulasi">SIMULASI</span></span><em class="panah">›</em></div>
       <div class="langkah" style="--warna: var(--biru)"><i class="ikon-langkah"><svg class="ik" aria-hidden="true"><use href="#i-fingerprint"/></svg></i><b>Segel bukti</b><span>SHA-256 + berita acara bernomor</span><em class="panah">›</em></div>
-      <div class="langkah" style="--warna: var(--merah)"><i class="ikon-langkah"><svg class="ik" aria-hidden="true"><use href="#i-unplug"/></svg></i><b>Isolasi</b><span>IT dan jalur OT ±1,2 dtk; genset tetap menyala</span><em class="panah">›</em></div>
+      <div class="langkah" style="--warna: var(--merah)"><i class="ikon-langkah"><svg class="ik" aria-hidden="true"><use href="#i-unplug"/></svg></i><b>Isolasi</b><span>IT dan jalur OT ≈1,2 dtk; genset tetap menyala</span><em class="panah">›</em></div>
       <div class="langkah" style="--warna: var(--kuning)"><i class="ikon-langkah"><svg class="ik" aria-hidden="true"><use href="#i-file-text"/></svg></i><b>LAPSIT</b><span>laporan situasi terbit otomatis (PDF)</span><em class="panah">›</em></div>
       <div class="langkah" style="--warna: var(--neon)"><i class="ikon-langkah"><svg class="ik" aria-hidden="true"><use href="#i-rotate-ccw"/></svg></i><b>Pulihkan</b><span>terkunci sampai sidik jari bukti cocok ulang</span></div>
     </div>
@@ -200,11 +200,11 @@ body { color: var(--teks); font: 10.5px/1.45 var(--huruf); -webkit-print-color-a
         <li><span>Kepatuhan Pencadangan &lt; 24 jam dan uji pulih</span> <span class="tanda jalan">BERJALAN</span></li>
         <li><span>Perketat aset yang diprediksi diserang</span> <span class="tanda simulasi">SIMULASI</span></li></ul></div>
       <div class="fungsi"><div class="kepala-fungsi"><i class="ikon-fungsi"><svg class="ik" aria-hidden="true"><use href="#i-eye"/></svg></i><div><h3>Detect</h3><p>melihat ancaman lebih awal</p></div><span class="kode">DE</span></div><ul>
-        <li><span>AI lokal (±10 ms) + aturan <i>login</i> gagal dan pindai <i>port</i></span> <span class="tanda jalan">BERJALAN</span></li>
+        <li><span>AI lokal (≈10 ms) + aturan <i>login</i> gagal dan pindai <i>port</i></span> <span class="tanda jalan">BERJALAN</span></li>
         <li><span>Triase: Selesai atau Positif Palsu (<i>False Positive</i>), beralasan</span> <span class="tanda jalan">BERJALAN</span></li>
         <li class="rencana"><span>Sensor jaringan nyata (Wazuh, Suricata, Zeek)</span> <span class="tanda rencana">PETA JALAN</span></li></ul></div>
       <div class="fungsi"><div class="kepala-fungsi"><i class="ikon-fungsi"><svg class="ik" aria-hidden="true"><use href="#i-siren"/></svg></i><div><h3>Respond</h3><p>menanggapi insiden</p></div><span class="kode">RS</span></div><ul>
-        <li><span>Bukti dulu → isolasi ±1,2 dtk → LAPSIT</span> <span class="tanda jalan">BERJALAN</span></li>
+        <li><span>Bukti dulu → isolasi ≈1,2 dtk → LAPSIT</span> <span class="tanda jalan">BERJALAN</span></li>
         <li><span>Pemutusan perangkat sasaran</span> <span class="tanda simulasi">SIMULASI</span></li>
         <li class="rencana"><span>Respons bertingkat per aset; LAPSIT berjenjang</span> <span class="tanda rencana">PETA JALAN</span></li></ul></div>
       <div class="fungsi"><div class="kepala-fungsi"><i class="ikon-fungsi"><svg class="ik" aria-hidden="true"><use href="#i-life-buoy"/></svg></i><div><h3>Recover</h3><p>kembali normal tanpa merusak bukti</p></div><span class="kode">RC</span></div><ul>

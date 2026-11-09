@@ -505,7 +505,7 @@ class Menara:
 
     def ubah(self) -> None:
         """Naikkan nomor versi DAN bangunkan dapur (bila sedang berjalan), supaya perubahan
-        disiarkan dalam ±50 ms tanpa menunggu detak berikutnya. Aman dipanggil dari thread mana pun."""
+        disiarkan dalam ≈50 ms tanpa menunggu detak berikutnya. Aman dipanggil dari thread mana pun."""
         self.versi += 1
         if self.saat_ubah:
             self.saat_ubah()
@@ -1207,7 +1207,7 @@ class Menara:
         judul = ("akses tanpa izin ke zona kendali OT" if jenis == "akses_ot"
                  else ATURAN_DETEKSI[jenis]["nama"].lower())
         self.catat("info", f"Latihan deteksi: {len(rangkaian)} peristiwa mentah ({judul}) "
-                           f"diputar ke {sasaran} selama ±{round(rangkaian[-1][0])} dtk (data sintetis)", jenis="deteksi")
+                           f"diputar ke {sasaran} selama ≈{round(rangkaian[-1][0])} dtk (data sintetis)", jenis="deteksi")
         self._proses_deteksi()
         self.ubah()
         return {"jenis": jenis, "aset_id": aset_id, "peristiwa": len(rangkaian),

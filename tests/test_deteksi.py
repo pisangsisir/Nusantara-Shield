@@ -98,7 +98,7 @@ def test_login_gagal_ambang_tepat():
 
 def test_login_gagal_tersebar_di_luar_jendela_tidak_memicu():
     m = MesinDeteksi()
-    jarak = ATURAN["login_gagal"]["jendela"] / (ATURAN["login_gagal"]["ambang"] - 1) + 1   # ±9,6 dtk
+    jarak = ATURAN["login_gagal"]["jendela"] / (ATURAN["login_gagal"]["ambang"] - 1) + 1   # ≈9,6 dtk
     assert all(gagal(m, i * jarak) == [] for i in range(20))
     assert m.temuan == []
 

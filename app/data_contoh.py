@@ -153,8 +153,10 @@ SKENARIO = {
 
 # Log peringatan sintetis yang muncul di pop-up peta saat insiden dipicu.
 # Format: (menit relatif terhadap awal insiden, tingkat, pesan).
-# Urutan ransomware meniru kronologi PDNS 2024: penyusup masuk ~2 hari lebih
-# dulu, backup dimatikan 3 menit sebelum enkripsi. Alamat IP memakai blok
+# Urutan ransomware mengikuti pola umum ransomware (bukan salinan kronologi PDNS):
+# tanda bahaya ~2 hari lebih dulu, lalu cadangan dimatikan sesaat sebelum enkripsi.
+# (Kronologi PDNS menurut BSSN: upaya mematikan Windows Defender 17 Juni 23.15 WIB,
+# aktivitas jahat 20 Juni 00.54.) Alamat IP memakai blok
 # dokumentasi dan sengaja cocok dengan daftar indikator contoh, sehingga
 # juri bisa langsung mengeceknya di tab "Cek indikator".
 LOG_PERINGATAN = {

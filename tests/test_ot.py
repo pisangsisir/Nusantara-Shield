@@ -8,7 +8,7 @@ Prinsip yang dikunci:
   (0,80 keyakinan × 0,75 paparan × 1,1 bonus sektor energi ≈ 66 %).
 - Tombol Perketat menurunkan peluang genset di bawah ambang, sama seperti aset IT.
 - Kabar OT tidak menyentuh aset IT, dan kabar IT tidak menyentuh aset OT (tidak ada alarm palsu).
-- Skenario SABOTASE OT: bukti dulu, lalu ±1,2 detik kemudian JALUR kantor → zona kendali diputus
+- Skenario SABOTASE OT: bukti dulu, lalu ≈1,2 detik kemudian JALUR kantor → zona kendali diputus
   (NIST SP 800-82); genset tidak dimatikan, beralih ke kendali lokal. Pemulihan jalur kendali
   terkunci sampai sidik jari SHA-256 bukti cocok ulang.
 """
@@ -127,7 +127,7 @@ def test_sabotase_ot_bukti_dulu_lalu_jalur_it_ot_diputus_genset_tetap_menyala(kl
     k = potret(klien, h)
     assert simpul(k)["genset"]["status"] == "kritis" and _kabel(k)[("core", "genset")] != "putus"  # bukti dulu
     assert main.MENARA._bukti["listrik"]["nomor"].startswith("BB-")
-    JAM["t"] += 1.3                                                    # ± 1,2 detik setelah bukti aman
+    JAM["t"] += 1.3                                                    # ≈ 1,2 detik setelah bukti aman
     k = potret(klien, h)
     g = simpul(k)["genset"]
     assert g["status"] == "isolasi" and "kendali lokal" in g["catatan"]  # jalur diputus, genset TIDAK dimatikan

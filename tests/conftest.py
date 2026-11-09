@@ -52,3 +52,36 @@ def pytest_runtest_logstart(nodeid, location):
         tr.write_line("")
         tr.write_sep("─", f"▶ {KELOMPOK.get(berkas, berkas)}", cyan=True, bold=True)
 
+
+
+# Tinjauan ahli (9 Nov 2026): jumlah uji bukan ukuran mutu, jadi ringkasan akhir mengelompokkan uji yang LULUS
+# per aturan doktrin yang dijaganya. Pemetaan per berkas uji (satu berkas = satu aturan utama); uji pendukung
+# (kamus istilah, versi, telemetri) dipisah supaya tidak menggelembungkan angka doktrin.
+DOKTRIN = [
+    ("Tangkal lebih dulu: peringatan dini beralasan", ["test_ai.py", "test_deteksi.py", "test_ot.py", "test_cti_soar.py",
+                                                       "test_triase_kesiapan.py", "test_impor_log.py", "test_ot_mitre_lapsit.py"]),
+    ("Manusia memutuskan: peran, tombol ditahan, mesin tidak mengeksekusi", ["test_keamanan.py", "test_akun.py", "test_komando.py"]),
+    ("Bukti dulu, baru putus: tanpa bukti ditolak sistem", ["test_rantai_bukti.py"]),
+    ("Jejak tidak bisa ditulis ulang: HMAC + titik periksa Ed25519", ["test_verifikasi_audit.py", "test_titik_periksa.py"]),
+    ("Luring dan paket tepercaya: sidik jari, tanda tangan", ["test_paket_luring.py", "test_paket_ubuntu.py"]),
+    ("Pendukung (bukan doktrin): istilah, versi, siaran, linimasa", ["test_istilah.py", "test_versi.py", "test_telemetri.py",
+                                                                     "test_linimasa.py"]),
+]
+
+
+def pytest_terminal_summary(terminalreporter, exitstatus, config):
+    lulus: dict[str, int] = {}
+    for laporan in terminalreporter.stats.get("passed", []):
+        berkas = os.path.basename(laporan.nodeid.split("::")[0])
+        lulus[berkas] = lulus.get(berkas, 0) + 1
+    if not lulus:
+        return
+    terpetakan = {b for _, daftar in DOKTRIN for b in daftar}
+    terminalreporter.write_sep("─", "Uji LULUS per aturan doktrin", cyan=True, bold=True)
+    for aturan, daftar in DOKTRIN:
+        n = sum(lulus.get(b, 0) for b in daftar)
+        if n:
+            terminalreporter.write_line(f"  {n:>4}  {aturan}")
+    lain = sum(n for b, n in lulus.items() if b not in terpetakan)
+    if lain:
+        terminalreporter.write_line(f"  {lain:>4}  BELUM DIPETAKAN ke aturan doktrin (perbarui DOKTRIN di tests/conftest.py)")

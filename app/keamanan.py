@@ -511,7 +511,7 @@ class BatasBody:
        potongan. Begitu melewati batas → 413 + 'Connection: close', sisa aliran tidak dibaca dan
        server menutup soketnya. Router tidak pernah dipanggil.
     3. Body yang lolos (≤ batas) diteruskan ke aplikasi dari memori, persis seperti aslinya.
-    Memori yang dipakai per permintaan dibatasi ±batas byte, berapa pun besar kiriman penyerang."""
+    Memori yang dipakai per permintaan dibatasi ≈batas byte, berapa pun besar kiriman penyerang."""
 
     def __init__(self, app, batas: int, khusus: dict[str, int] | None = None) -> None:
         self.app, self.batas, self.khusus = app, batas, khusus or {}

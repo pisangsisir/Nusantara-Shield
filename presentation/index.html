@@ -148,6 +148,17 @@ h2 em { font-style: normal; color: var(--neon); }
 /* =====================================================================
    SLIDE 2 · Ringkasan eksekutif + radar berkedip + 3 titik lemah
    ===================================================================== */
+/* Sampul (tinjauan ahli 9 Nov 2026: kesan pertama + siapa yang presentasi) */
+.sampul { height: 100%; display: flex; flex-direction: column; justify-content: center; padding: 0 40px; }
+.sampul .logo-besar { width: 96px; height: 96px; color: var(--neon); }
+.sampul .label-kecil { color: var(--neon); letter-spacing: .3em; margin-top: 26px; }
+.sampul h1 { font-size: 104px; line-height: 1; font-weight: 800; letter-spacing: -.025em; margin: 18px 0 18px; }
+.sampul h1 span { color: var(--neon); }
+.sampul .slogan-sampul { font-size: 30px; color: var(--teks-redup); max-width: 1100px; line-height: 1.35; }
+.sampul .tim-sampul { display: flex; gap: 56px; margin-top: 48px; }
+.sampul .tim-sampul div { border-left: 4px solid var(--neon); padding-left: 20px; }
+.sampul .tim-sampul small { display: block; font-family: var(--huruf-mono); color: var(--teks-samar); font-size: 15px; letter-spacing: .18em; margin-bottom: 6px; }
+.sampul .tim-sampul b { font-size: 28px; font-weight: 600; }
 .ringkas { margin-top: 8px; display: grid; grid-template-columns: 1fr 360px; gap: 56px; align-items: center; }
 .ringkas .label-kecil { color: var(--neon); }
 .ringkas h1 { margin-top: 10px; font-size: 88px; line-height: 1; font-weight: 800; letter-spacing: -.025em; }
@@ -338,6 +349,10 @@ h2 em { font-style: normal; color: var(--neon); }
 .t-baris.t-ai span { color: var(--biru-terang); }
 .t-perintah { color: var(--teks-redup); margin-bottom: 6px; }
 .t-perintah b { color: var(--neon); font-weight: 400; }
+.t-baris.t-doktrin { font-size: 17px; padding: 9px 0; border-bottom: 1px solid rgba(120,140,170,.15); }
+.t-baris.t-doktrin small { display: block; font-size: 13px; margin: 3px 0 0; }
+.t-baris.t-doktrin em { font-size: 20px; }
+.t-baris.t-pendukung { opacity: .7; }
 .t-akhir { margin-top: 8px; padding: 5px 12px; text-align: center; color: #4ade80; font-weight: 700; border: 1px solid rgba(74, 222, 128, .4); background: rgba(74, 222, 128, .08); border-radius: 8px; }
 .slide.aktif .t-baris, .slide.aktif .t-akhir { animation: ketik .35s ease both; animation-delay: calc(var(--i) * .32s + .5s); }
 @keyframes ketik { from { opacity: 0; transform: translateX(-8px); } }
@@ -498,6 +513,23 @@ table.kamus td:first-child { color: var(--neon); white-space: nowrap; width: 1%;
 
 <main id="panggung" aria-live="polite">
 
+<!-- =============================== SAMPUL =============================== -->
+<section class="slide" data-judul="Sampul">
+  <div class="sampul">
+    <svg class="logo logo-besar" aria-hidden="true"><use href="#logo"/></svg>
+    <p class="label-kecil">KARTIKA CYBER HACKATHON 2026 · KATEGORI 02 PENANGKALAN</p>
+    <h1>Nusantara <span>Shield</span></h1>
+    <p class="slogan-sampul">Posko pertahanan siber <b>luring</b> untuk aset IT dan OT satuan. Tangkal lebih dulu; bila tembus, <b>bukti dulu, baru putus</b>.</p>
+    <div class="tim-sampul">
+      <div><small>TIM</small><b>Tim Nusantara Shield</b></div>
+      <div><small>KETUA · PENYAJI</small><b>Muhammad Isa Ananta</b></div>
+      <div><small>VERSI</small><b>v5.3.0 · 9 November 2026</b></div>
+    </div>
+  </div>
+  <aside class="catatan"><h4>Catatan pembicara · Sampul (≈10 detik)</h4><p>"Selamat pagi, Dewan Juri. Saya Muhammad Isa Ananta, mewakili Tim Nusantara Shield, Kategori 02 Penangkalan." Langsung lanjut ke latar belakang.</p></aside>
+  <div class="kaki"><span>NUSANTARA SHIELD v5.3.0 · PROPOSAL DAN DOKUMENTASI TEKNIS</span><span>SAMPUL</span></div>
+</section>
+
 <!-- =============================== SLIDE 1 =============================== -->
 <section class="slide" data-judul="Latar Belakang">
   <div class="kepala">
@@ -514,7 +546,7 @@ table.kamus td:first-child { color: var(--neon); white-space: nowrap; width: 1%;
         <div class="peristiwa" style="--i:0"><b>MEI 2023 · BSI</b>
           <p>ATM dan <i>mobile banking</i> terganggu 8–11 Mei. <span>Penyusupan diduga dimulai sejak libur Lebaran; pelaku mengklaim mencuri 1,5 TB data.</span></p></div>
         <div class="peristiwa" style="--i:1"><b>JUNI 2024 · PDNS</b>
-          <p>Penyusup aktif dua hari tanpa ada yang bertindak. <span>Cadangan dimatikan tiga menit sebelum enkripsi, hanya ±2% data punya cadangan, dan layanan imigrasi lumpuh.</span></p></div>
+          <p>Tanda bahaya ≈49 jam tanpa tindakan. <span>Upaya mematikan Windows Defender sejak 17 Juni 23.15 WIB; aktivitas jahat 20 Juni 00.54 (BSSN). Hanya ≈2% data punya cadangan; layanan imigrasi lumpuh.</span></p></div>
       </div>
 
       <div class="proyeksi" style="--i:2">
@@ -530,7 +562,7 @@ table.kamus td:first-child { color: var(--neon); white-space: nowrap; width: 1%;
 
     <div class="kliping">
       <figure class="berita satu">
-        <svg viewBox="0 0 540 250" role="img" aria-label="Ilustrasi insiden PDNS Juni 2024: penyusup masuk dua hari sebelumnya, cadangan dimatikan tiga menit sebelum enkripsi, hanya sekitar 2 persen data punya cadangan">
+        <svg viewBox="0 0 540 250" role="img" aria-label="Ilustrasi insiden PDNS Juni 2024 menurut BSSN: upaya mematikan Windows Defender 17 Juni pukul 23.15, aktivitas jahat 20 Juni pukul 00.54, selang sekitar 49 jam; hanya sekitar 2 persen data punya cadangan">
           <rect width="540" height="250" fill="#0d1729"/>
           <text x="20" y="30" font-family="ui-monospace,Menlo,Consolas,monospace" font-size="13" font-weight="700" letter-spacing="1.5" fill="#ff5c74">PDNS SURABAYA · JUNI 2024</text>
           <rect x="398" y="15" width="122" height="22" rx="5" fill="rgba(255,92,116,.15)" stroke="#ff5c74"/>
@@ -548,22 +580,22 @@ table.kamus td:first-child { color: var(--neon); white-space: nowrap; width: 1%;
           <line x1="205" y1="78" x2="480" y2="78" stroke="#ff5c74" stroke-width="2" stroke-dasharray="4 4" opacity=".6"/>
           <g font-size="11.5" fill="#8798b1">
             <circle cx="205" cy="78" r="7" fill="#0d1729" stroke="#f2c14e" stroke-width="2.5"/>
-            <text x="205" y="106" text-anchor="middle" font-family="ui-monospace,Menlo,Consolas,monospace" font-weight="700" fill="#f2c14e">T−2 HARI</text>
-            <text x="205" y="122" text-anchor="middle">penyusup masuk,</text><text x="205" y="136" text-anchor="middle">tanpa tindakan</text>
+            <text x="205" y="106" text-anchor="middle" font-family="ui-monospace,Menlo,Consolas,monospace" font-weight="700" fill="#f2c14e">17 JUN 23.15</text>
+            <text x="205" y="122" text-anchor="middle">upaya matikan</text><text x="205" y="136" text-anchor="middle">Windows Defender</text>
             <circle cx="345" cy="78" r="7" fill="#0d1729" stroke="#f2c14e" stroke-width="2.5"/>
-            <text x="345" y="106" text-anchor="middle" font-family="ui-monospace,Menlo,Consolas,monospace" font-weight="700" fill="#f2c14e">T−3 MENIT</text>
-            <text x="345" y="122" text-anchor="middle">cadangan</text><text x="345" y="136" text-anchor="middle">dimatikan</text>
+            <text x="345" y="106" text-anchor="middle" font-family="ui-monospace,Menlo,Consolas,monospace" font-weight="700" fill="#f2c14e">≈49 JAM</text>
+            <text x="345" y="122" text-anchor="middle">tanda bahaya,</text><text x="345" y="136" text-anchor="middle">tanpa tindakan</text>
             <circle cx="480" cy="78" r="9" fill="#ff5c74"/>
-            <text x="480" y="106" text-anchor="middle" font-family="ui-monospace,Menlo,Consolas,monospace" font-weight="700" fill="#ff5c74">T0</text>
-            <text x="480" y="122" text-anchor="middle">enkripsi</text><text x="480" y="136" text-anchor="middle">massal</text>
+            <text x="480" y="106" text-anchor="middle" font-family="ui-monospace,Menlo,Consolas,monospace" font-weight="700" fill="#ff5c74">20 JUN 00.54</text>
+            <text x="480" y="122" text-anchor="middle">aktivitas jahat;</text><text x="480" y="136" text-anchor="middle">Defender crash</text>
           </g>
           <text x="190" y="176" font-size="12.5" fill="#d7e3f2">Data yang punya cadangan</text>
-          <text x="512" y="178" font-family="ui-monospace,Menlo,Consolas,monospace" font-size="22" font-weight="800" fill="#ff5c74" text-anchor="end">±2%</text>
+          <text x="512" y="178" font-family="ui-monospace,Menlo,Consolas,monospace" font-size="22" font-weight="800" fill="#ff5c74" text-anchor="end">≈2%</text>
           <rect x="190" y="188" width="322" height="14" rx="4" fill="#1f2d47"/>
           <rect x="190" y="188" width="8" height="14" rx="4" fill="#ff5c74"/>
           <text x="190" y="226" font-size="11.5" fill="#5b6c87">Tebusan USD 8 juta · layanan banyak instansi terganggu</text>
         </svg>
-        <figcaption><b>ILUSTRASI</b>Diolah dari detikINET dan CNBC Indonesia</figcaption>
+        <figcaption><b>ILUSTRASI</b>Kronologi BSSN (detikINET 26 Jun; Raker Komisi I DPR 27 Jun 2024) · CNBC Indonesia</figcaption>
       </figure>
       <figure class="berita dua">
         <svg viewBox="0 0 540 250" role="img" aria-label="Ilustrasi insiden BSI Mei 2023: ATM dan mobile banking terganggu 8 sampai 11 Mei, pelaku mengklaim mencuri 1,5 TB data">
@@ -604,10 +636,10 @@ table.kamus td:first-child { color: var(--neon); white-space: nowrap; width: 1%;
   <div class="petunjuk">← → berpindah · F layar penuh · N catatan</div>
 
   <aside class="catatan">
-    <h4>Catatan pembicara · Slide 1 · Latar belakang (±40 detik)</h4>
+    <h4>Catatan pembicara · Slide 1 · Latar belakang (≈40 detik)</h4>
     <p><b>Alur: sejarah → proyeksi.</b> Jangan sebut fitur Nusantara Shield di slide ini.</p>
     <ul>
-      <li><b>Sejarah:</b> "Mei 2023, layanan BSI terganggu empat hari; penyusupan diduga dimulai sejak libur Lebaran. Juni 2024, Pusat Data Nasional Sementara lumpuh. Penyusup sudah aktif dua hari, cadangan dimatikan tiga menit sebelum enkripsi, dan hanya sekitar 2 persen data yang punya cadangan."</li>
+      <li><b>Sejarah:</b> "Mei 2023, layanan BSI terganggu empat hari; penyusupan diduga dimulai sejak libur Lebaran. Juni 2024, Pusat Data Nasional Sementara lumpuh. Menurut BSSN, upaya mematikan Windows Defender sudah terekam tanggal 17 Juni pukul 23.15; aktivitas jahat baru berjalan 20 Juni pukul 00.54. Ada sekitar 49 jam tanda bahaya tanpa tindakan, dan hanya sekitar 2 persen data yang punya cadangan."</li>
       <li><b>Proyeksi (sebut sebagai bayangan, bukan kejadian):</b> "Bayangkan kelumpuhan seperti Pusat Data Nasional Sementara (PDNS) terjadi pada infrastruktur kesehatan satuan, seperti RSPAD Gatot Soebroto atau rumah sakit jajaran Kesdam: rekam medis dan layanan klinis terkunci, dan sistem kendali fasilitas seperti genset dan kelistrikan ruang operasi berpotensi diambil alih. Di sana, lambat merespons bukan soal data, tetapi soal nyawa."</li>
       <li><b>Bukti bahwa ini bukan khayalan:</b> Agustus 2026, <i class="asing">ransomware</i> di Health Sciences Centre Winnipeg, Kanada, mengenai pendingin udara dan akses pintu rumah sakit. Pelayanan pasien selamat karena jaringan klinis dan fasilitas dipisah.</li>
       <li><b>Jangan katakan:</b> PDNS lumpuh "karena isolasi lambat", atau BSI "merusak bukti". Tidak ada sumber yang menyatakan itu. Yang terdokumentasi: tanda bahaya terlambat dikenali, dan forensik BSI masih ditunggu saat layanan dipulihkan.</li>
@@ -633,10 +665,10 @@ table.kamus td:first-child { color: var(--neon); white-space: nowrap; width: 1%;
         <span>PERINGATAN DINI</span><i>→</i><span>PERKETAT</span><i>│</i><span>BUKTI</span><i>→</i><span>ISOLASI</span><i>→</i><span>LAPSIT</span>
       </div>
       <div class="strip-angka">
-        <div class="angka"><b>66%→20%</b><span>genset WASPADA sebelum diserang; Perketat menurunkannya</span></div>
-        <div class="angka"><b>±1,2 dtk</b><span>keputusan → jaringan terputus, bukti sudah aman</span></div>
-        <div class="angka"><b>±1,5%</b><span>CPU (prosesor) <i class="asing">server</i> untuk 300 layar (±1,7% saat serangan)</span></div>
-                <div class="angka"><b>367</b><span>uji otomatis, termasuk AI lokal, aturan IT/OT, impor log, dan verifikasi audit</span></div>
+        <div class="angka"><b>66%→20%</b><span>skor peluang serangan genset (heuristik); Perketat menurunkannya</span></div>
+        <div class="angka"><b>≈1,2 dtk</b><span>keputusan Operator → jalur pertama putus, bukti di awal jeda</span></div>
+        <div class="angka"><b>≈1,5%</b><span>CPU (prosesor) <i class="asing">server</i> untuk 300 layar (≈1,7% saat serangan)</span></div>
+                <div class="angka"><b>5 aturan</b><span>doktrin dikunci 297 uji otomatis (+70 uji pendukung)</span></div>
       </div>
     </div>
 
@@ -686,15 +718,15 @@ table.kamus td:first-child { color: var(--neon); white-space: nowrap; width: 1%;
 
   <aside class="catatan">
     <h4>Catatan pembicara · Slide 2 · Ringkasan eksekutif</h4>
-    <p><b>Solusi:</b> "Nusantara Shield adalah Perwira Staf Siber Digital: mengenali ancaman IT maupun OT lebih awal, mengamankan bukti, lalu memutus jalur penyerang IT/OT dalam ±1,2 detik, tanpa mematikan genset. Keputusan tetap di tangan manusia."</p>
+    <p><b>Solusi:</b> "Nusantara Shield adalah Perwira Staf Siber Digital: mengenali ancaman IT maupun OT lebih awal, mengamankan bukti, lalu memutus jalur penyerang IT/OT dalam ≈1,2 detik, tanpa mematikan genset. Keputusan tetap di tangan manusia."</p>
     <ul>
       <li><b>Bingkai utama:</b> Nusantara Shield adalah <b>sistem pendukung keputusan</b> bagi Operator. Mesin mempercepat, manusia memutuskan. Sengaja <b>tidak</b> otonom penuh.</li>
       <li>Tiga kartu merah = peta jalan presentasi. Setiap slide berikutnya menutup satu titik lemah.</li>
       <li><b>Dua kunci konfirmasi:</b> "Tidak ada satu sinyal pun yang memutus jaringan vital secara otomatis penuh (<i class="asing">autonomous</i>) tanpa keputusan akhir manusia. Kunci pertama mesin: CTI dan AI lokal hanya menaikkan status ke WASPADA. Kunci kedua manusia: hanya Operator yang bisa memerintahkan isolasi; akun Pengamat ditolak <i class="asing">server</i>."</li>
       <li>Radar: <b>jarak dari pusat = zona jaringan</b> (internal, DMZ, luar gerbang); <b>warna = keparahan</b>. Arah titik hanya penanda alamat Internet Protocol (IP), <b>bukan lokasi geografis</b>.</li>
       <li><b>Kalimat pembeda:</b> "Banyak sistem pertahanan berhenti di alarm. Nusantara Shield berlanjut sampai bukti tersegel, jalur terputus, dan LAPSIT terbit, dalam satu alur yang dikunci <i class="asing">server</i>, tanpa internet."</li>
-      <li>±1,2 dtk: dari operator selesai menahan tombol sampai jaringan aset terputus, dengan bukti sudah diamankan lebih dulu. Ini jeda baku alur purwarupa (<code>JEDA_RUNBOOK</code>); perintah ke sakelar masih simulasi. Asal semua angka: Proposal §7.2 dan slide Lampiran B.</li>
-      <li>±1,5% CPU (siaga) dan ±1,7% (serangan) diukur ulang pada versi akhir, 26 Okt 2026, dengan <code>tools/ukur_beban.py</code>: 300 siaran SSE sungguhan, Linux 2 inti. Angka −80% lalu lintas berasal dari uji beban optimasi siaran ralat (uvicorn + Chromium, 15–17 Okt 2026).</li>
+      <li><b>Satu definisi ≈1,2 dtk</b> (dipakai di semua slide): dari Operator selesai menahan tombol sampai jalur pertama terputus. Bukti diamankan di awal jeda itu; di purwarupa pengamanan bukti tersimulasi sehingga selesai seketika. Di produksi, total waktu = lama pengamanan bukti + 1,2 dtk (lihat jawaban soal <i class="asing">memory dump</i> di Slide 6). Ini jeda baku alur purwarupa (<code>JEDA_RUNBOOK</code>); perintah ke sakelar masih simulasi. Asal semua angka: Proposal §7.2 dan slide Lampiran B.</li>
+      <li>≈1,5% CPU (siaga) dan ≈1,7% (serangan) diukur ulang pada versi akhir, 26 Okt 2026, dengan <code>tools/ukur_beban.py</code>: 300 siaran SSE sungguhan, Linux 2 inti. Angka −80% lalu lintas berasal dari uji beban optimasi siaran ralat (uvicorn + Chromium, 15–17 Okt 2026).</li>
       <li>Kategori: <b>02 Penangkalan</b>, sesuai contoh panitia: <i class="asing">Threat Intelligence Platform</i> dan <i class="asing">Automated Incident Response</i>.</li>
     </ul>
   </aside>
@@ -747,7 +779,7 @@ table.kamus td:first-child { color: var(--neon); white-space: nowrap; width: 1%;
         </div>
         <div class="baris-langkah isolasi">
           <span class="no">3</span>
-          <div><h3>Isolasi (IT · OT)</h3><p>±1,2 dtk setelah bukti aman: aset IT diputus; jalur kantor → zona kendali OT diputus lewat sakelar terkelola, genset tetap menyala. Tanpa bukti: ditolak (409).</p></div>
+          <div><h3>Isolasi (IT · OT)</h3><p>≈1,2 dtk sejak keputusan Operator: aset IT diputus; jalur kantor → zona kendali OT diputus lewat sakelar terkelola, genset tetap menyala. Tanpa bukti: <b>ditolak sistem</b>.</p></div>
           <div class="tahan">
             <div class="tombol-tahan"><div class="isi"></div><span>⚡ TAHAN · ISOLASI</span></div>
             <div class="skala-ms"><span>0 ms</span><span>tahan</span><span>600 ms</span></div>
@@ -774,10 +806,10 @@ table.kamus td:first-child { color: var(--neon); white-space: nowrap; width: 1%;
     <p>Tekankan: <b>kecepatan dan ketertiban forensik tidak lagi saling bertentangan.</b> Operator tidak perlu mengingat urutan; <i class="asing">server</i> yang menjaganya. Ini menjawab temuan audit F-04 (<i class="asing">chain of custody</i>).</p>
     <ul>
       <li><b>Bahasa yang sama dengan buku Onno W. Purbo dan Gildas Deograt Lumy (2025):</b> lima langkah ini adalah siklus <i class="asing">detect → contain → eradicate → recover</i>, ditutup <i class="asing">After-Action Review</i> (AAR) di langkah Evaluasi. Kontainmen tidak mematikan fungsi layanan (<i class="asing">mission continuity</i>, contoh genset), dan pemulihan tidak menghapus jejak forensik.</li>
-      <li>Urutan dikunci di <b><i class="asing">server</i></b>, bukan hanya di tampilan: jalan pintas lewat tombol, centang manual, atau antrean semuanya ditolak dengan kode 409.</li>
+      <li>Urutan dikunci di <b><i class="asing">server</i></b>, bukan hanya di tampilan: jalan pintas lewat tombol, centang manual, atau antrean semuanya <b>ditolak sistem</b> (kode HTTP 409).</li>
       <li>Kenapa menahan tombol 0,6 detik? Lebih cepat daripada dialog konfirmasi, dan klik tak sengaja tidak memicu apa pun.</li>
       <li>Isolasi darurat hanya tersedia bila bukti <b>belum</b> bisa diamankan. Bila bukti sudah aman, jalur darurat ditolak. Setelah ancaman tertahan, bukti susulan wajib diamankan dan pemulihan tetap terkunci sampai <i class="asing">hash</i> cocok.</li>
-      <li><b>IT · OT (sudah berjalan, dikunci 6 uji):</b> (1) Peringatan dini: tombol <b>Latihan OT: siarkan kabar Modbus</b> → <b>Pengendali genset</b> (192.0.2.120:502) naik <b>WASPADA ±66%</b> → <b>Perketat</b>. (2) Isolasi OT: Latihan → target <b>Genset RS Kesdam</b> → <b>Sabotase OT</b> → tahan ⚡ → bukti disegel → ±1,2 dtk kemudian <i class="asing">webhook</i> (simulasi) ke sakelar terkelola memutus jalur kantor → zona kendali; genset <b>tetap menyala</b> (kendali lokal) → LAPSIT SEV-1 ke Komandan Satuan (Dansat).</li>
+      <li><b>IT · OT (sudah berjalan, dikunci 6 uji):</b> (1) Peringatan dini: tombol <b>Latihan OT: siarkan kabar Modbus</b> → <b>Pengendali genset</b> (192.0.2.120:502) naik <b>WASPADA ≈66%</b> → <b>Perketat</b>. (2) Isolasi OT: Latihan → target <b>Genset RS Kesdam</b> → <b>Sabotase OT</b> → tahan ⚡ → bukti disegel → ≈1,2 dtk kemudian <i class="asing">webhook</i> (simulasi) ke sakelar terkelola memutus jalur kantor → zona kendali; genset <b>tetap menyala</b> (kendali lokal) → LAPSIT SEV-1 ke Komandan Satuan (Dansat).</li>
       <li>Yang <b>belum</b> ada: sensor protokol industri dan sambungan ke sakelar fisik sungguhan (di purwarupa: simulasi <i class="asing">webhook</i>).</li>
       <li><b>Bila juri bertanya "kenapa tidak langsung matikan perangkat OT?":</b> di OT, memutus mendadak bisa menghentikan proses fisik (listrik, pompa, genset). Praktik baku (NIST SP 800-82) adalah memutus <b>jalur antara jaringan kantor dan zona kendali</b>, lewat prosedur keselamatan, bukan mematikan pengendalinya.</li>
       <li>Pemisahan wewenang: <b>Pengamat</b> hanya melihat; <b>Operator</b> bertindak. Akun operator hanya lewat kode undangan (<code>NS_KODE_OPERATOR</code>) atau dibuatkan operator lain.</li>
@@ -793,22 +825,23 @@ table.kamus td:first-child { color: var(--neon); white-space: nowrap; width: 1%;
     <div class="penanda"><b>04</b>Keunggulan <i class="asing">Server</i> · Skalabilitas dan Uji</div>
     <div class="merek"><svg class="logo" aria-hidden="true"><use href="#logo"/></svg>NUSANTARA SHIELD</div>
   </div>
-  <h2>Satu dapur, satu pengeras suara. <em>Dikunci 367 uji.</em></h2>
+  <h2>Satu dapur, satu pengeras suara. <em>≈1,5% CPU untuk 300 layar.</em></h2>
 
   <div class="dua-kolom">
     <div>
       <div class="grafik kartu-dasar">
         <div class="grafik-kepala">
-          <h3>Optimasi siaran ralat<small>beban CPU <i class="asing">server</i> · 300 layar · uji beban 17 Okt</small></h3>
-          <span class="turun">−74%</span>
+          <h3>Beban CPU <i class="asing">server</i> untuk 300 layar<small>versi akhir · <code>tools/ukur_beban.py</code> · 26 Okt · Linux 2 inti</small></h3>
+          <span class="turun">≈1,5%</span>
         </div>
+        <p class="sumber" style="margin:2px 0 6px"><b>Riwayat:</b> siaran ralat (<i class="asing">delta</i>) memangkas beban <b>−74%</b> pada uji 17 Okt.</p>
         <div class="baris"><span class="lbl">Sebelum</span><div class="batang sebelum"><i></i></div><span class="nilai">10,8%</span></div>
         <div class="baris"><span class="lbl">Sesudah</span><div class="batang sesudah"><i></i></div><span class="nilai sesudah">2,8%</span></div>
-        <p class="sumber"><b>Sebelum/Sesudah</b> = sebelum dan sesudah siaran ralat (uvicorn + Chromium, 17 Okt 2026). <b>Versi akhir</b>, diukur ulang 26 Okt dengan <code>tools/ukur_beban.py</code> (Linux 2 inti): <b>1,47%</b> siaga · <b>1,67%</b> serangan; alat dan mesin berbeda, jadi tidak dibandingkan langsung.</p>
+        <p class="sumber"><b>Angka utama ≈1,5%</b> = 1,47% siaga · 1,67% saat serangan (versi akhir). Batang di atas hanya riwayat optimasi (uvicorn + Chromium, 17 Okt); alat dan mesinnya berbeda, jadi tidak dibandingkan langsung dengan angka utama.</p>
       </div>
       <div class="mini">
         <div><b>8,4 → <em>1,7</em></b><span>MB/s lalu lintas saat serangan intensif (−80%)</span></div>
-        <div><b>±<em>207 MB</em></b><span>memori <i class="asing">server</i> untuk 300 layar, termasuk pustaka AI (versi akhir)</span></div>
+        <div><b>≈<em>207 MB</em></b><span>memori <i class="asing">server</i> untuk 300 layar, termasuk pustaka AI (versi akhir)</span></div>
         <div><b>44 → <em>0 ms</em></b><span>kerja grafis kanvas yang tidak terlihat</span></div>
       </div>
       <div class="komponen">
@@ -821,30 +854,17 @@ table.kamus td:first-child { color: var(--neon); white-space: nowrap; width: 1%;
       <div class="terminal">
         <div class="terminal-kepala"><i style="background:#ff5f57"></i><i style="background:#febc2e"></i><i style="background:#28c840"></i><span>nusantara-shield-v5.3.0 · ./run_tests.sh</span></div>
         <div class="terminal-isi">
-          <p class="t-perintah"><b>$</b> ./run_tests.sh <span style="color:var(--teks-samar)"># pytest -v -ra</span></p>
-          <div class="t-baris t-ai" style="--i:0"><span>▶ AI lokal<small>Isolation Forest · luring · alasan</small></span><em>10 PASSED</em></div>
-          <div class="t-baris" style="--i:1"><span>▶ Manajemen akun<small>pendaftaran, ganti sandi awal</small></span><em>27 PASSED</em></div>
-          <div class="t-baris" style="--i:2"><span>▶ Intelijen ancaman dan SOAR<small>prediksi, isolasi</small></span><em>18 PASSED</em></div>
-          <div class="t-baris" style="--i:3"><span>▶ Kamus istilah<small>istilah satuan</small></span><em>40 PASSED</em></div>
-          <div class="t-baris" style="--i:4"><span>▶ Keamanan dan akses<small><i class="asing">login</i>, peran, batas laju</small></span><em>38 PASSED</em></div>
-          <div class="t-baris" style="--i:5"><span>▶ Rantai komando dan LAPSIT<small><i class="asing">pre-authorized</i></small></span><em>22 PASSED</em></div>
-          <div class="t-baris t-ot" style="--i:6"><span>▶ Sinergi IT/OT<small>Modbus → WASPADA · isolasi OT</small></span><em>6 PASSED</em></div>
-          <div class="t-baris" style="--i:7"><span>▶ Rantai bukti forensik<small>bukti sebelum isolasi</small></span><em>36 PASSED</em></div>
-          <div class="t-baris" style="--i:8"><span>▶ Telemetri dan siaran<small>dapur tunggal, delta</small></span><em>19 PASSED</em></div>
-          <div class="t-baris" style="--i:9"><span>▶ Paket pasang luring<small>SHA-256 · tanpa internet</small></span><em>8 PASSED</em></div>
-          <div class="t-baris" style="--i:10"><span>▶ Triase dan Kesiapan Siber<small>alasan wajib · A–E terbuka</small></span><em>16 PASSED</em></div>
-          <div class="t-baris" style="--i:11"><span>▶ Mesin Deteksi Aturan<small><i class="asing">login</i> gagal 8/60 dtk · pindai <i class="asing">port</i></small></span><em>24 PASSED</em></div>
-          <div class="t-baris" style="--i:12"><span>▶ Linimasa dan KPI<small>60 menit · pita AI · MTTC</small></span><em>6 PASSED</em></div>
-          <div class="t-baris t-ot" style="--i:13"><span>▶ Aturan OT, ATT&amp;CK, LAPSIT<small>IT → OT tanpa izin · 2 tanda tangan</small></span><em>23 PASSED</em></div>
-          <div class="t-baris" style="--i:14"><span>▶ Impor log luring<small>auth.log · firewall · CSV</small></span><em>18 PASSED</em></div>
-          <div class="t-baris" style="--i:15"><span>▶ Verifikasi audit tanpa <i class="asing">server</i><small>HMAC · --cocokkan LAPSIT</small></span><em>12 PASSED</em></div>
-          <div class="t-baris" style="--i:16"><span>▶ Paket pasang Ubuntu 24.04<small>Ed25519 · manifest SHA-256</small></span><em>24 PASSED</em></div>
-          <div class="t-baris" style="--i:17"><span>▶ Satu sumber versi<small>app/versi.py · nama peran</small></span><em>5 PASSED</em></div>
-          <div class="t-baris" style="--i:18"><span>▶ Titik periksa Ed25519<small>kunci berevolusi · kunci publik saja</small></span><em>15 PASSED</em></div>
-          <div class="t-akhir" style="--i:19">═══ 367 passed in 44.17s ═══</div>
+          <p class="t-perintah"><b>$</b> ./run_tests.sh <span style="color:var(--teks-samar)"># ringkasan per aturan doktrin</span></p>
+          <div class="t-baris t-doktrin" style="--i:0"><span>▶ Tangkal lebih dulu<small>peringatan dini beralasan · AI lokal · aturan · CTI · OT</small></span><em>115</em></div>
+          <div class="t-baris t-doktrin" style="--i:1"><span>▶ Manusia memutuskan<small>peran · tombol ditahan · mesin tidak mengeksekusi</small></span><em>87</em></div>
+          <div class="t-baris t-doktrin t-ot" style="--i:2"><span>▶ Bukti dulu, baru putus<small>tanpa bukti ditolak sistem · isolasi darurat beralasan</small></span><em>36</em></div>
+          <div class="t-baris t-doktrin" style="--i:3"><span>▶ Jejak tidak bisa ditulis ulang<small>HMAC berantai · titik periksa Ed25519</small></span><em>27</em></div>
+          <div class="t-baris t-doktrin" style="--i:4"><span>▶ Luring dan paket tepercaya<small>sidik jari SHA-256 · tanda tangan Ed25519</small></span><em>32</em></div>
+          <div class="t-baris t-doktrin t-pendukung" style="--i:5"><span>▶ Pendukung, bukan doktrin<small>kamus istilah · versi · siaran · linimasa</small></span><em>70</em></div>
+          <div class="t-akhir" style="--i:6">═══ 367 passed in 40.05s ═══</div>
         </div>
       </div>
-      <p class="terminal-ket">Uji mengunci <b>aturan doktrin</b>, bukan sekadar fungsi: isolasi tanpa bukti ditolak 409 · pemulihan terkunci bila <i class="asing">hash</i> berbeda · sabotase OT diputus ±1,2 dtk tanpa mematikan genset · sandi tidak pernah tercatat di log · AI menilai tanpa satu pun koneksi jaringan · data layar hasil rakitan delta identik dengan <i class="asing">server</i>.</p>
+      <p class="terminal-ket">Jumlah uji bukan ukuran mutu; yang penting <b>aturan apa yang dijaga</b>: isolasi tanpa bukti <b>ditolak sistem</b> (HTTP 409) · pemulihan terkunci bila <i class="asing">hash</i> berbeda · sabotase OT diputus ≈1,2 dtk tanpa mematikan genset · sandi tidak pernah tercatat di log · AI menilai tanpa satu pun koneksi jaringan · data layar hasil rakitan delta identik dengan <i class="asing">server</i>.</p>
     </div>
   </div>
 
@@ -855,8 +875,8 @@ table.kamus td:first-child { color: var(--neon); white-space: nowrap; width: 1%;
       <li>Komponen: Loket Application Programming Interface (API) <code>app/main.py</code> · Gerbang keamanan <code>app/keamanan.py</code> · Dapur situasi <code>app/telemetri.py</code> · Mesin Deteksi Anomali (<i class="asing">anomaly detection engine</i>) <code>app/ai_anomali.py</code> · Brankas bukti <code>app/bukti.py</code> · Buku berantai <code>app/audit.py</code> · Hub siaran <code>app/siaran.py</code> + <code>app/delta.py</code> · Dasbor <code>static/</code>.</li>
       <li>Gerbang ASGI memeriksa ukuran kiriman sebelum menyentuh logika aplikasi; lebih dari 16 KB diputus dengan kode 413.</li>
       <li>Batas yang sebaiknya disebut sendiri: sistem berjalan sebagai <b>satu proses <i class="asing">server</i></b>. Operasi multiproses adalah langkah lanjutan.</li>
-      <li>Uji bisa dijalankan ulang juri dalam ±50 detik: <code>./run_tests.sh</code> (Windows: <code>run_tests.bat</code>). Hasil asli versi akhir: 367 passed in 44.17s (Linux, Python 3.13, 1 Nov 2026), termasuk 24 uji Mesin Deteksi Aturan (<i class="asing">rule-based detection engine</i>), 6 uji linimasa dan KPI, 12 uji verifikasi audit tanpa <i class="asing">server</i>, dan 24 uji paket pasang Ubuntu bertanda tangan.</li>
-      <li>Kebutuhan minimum: Python 3.10+, 2 inti, 512 MB memori bebas, 50 MB penyimpanan (paket rilis 187 KB). Memori terukur ±207 MB untuk 300 layar, termasuk pustaka scikit-learn dan numpy (±130 MB).</li>
+      <li>Uji bisa dijalankan ulang juri dalam ≈50 detik: <code>./run_tests.sh</code> (Windows: <code>run_tests.bat</code>). Hasil asli versi akhir: 367 passed in 40.05s (Linux, Python 3.13, 9 Nov 2026); ringkasan per aturan doktrin dicetak <code>tests/conftest.py</code>, satu berkas uji dipetakan ke satu aturan utama, termasuk 24 uji Mesin Deteksi Aturan (<i class="asing">rule-based detection engine</i>), 6 uji linimasa dan KPI, 12 uji verifikasi audit tanpa <i class="asing">server</i>, dan 24 uji paket pasang Ubuntu bertanda tangan.</li>
+      <li>Kebutuhan minimum: Python 3.10+, 2 inti, 512 MB memori bebas, 50 MB penyimpanan (paket rilis 187 KB). Memori terukur ≈207 MB untuk 300 layar, termasuk pustaka scikit-learn dan numpy (≈130 MB).</li>
     </ul>
   </aside>
   <div class="kaki"><span>NUSANTARA SHIELD v5.3.0 · PROPOSAL DAN DOKUMENTASI TEKNIS</span><span>04 / 08</span></div>
@@ -951,9 +971,9 @@ table.kamus td:first-child { color: var(--neon); white-space: nowrap; width: 1%;
   <h2>Tangkal dulu. Putus cepat. <em>Bukti utuh.</em></h2>
 
   <div class="penutup">
-    <div class="besar kartu-dasar" style="--i:0"><b>66→20%</b><strong>Peringatan dini</strong><span>genset naik WASPADA sebelum diserang; satu klik Perketat menurunkan peluangnya.</span></div>
-    <div class="besar kartu-dasar" style="--i:1"><b>±1,2 dtk</b><strong>Penahanan ancaman</strong><span>dari keputusan operator sampai jaringan terputus, bukti sudah aman.</span></div>
-    <div class="besar kartu-dasar" style="--i:2"><b class="biru">±1,5%</b><strong>CPU <i class="asing">server</i></strong><span>untuk 300 layar komando (±1,7% saat serangan), diukur ulang pada versi akhir.</span></div>
+    <div class="besar kartu-dasar" style="--i:0"><b>66→20%</b><strong>Peringatan dini</strong><span>skor peluang serangan genset (heuristik) naik WASPADA sebelum diserang; Perketat menurunkannya.</span></div>
+    <div class="besar kartu-dasar" style="--i:1"><b>≈1,2 dtk</b><strong>Penahanan ancaman</strong><span>keputusan Operator → jalur pertama putus; bukti diamankan di awal jeda.</span></div>
+    <div class="besar kartu-dasar" style="--i:2"><b class="biru">≈1,5%</b><strong>CPU <i class="asing">server</i></strong><span>untuk 300 layar komando (≈1,7% saat serangan), diukur ulang pada versi akhir.</span></div>
     <div class="besar kartu-dasar" style="--i:3"><b class="biru">367</b><strong>Uji otomatis</strong><span>mengunci aturan doktrin, ambang deteksi, dan AI lokal; lulus semua.</span></div>
   </div>
 
@@ -963,7 +983,7 @@ table.kamus td:first-child { color: var(--neon); white-space: nowrap; width: 1%;
     <span>MANUSIA MEMUTUSKAN</span>
     <span>DATA SINTETIS</span>
     <span>DIUKUR, BUKAN DIPROYEKSIKAN</span>
-    <span>SELARAS NIST CSF 2.0</span>
+    <span>DIPETAKAN KE NIST CSF 2.0 · DOK. TEKNIS §2.6</span>
   </div>
 
   <p class="pernyataan"><b>Nusantara Shield:</b> posko pertahanan siber luring yang memperingatkan lebih dulu, memutus dalam 1,2 detik, dan <span class="neon">tidak pernah menghapus barang bukti.</span></p>
@@ -989,12 +1009,13 @@ table.kamus td:first-child { color: var(--neon); white-space: nowrap; width: 1%;
       <li><b>"Dipasang di mana, siapa operatornya?"</b> Di posko siber tiap rumah sakit Tentara Nasional Indonesia Angkatan Darat (TNI AD), satu <i class="asing">server</i> luring per satuan. Operatornya petugas TI rumah sakit atau Bintara Siber; Dansat sebagai pengamat. Laporan dan bukti naik ke Sandi dan Siber Kodam (Sansidam) (Tim Penangkalan Siber) lalu ke Pusat Siber Angkatan Darat (Pussiberad) dan Kartika Computer Security Incident Response Team (CSIRT). Pengiriman otomatis ke pusat belum dibangun.</li>
       <li><b>"Bagaimana angka ini diukur?"</b> Uvicorn sungguhan dengan 100 dan 300 klien siaran serentak; CPU dan memori dibaca dari proses <i class="asing">server</i>; Chromium untuk waktu skrip kanvas.</li>
       <li><b>"Bagaimana jika alat forensik gagal saat serangan menyebar?"</b> Isolasi Darurat: alasan tertulis ≥15 karakter, tahan 1,5 detik, tercatat di tiga tempat. Pemulihan tetap terkunci sampai bukti susulan diamankan dan <i class="asing">hash</i> cocok.</li>
+      <li><b>"<i class="asing">Memory dump</i> 8 GB di <i class="asing">server</i> produksi bisa makan beberapa menit. Selama itu <i class="asing">ransomware</i> terus jalan?"</b> Akui dulu: di purwarupa, pengambilan bukti tersimulasi dan selesai seketika, jadi ≈1,2 dtk belum menghitung lama pengambilan bukti sungguhan. Rancangan produksinya tiga lapis. (1) <b>Bukti ringkas dulu</b>: daftar proses, koneksi aktif, dan sidik jari berkas terdampak, dalam hitungan detik, lalu jalur diputus. (2) <b>Salinan memori penuh sesudah diputus</b>: memutus jaringan tidak mematikan <i class="asing">server</i>, jadi isi memori tetap ada; yang menghapusnya adalah mematikan atau memulihkan <i class="asing">server</i>. Catatan jujur: isolasi jaringan menghentikan penyebaran dan komunikasi ke C2, tetapi tidak menghentikan enkripsi lokal di <i class="asing">server</i> itu. (3) <b>Isolasi Darurat</b> bila bukti ringkas pun macet, enkripsi menyebar ke aset lain, atau layanan nyawa terancam: putus tanpa menunggu, alasan wajib tertulis dan tercatat permanen, bukti diambil susulan. Lapis 1 dan 2 belum dibangun; lapis 3 sudah berjalan dan diuji.</li>
       <li><b>"Bagaimana mencegah log diubah diam-diam?"</b> Log audit dan Buku Rantai Bukti berantai HMAC-SHA256: satu catatan diubah, rantai langsung putus dan ketahuan.</li>
-      <li><b>"Apakah sistem memakai AI atau internet?"</b> AI ya, internet tidak. Mesin Deteksi Anomali (Isolation Forest) sudah berjalan luring di <i class="asing">server</i> satuan dan menilai 9 aset dalam ±10 milidetik. Mesin Asisten Narasi (Llama 3 8B lewat Ollama), Mode Hybrid, pengiriman LAPSIT otomatis berjenjang ke Sansidam dan Kartika CSIRT, serta tampilan lintas satuan di Mabes adalah peta jalan, belum dibangun.</li>
+      <li><b>"Apakah sistem memakai AI atau internet?"</b> AI ya, internet tidak. Mesin Deteksi Anomali (Isolation Forest) sudah berjalan luring di <i class="asing">server</i> satuan dan menilai 9 aset dalam ≈10 milidetik. Mesin Asisten Narasi (Llama 3 8B lewat Ollama), Mode Hybrid, pengiriman LAPSIT otomatis berjenjang ke Sansidam dan Kartika CSIRT, serta tampilan lintas satuan di Mabes adalah peta jalan, belum dibangun.</li>
       <li><b>"Kenapa rumah sakit?"</b> TNI AD punya aset kesehatan vital (RSPAD, rumah sakit jajaran Kesdam), tempat konvergensi IT dan OT menyangkut nyawa. Data kesehatan bernilai tinggi (279 juta data penduduk dijual pada 2021, sampelnya diduga dari BPJS Kesehatan), dan <i class="asing">ransomware</i> sudah menyasar OT rumah sakit (Winnipeg, Agustus 2026). Di purwarupa, "RS Kesdam", "RSPAD" (portal layanan pasien), dan genset adalah data contoh.</li>
-      <li><b>"Bagaimana dengan OT?"</b> Pengendali genset (Modbus, port 502) ada di inventaris yang sama dengan aset IT. Kabar ancaman Modbus atau perintah tulis Modbus yang tidak wajar (dibaca AI lokal) menaikkannya ke WASPADA, dan skenario Sabotase OT memutus jalur kantor ↔ zona kendali ±1,2 detik setelah bukti aman, mengikuti National Institute of Standards and Technology (NIST) SP 800-82: jalurnya yang diputus, genset tetap menyala. Perintah ke sakelar di purwarupa masih simulasi.</li>
+      <li><b>"Bagaimana dengan OT?"</b> Pengendali genset (Modbus, port 502) ada di inventaris yang sama dengan aset IT. Kabar ancaman Modbus atau perintah tulis Modbus yang tidak wajar (dibaca AI lokal) menaikkannya ke WASPADA, dan skenario Sabotase OT memutus jalur kantor ↔ zona kendali ≈1,2 detik setelah bukti aman, mengikuti National Institute of Standards and Technology (NIST) SP 800-82: jalurnya yang diputus, genset tetap menyala. Perintah ke sakelar di purwarupa masih simulasi.</li>
       <li><b>"Apakah sistem bisa memutus jaringan sendiri?"</b> Tidak. Dua kunci: CTI dan AI lokal hanya menaikkan WASPADA; isolasi hanya bisa diperintahkan Operator dengan menahan tombol, dan bukti diamankan lebih dulu. Permintaan isolasi dari akun Pengamat ditolak <i class="asing">server</i> (403).</li>
-      <li><b>"Kenapa tidak otonom penuh, seperti 'AI firewall otonom'?"</b> Sengaja. Nusantara Shield adalah sistem pendukung keputusan. Di jaringan vital, respons otomatis penuh membuka tiga risiko: peringatan keliru yang memutus layanan sendiri, respons yang dapat dipancing pihak luar, dan pemutusan tanpa pejabat yang bertanggung jawab. Kecepatannya tidak hilang: isolasi praotorisasi cukup ditahan 0,6 detik, dan pemutusan selesai ±1,2 detik dengan bukti disegel lebih dulu.</li>
+      <li><b>"Kenapa tidak otonom penuh, seperti 'AI firewall otonom'?"</b> Sengaja. Nusantara Shield adalah sistem pendukung keputusan. Di jaringan vital, respons otomatis penuh membuka tiga risiko: peringatan keliru yang memutus layanan sendiri, respons yang dapat dipancing pihak luar, dan pemutusan tanpa pejabat yang bertanggung jawab. Kecepatannya tidak hilang: isolasi praotorisasi cukup ditahan 0,6 detik, dan pemutusan selesai ≈1,2 detik dengan bukti disegel lebih dulu.</li>
       <li><b>"Bagaimana posko ini sendiri dilindungi?"</b> Alat yang memegang tombol isolasi harus paling terlindungi: kata sandi PBKDF2-SHA256 200.000 putaran, token yang kedaluwarsa, <i class="asing">login</i> dibatasi 5 kali per menit, kiriman maksimal 16 KB, kebijakan keamanan konten ketat, dan buku audit berantai HMAC. Batasnya juga kami tulis: belum ada verifikasi dua langkah dan belum ada uji penetrasi independen (Dokumentasi Teknis §2.7).</li>
       <li><b>"Selaras dengan kerangka apa?"</b> NIST Cybersecurity Framework (CSF) 2.0: keenam fungsinya, <i class="asing">Govern, Identify, Protect, Detect, Respond, Recover</i>, sudah diisi fitur yang berjalan, dan tiap kategori dirujuk ke uji yang membuktikannya (Dokumentasi Teknis §2.6). Itu pemetaan mandiri, bukan sertifikasi.</li>
       <li><b>"Apakah ini alat ofensif?"</b> Tidak. Sepenuhnya defensif; data latihan sintetis dari blok alamat dokumentasi RFC 5737.</li>
@@ -1012,7 +1033,7 @@ table.kamus td:first-child { color: var(--neon); white-space: nowrap; width: 1%;
     <div class="merek"><svg class="logo" aria-hidden="true"><use href="#logo"/></svg>NUSANTARA SHIELD</div>
   </div>
   <h2>Kamus singkatan. <em>Kepanjangan dulu, singkatan sesudahnya.</em></h2>
-  <div class="dua-kolom kamus-kolom"><table class="kamus"><tbody><tr><td><b>AAR</b></td><td>After-Action Review</td></tr><tr><td><b>API</b></td><td>Application Programming Interface</td></tr><tr><td><b>BSSN</b></td><td>Badan Siber dan Sandi Negara</td></tr><tr><td><b>CDN</b></td><td>Content Delivery Network</td></tr><tr><td><b>CDOC</b></td><td>Cyber Defense Operation Center</td></tr><tr><td><b>CPU</b></td><td>Central Processing Unit</td></tr><tr><td><b>CSF</b></td><td>Cybersecurity Framework (NIST)</td></tr><tr><td><b>CSIRT</b></td><td>Computer Security Incident Response Team</td></tr><tr><td><b>CTI</b></td><td>Cyber Threat Intelligence</td></tr><tr><td><b>DDoS</b></td><td>Distributed Denial of Service</td></tr><tr><td><b>DMZ</b></td><td>Demilitarized Zone</td></tr><tr><td><b>HMAC</b></td><td>Hash-based Message Authentication Code</td></tr><tr><td><b>IP</b></td><td>Internet Protocol</td></tr><tr><td><b>IT</b></td><td>Information Technology</td></tr><tr><td><b>LAPSIT</b></td><td>Laporan Situasi</td></tr></tbody></table><table class="kamus"><tbody><tr><td><b>LLM</b></td><td>Large Language Model</td></tr><tr><td><b>MISP</b></td><td>Malware Information Sharing Platform</td></tr><tr><td><b>NIST</b></td><td>National Institute of Standards and Technology</td></tr><tr><td><b>OODA</b></td><td>Observe–Orient–Decide–Act</td></tr><tr><td><b>OSINT</b></td><td>Open Source Intelligence</td></tr><tr><td><b>OT</b></td><td>Operational Technology</td></tr><tr><td><b>PDNS</b></td><td>Pusat Data Nasional Sementara</td></tr><tr><td><b>RDP</b></td><td>Remote Desktop Protocol</td></tr><tr><td><b>RFC</b></td><td>Request for Comments</td></tr><tr><td><b>SHA-256</b></td><td>Secure Hash Algorithm 256-bit</td></tr><tr><td><b>SIMRS</b></td><td>Sistem Informasi Manajemen Rumah Sakit</td></tr><tr><td><b>SOAR</b></td><td>Security Orchestration, Automation and Response</td></tr><tr><td><b>Sansidam</b></td><td>Sandi dan Siber Kodam</td></tr><tr><td><b>SOC</b></td><td>Security Operations Center</td></tr><tr><td><b>SPK</b></td><td>Sistem Pendukung Keputusan</td></tr><tr><td><b>SSE</b></td><td>Server-Sent Events</td></tr></tbody></table></div>
+  <div class="dua-kolom kamus-kolom"><table class="kamus"><tbody><tr><td><b>AAR</b></td><td>After-Action Review</td></tr><tr><td><b>API</b></td><td>Application Programming Interface</td></tr><tr><td><b>ASGI</b></td><td>Asynchronous Server Gateway Interface</td></tr><tr><td><b>ATT&amp;CK</b></td><td>Adversarial Tactics, Techniques, and Common Knowledge (MITRE)</td></tr><tr><td><b>BSSN</b></td><td>Badan Siber dan Sandi Negara</td></tr><tr><td><b>CDN</b></td><td>Content Delivery Network</td></tr><tr><td><b>CDOC</b></td><td>Cyber Defense Operation Center</td></tr><tr><td><b>CPU</b></td><td>Central Processing Unit</td></tr><tr><td><b>CSF</b></td><td>Cybersecurity Framework (NIST)</td></tr><tr><td><b>CSIRT</b></td><td>Computer Security Incident Response Team</td></tr><tr><td><b>CTI</b></td><td>Cyber Threat Intelligence</td></tr><tr><td><b>Dansat</b></td><td>Komandan Satuan</td></tr><tr><td><b>DDoS</b></td><td>Distributed Denial of Service</td></tr><tr><td><b>DMZ</b></td><td>Demilitarized Zone</td></tr><tr><td><b>HMAC</b></td><td>Hash-based Message Authentication Code</td></tr><tr><td><b>IP</b></td><td>Internet Protocol</td></tr><tr><td><b>IT</b></td><td>Information Technology</td></tr><tr><td><b>Kesdam</b></td><td>Kesehatan Daerah Militer</td></tr><tr><td><b>Kodam</b></td><td>Komando Daerah Militer</td></tr><tr><td><b>LAPSIT</b></td><td>Laporan Situasi</td></tr></tbody></table><table class="kamus"><tbody><tr><td><b>LLM</b></td><td>Large Language Model</td></tr><tr><td><b>Mabes</b></td><td>Markas Besar</td></tr><tr><td><b>MISP</b></td><td>Malware Information Sharing Platform</td></tr><tr><td><b>NIST</b></td><td>National Institute of Standards and Technology</td></tr><tr><td><b>OODA</b></td><td>Observe–Orient–Decide–Act</td></tr><tr><td><b>OSINT</b></td><td>Open Source Intelligence</td></tr><tr><td><b>OT</b></td><td>Operational Technology</td></tr><tr><td><b>PDNS</b></td><td>Pusat Data Nasional Sementara</td></tr><tr><td><b>Pussiberad</b></td><td>Pusat Siber Angkatan Darat</td></tr><tr><td><b>RDP</b></td><td>Remote Desktop Protocol</td></tr><tr><td><b>RFC</b></td><td>Request for Comments</td></tr><tr><td><b>RSPAD</b></td><td>Rumah Sakit Pusat Angkatan Darat</td></tr><tr><td><b>Sansidam</b></td><td>Sandi dan Siber Kodam</td></tr><tr><td><b>SHA-256</b></td><td>Secure Hash Algorithm 256-bit</td></tr><tr><td><b>SIMRS</b></td><td>Sistem Informasi Manajemen Rumah Sakit</td></tr><tr><td><b>SOAR</b></td><td>Security Orchestration, Automation and Response</td></tr><tr><td><b>SOC</b></td><td>Security Operations Center</td></tr><tr><td><b>SPK</b></td><td>Sistem Pendukung Keputusan</td></tr><tr><td><b>SSE</b></td><td>Server-Sent Events</td></tr></tbody></table></div>
   <p class="dokumen-lengkap">Dokumen lengkap (Proposal, Dokumentasi Teknis, Panduan Belajar) dan kode: <a href="https://github.com/pisangsisir/Nusantara-Shield-v5.2">github.com/pisangsisir/Nusantara-Shield-v5.2</a> → folder <code>docs/</code></p>
   <aside class="catatan"><h4>Catatan pembicara · Lampiran</h4><p>Tampilkan slide ini bila juri bertanya arti sebuah singkatan. Arti sederhana tiap istilah ada di lampiran Proposal dan Dokumentasi Teknis.</p></aside>
   <div class="kaki"><span>NUSANTARA SHIELD v5.3.0 · PROPOSAL DAN DOKUMENTASI TEKNIS</span><span>07 / 08</span></div>
@@ -1028,17 +1049,17 @@ table.kamus td:first-child { color: var(--neon); white-space: nowrap; width: 1%;
   <div class="dua-kolom kamus-kolom">
     <table class="kamus peta"><tbody>
       <tr><td><b>Relevansi · 25%</b></td><td>IT dan OT rumah sakit TNI AD dalam satu layar; alat lapis taktis (CDOC satuan); LAPSIT untuk Dansat</td></tr>
-      <tr><td><b>Inovasi · 25%</b></td><td>Bukti dulu baru putus, dikunci <i class="asing">server</i> (409); rantai HMAC; dua kunci; AI luring yang menjelaskan alasannya; isolasi OT memutus jalur, genset tetap menyala</td></tr>
+      <tr><td><b>Inovasi · 25%</b></td><td>Bukti dulu baru putus, dikunci <i class="asing">server</i> (tanpa bukti ditolak sistem); rantai HMAC; dua kunci; AI luring yang menjelaskan alasannya; isolasi OT memutus jalur, genset tetap menyala</td></tr>
       <tr><td><b>Fungsionalitas · 25%</b></td><td>Berjalan penuh; 367 uji lulus; impor log asli (auth.log, firewall, CSV); paket luring diuji di Mac tanpa internet. <span class="batas">Batas: telemetri langsung sintetis, sakelar simulasi</span></td></tr>
-      <tr><td><b>Kelayakan · 15%</b></td><td>Satu proses Python; ±1,5% CPU untuk 300 layar; pemasangan luring bersidik jari; peran Operator dan Pengamat</td></tr>
+      <tr><td><b>Kelayakan · 15%</b></td><td>Satu proses Python; ≈1,5% CPU untuk 300 layar; pemasangan luring bersidik jari; peran Operator dan Pengamat</td></tr>
       <tr><td><b>Dokumentasi · 10%</b></td><td>Proposal, Dokumentasi Teknis, Panduan Belajar, dek, poster, README, CHANGELOG, deklarasi dan atribusi</td></tr>
     </tbody></table>
     <table class="kamus peta"><tbody>
-      <tr><td><b>66%→20%</b></td><td>Rumus korelasi <code>app/telemetri.py</code>; dikunci <code>test_ot</code></td></tr>
-      <tr><td><b>±1,2 dtk</b></td><td><code>JEDA_RUNBOOK</code> alur purwarupa; urutan dikunci <code>test_rantai_bukti</code>; sakelar masih simulasi</td></tr>
+      <tr><td><b>66%→20%</b></td><td>Skor peluang serangan genset = 0,80 keyakinan kabar × 0,75 paparan × 1,1 relevansi sektor ≈ 66%; Perketat: paparan ×0,3 → ≈20%. Heuristik, bukan probabilitas terkalibrasi; <code>app/telemetri.py</code>, <code>test_ot</code></td></tr>
+      <tr><td><b>≈1,2 dtk</b></td><td>Keputusan Operator → jalur pertama terputus; <code>JEDA_RUNBOOK</code>; bukti tersimulasi di awal jeda; sakelar masih simulasi</td></tr>
       <tr><td><b>8× / 60 dtk</b></td><td>Ambang di <code>app/deteksi.py</code>; dikunci <code>test_deteksi</code></td></tr>
-      <tr><td><b>±1,5% CPU</b></td><td><code>tools/ukur_beban.py</code>, 26 Okt 2026, 300 siaran SSE sungguhan</td></tr>
-      <tr><td><b>±10 ms AI</b></td><td><code>skor_ms</code> di <code>app/ai_anomali.py</code>; uji membatasi &lt; 100 ms</td></tr>
+      <tr><td><b>≈1,5% CPU</b></td><td><code>tools/ukur_beban.py</code>, 26 Okt 2026, 300 siaran SSE sungguhan</td></tr>
+      <tr><td><b>≈10 ms AI</b></td><td><code>skor_ms</code> di <code>app/ai_anomali.py</code>; uji membatasi &lt; 100 ms</td></tr>
       <tr><td><b>367 uji</b></td><td><code>./run_tests.sh</code>, lulus 1 Nov 2026 di Linux</td></tr>
     </tbody></table>
   </div>

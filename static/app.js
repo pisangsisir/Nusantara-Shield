@@ -1034,7 +1034,7 @@ function gambarCTI(cti) {
   // Lencana "risiko %" di topologi ikut diperbarui tiap detik (berita memudar)
   const prob = new Map(cti.prediksi.map((p) => [p.id, p.persen]));
   for (const [id, ref] of Object.entries(TOPO.simpul)) aturRisiko(ref, prob.get(id));
-  $("#cti-berikut").textContent = `${cti.berita.length} berita aktif · berikutnya ±${cti.berikut_detik} dtk`;
+  $("#cti-berikut").textContent = `${cti.berita.length} berita aktif · berikutnya ≈${cti.berikut_detik} dtk`;
 
   if (cti.ai) {
     const a = cti.ai;
@@ -1116,7 +1116,7 @@ async function latihanAI(tombol, aset_id) {
 async function latihanDeteksi(tombol, jenis) {
   const j = await coba(() => sibuk(tombol, () => api("/api/deteksi/latihan", { metode: "POST", data: { jenis } })));
   if (!j) return;
-  toast(`Latihan deteksi: ${j.peristiwa} peristiwa mentah diputar selama ±${Math.round(j.durasi_detik)} dtk. Perhatikan Peringatan terbaru dan Prediksi CTI + AI.`);
+  toast(`Latihan deteksi: ${j.peristiwa} peristiwa mentah diputar selama ≈${Math.round(j.durasi_detik)} dtk. Perhatikan Peringatan terbaru dan Prediksi CTI + AI.`);
   setelahAksi();
 }
 
@@ -1125,7 +1125,7 @@ async function latihanDeteksi(tombol, jenis) {
 const MAKS_BERKAS_IMPOR = 2_000_000;
 async function imporLog(berkas) {
   if (!berkas) return;
-  if (berkas.size > MAKS_BERKAS_IMPOR) { toast("Berkas terlalu besar (maks. ±2 MB). Pecah berkasnya lalu impor bertahap.", "galat"); return; }
+  if (berkas.size > MAKS_BERKAS_IMPOR) { toast("Berkas terlalu besar (maks. ≈2 MB). Pecah berkasnya lalu impor bertahap.", "galat"); return; }
   const isi = await berkas.text();
   const tombol = $("#tombol-impor-log");
   const j = await coba(() => sibuk(tombol, () => api("/api/deteksi/impor", { metode: "POST", data: { nama: berkas.name, isi } })));
