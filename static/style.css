@@ -1156,3 +1156,59 @@ body.edu-on .edu-sebaris { display: inline; }
   .exec-grid.tunggal .kpis { grid-template-columns: repeat(2, 1fr); }
 }
 
+
+/* ---------------------------------------------------------------- drill kesiapan (app/drill.py) */
+.opsi-deteksi.drill { border-color: var(--neon-garis); color: var(--neon); }
+#panel-drill > p.redup { max-width: 95ch; }
+.drill-katalog { display: flex; justify-content: space-between; align-items: center; gap: 16px; flex-wrap: wrap; }
+.drill-katalog h3, .drill-aktif h3, .drill-hasil h3 { margin: 2px 0 4px; }
+.drill-katalog p { margin: 0; max-width: 80ch; }
+.drill-kepala { display: flex; justify-content: space-between; align-items: flex-start; gap: 16px; flex-wrap: wrap; }
+.drill-kepala p { margin: 0; }
+.drill-stopwatch { display: flex; align-items: center; gap: 8px; font: 700 1.6rem var(--huruf-mono); color: var(--kuning); }
+.drill-stopwatch .ikon { width: 22px; height: 22px; }
+.drill-langkah { margin: 12px 0; padding-left: 20px; color: var(--teks-redup); font-size: .88rem; display: grid; gap: 3px; }
+.drill-dua { display: grid; grid-template-columns: minmax(0, 1.7fr) minmax(0, 1fr); gap: 16px; margin-bottom: 14px; }
+.drill-log { margin: 6px 0; padding: 10px 12px; max-height: 240px; overflow: auto; background: #070d18; border: 1px solid var(--garis);
+  border-radius: 10px; font: .74rem/1.55 var(--huruf-mono); white-space: pre-wrap; overflow-wrap: anywhere; }
+.drill-log .baris { display: block; }
+.drill-log .catatan { color: var(--teks-redup); font-style: italic; }
+.drill-log .gagal { color: var(--merah); }
+.drill-log .diterima { color: var(--kuning); font-weight: 700; background: var(--kuning-lembut); }
+.drill-log .sudo { color: var(--oranye); }
+.drill-deteksi { list-style: none; padding: 0; margin: 8px 0 0; display: grid; gap: 6px; font-size: .86rem; }
+.drill-deteksi li { display: flex; align-items: center; gap: 8px; }
+.drill-deteksi li .ikon { width: 18px; height: 18px; }
+.drill-deteksi li.ya .ikon { stroke: var(--neon); }
+.drill-deteksi li.tidak { color: var(--merah); }
+.drill-soal-daftar { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; margin-bottom: 12px; }
+.drill-soal-daftar .kartu + .kartu { margin-top: 0; }
+.drill-soal { border-left: 3px solid var(--garis); }
+.drill-soal[data-status="benar"] { border-left-color: var(--neon); }
+.drill-soal[data-status="salah"] { border-left-color: var(--merah); }
+.drill-tanya { font-weight: 600; margin: 4px 0 10px; }
+.drill-opsi { display: grid; gap: 6px; }
+.opsi-drill { font: inherit; font-size: .86rem; color: inherit; text-align: left; cursor: pointer; padding: 8px 10px; border-radius: 9px;
+  border: 1px solid var(--garis); background: var(--permukaan-2); line-height: 1.35; }
+.opsi-drill:hover:not(:disabled) { border-color: var(--neon-garis); background: var(--neon-lembut); }
+.opsi-drill:disabled { cursor: default; opacity: .7; }
+.opsi-drill.benar { border-color: var(--neon); background: var(--neon-lembut); opacity: 1; }
+.opsi-drill.salah { border-color: var(--merah); background: var(--merah-lembut); opacity: 1; }
+.drill-penjelasan { margin: 10px 0 0; font-size: .84rem; color: var(--teks-redup); }
+.drill-skor { display: flex; align-items: baseline; gap: 8px; }
+.drill-skor b { font: 700 2.6rem/1 var(--huruf-mono); }
+.drill-huruf { display: inline-grid; place-items: center; min-width: 1.6em; padding: 1px 6px; border-radius: 6px; font: 700 .85rem var(--huruf-mono);
+  border: 1px solid currentColor; }
+.drill-huruf.besar { font-size: 1.6rem; padding: 2px 10px; align-self: center; }
+.drill-huruf.h-A, .drill-huruf.h-B { color: var(--neon); }
+.drill-huruf.h-C { color: var(--kuning); }
+.drill-huruf.h-D, .drill-huruf.h-E { color: var(--merah); }
+.drill-hasil .gulir { margin: 12px 0 8px; }
+.drill-batang { height: 5px; width: 72px; border-radius: 3px; margin-bottom: 4px;
+  background: linear-gradient(90deg, var(--neon) var(--isi), var(--permukaan-2) var(--isi)); }
+.drill-peringatan { color: var(--merah); }
+.drill-riwayat-kartu h3 { margin: 0; font-size: .95rem; }
+#drill-isi > .kartu + .kartu, #drill-isi + .kartu { margin-top: 14px; }
+@media (max-width: 860px) {
+  .drill-dua, .drill-soal-daftar { grid-template-columns: 1fr; }
+}

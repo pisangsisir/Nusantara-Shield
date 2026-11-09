@@ -65,6 +65,7 @@ from .telemetri import (AKSI_GABUNGAN, ASET_BERPORT, MENARA, MIN_ALASAN_DARURAT,
 from .ai_anomali import POLA
 from .deteksi import JENIS_LATIHAN
 from .impor_log import GalatImpor
+from .drill import DRILL, KATALOG as KATALOG_DRILL, GalatDrill, log_cerita
 
 JALUR_IMPOR = "/api/deteksi/impor"
 MAKS_ISI_IMPOR = 2_000_000                # karakter isi berkas log (≈2 MB)
@@ -373,25 +374,29 @@ def cari_indikator(f: CariMasuk, akun: Akun = Depends(butuh_izin("lihat"))) -> d
     return {"jenis": jenis, "cocok": bool(temuan), "indikator": temuan}
 
 
+def _mulai_insiden(layanan_id: str, skenario: str, gangguan_bukti: bool) -> dict:
+    """Memulai insiden latihan di satu layanan. Pemanggil WAJIB memegang _kunci_state."""
+    l = LAYANAN[layanan_id]
+    if l["insiden"]:
+        raise HTTPException(409, "Layanan ini sudah dalam insiden aktif")
+    langkah = PLAYBOOK[skenario]
+    mulai = datetime.now(timezone.utc)
+    # Log peringatan sintetis: waktu tiap kejadian dihitung mundur dari awal insiden.
+    log = [{"waktu": (mulai + timedelta(minutes=m)).isoformat(timespec="seconds"),
+            "tingkat": t, "pesan": p} for m, t, p in LOG_PERINGATAN[skenario]]
+    l["insiden"] = {"id": uuid.uuid4().hex[:12], "skenario": skenario, "judul": SKENARIO[skenario],
+                    "gangguan_bukti": gangguan_bukti,
+                    "mulai": mulai.isoformat(timespec="seconds"), "log_peringatan": log,
+                    "langkah": langkah, "langkah_selesai": [False] * len(langkah)}
+    # Beri tahu dapur: peta, radar, gauge, dan log semua browser ikut berubah.
+    MENARA.insiden_dimulai(LAYANAN, layanan_id, skenario, SKENARIO[skenario], LOG_PERINGATAN[skenario])
+    return _tampilan(l)
+
+
 @app.post("/api/simulasi", dependencies=[Depends(batasi("ubah"))])
 def simulasi_insiden(f: SimulasiMasuk, akun: Akun = Depends(butuh_izin("ubah"))) -> dict:
     with _kunci_state:
-        l = LAYANAN[f.layanan_id]
-        if l["insiden"]:
-            raise HTTPException(409, "Layanan ini sudah dalam insiden aktif")
-        langkah = PLAYBOOK[f.skenario]
-        mulai = datetime.now(timezone.utc)
-        # Log peringatan sintetis: waktu tiap kejadian dihitung mundur dari awal insiden.
-        log = [{"waktu": (mulai + timedelta(minutes=m)).isoformat(timespec="seconds"),
-                "tingkat": t, "pesan": p} for m, t, p in LOG_PERINGATAN[f.skenario]]
-        l["insiden"] = {"id": uuid.uuid4().hex[:12], "skenario": f.skenario, "judul": SKENARIO[f.skenario],
-                        "gangguan_bukti": f.gangguan_bukti,
-                        "mulai": mulai.isoformat(timespec="seconds"), "log_peringatan": log,
-                        "langkah": langkah, "langkah_selesai": [False] * len(langkah)}
-        # Beri tahu dapur: peta, radar, gauge, dan log semua browser ikut berubah.
-        MENARA.insiden_dimulai(LAYANAN, f.layanan_id, f.skenario, SKENARIO[f.skenario],
-                               LOG_PERINGATAN[f.skenario])
-        hasil = _tampilan(l)
+        hasil = _mulai_insiden(f.layanan_id, f.skenario, f.gangguan_bukti)
     LOG.catat(akun.nama, "SIMULASI_INSIDEN", {"layanan": f.layanan_id, "skenario": f.skenario,
                                              "gangguan_bukti": f.gangguan_bukti})
     return hasil
@@ -491,7 +496,10 @@ def reset_demo(akun: Akun = Depends(butuh_izin("ubah"))) -> dict:
         LAYANAN = salin_layanan_awal()
         MENARA.reset()
         MENARA.catat("sedang", "Demo direset ke kondisi awal")
+        drill_batal = DRILL.batal()                 # riwayat hasil drill tetap disimpan
     LOG.catat(akun.nama, "RESET_DEMO", {})  # log audit sengaja TIDAK ikut dihapus
+    if drill_batal:
+        LOG.catat(akun.nama, "DRILL_DIBATALKAN", {"drill": drill_batal, "alasan": "reset demo"})
     return {"ok": True}
 
 
@@ -768,6 +776,80 @@ def latihan_ai(f: LatihanAIMasuk, akun: Akun = Depends(butuh_izin("ubah"))) -> d
 
 
 # --------------------------------------------------------------------------
+# DRILL KESIAPAN (app/drill.py): latihan tanggap insiden untuk Operator, dinilai dari jejak yang tercatat
+# --------------------------------------------------------------------------
+class DrillMulaiMasuk(Formulir):
+    kode: Literal[tuple(KATALOG_DRILL)]
+
+
+class DrillJawabMasuk(Formulir):
+    no: int = Field(ge=0, le=3)
+    pilihan: Literal["a", "b", "c", "d"]
+
+
+@app.get("/api/drill", dependencies=[Depends(batasi("umum"))])
+def lihat_drill(akun: Akun = Depends(butuh_izin("lihat"))) -> dict:
+    """Katalog, drill yang sedang berjalan (tanpa kunci jawaban yang belum dijawab), dan riwayat hasil."""
+    with _kunci_state:
+        return {"katalog": DRILL.katalog(), "aktif": DRILL.tampil(), "riwayat": list(DRILL.riwayat)}
+
+
+@app.post("/api/drill/mulai", dependencies=[Depends(batasi("ubah"))])
+def mulai_drill(f: DrillMulaiMasuk, akun: Akun = Depends(butuh_izin("ubah"))) -> dict:
+    """Log cerita sintetis lewat jalur impor yang sama dengan log asli, lalu insiden latihan di layanan sasaran."""
+    k = KATALOG_DRILL[f.kode]
+    with _kunci_state:
+        if DRILL.aktif:
+            raise HTTPException(409, f"Drill {DRILL.aktif['id']} masih berjalan: selesaikan dulu")
+        if LAYANAN[k["layanan_id"]]["insiden"]:
+            raise HTTPException(409, f"{LAYANAN[k['layanan_id']]['nama']} masih dalam insiden: pulihkan dulu")
+        awal = time.time() - 240                    # cerita terjadi ≈4 menit sebelum drill dibuka
+        teks = log_cerita(f.kode, awal)
+        nama = f"drill-{f.kode}.log"
+        impor = MENARA.impor_log(LAYANAN, nama, teks, k["aset_ssh"])
+        _mulai_insiden(k["layanan_id"], k["skenario"], False)
+        aktif = DRILL.mulai(f.kode, akun.nama, teks, awal, impor)
+    LOG.catat(akun.nama, "IMPOR_LOG", {"berkas": nama, "baris": impor["baris"], "dikenali": impor["dikenali"],
+                                       "temuan": len(impor["temuan"])})
+    LOG.catat(akun.nama, "SIMULASI_INSIDEN", {"layanan": k["layanan_id"], "skenario": k["skenario"],
+                                             "gangguan_bukti": False})
+    LOG.catat(akun.nama, "DRILL_MULAI", {"drill": aktif["id"], "kode": f.kode, "layanan": k["layanan_id"],
+                                         "temuan": len(impor["temuan"])})
+    return {"aktif": aktif}
+
+
+@app.post("/api/drill/jawab", dependencies=[Depends(batasi("ubah"))])
+def jawab_drill(f: DrillJawabMasuk, akun: Akun = Depends(butuh_izin("ubah"))) -> dict:
+    with _kunci_state:
+        try:
+            hasil = DRILL.jawab(f.no, f.pilihan)
+        except GalatDrill as e:
+            raise HTTPException(409, str(e)) from None
+        drill_id = DRILL.aktif["id"]
+    # isi pilihan tidak dicatat: cukup benar/salah per fase
+    LOG.catat(akun.nama, "DRILL_JAWAB", {"drill": drill_id, "no": f.no + 1, "fase": hasil["fase"],
+                                         "benar": hasil["benar"]})
+    return hasil
+
+
+@app.post("/api/drill/selesai", dependencies=[Depends(batasi("ubah"))])
+def selesai_drill(akun: Akun = Depends(butuh_izin("ubah"))) -> dict:
+    """Nilai dihitung dari jejak respons yang tercatat sistem (MTTC, buku bukti, isolasi darurat)."""
+    with _kunci_state:
+        if not DRILL.aktif:
+            raise HTTPException(409, "Tidak ada drill yang sedang berjalan")
+        respons = MENARA.respons(LAYANAN, DRILL.aktif["layanan_id"])
+        hasil = DRILL.selesai(respons, akun.nama)
+        MENARA.catat("info", f"{hasil['id']} selesai: nilai kesiapan {hasil['nilai']}/100 ({hasil['huruf']}) "
+                             f"· latihan, data sintetis", layanan=hasil["layanan_id"])
+        MENARA.ubah()
+    LOG.catat(akun.nama, "DRILL_SELESAI", {"drill": hasil["id"], "nilai": hasil["nilai"], "huruf": hasil["huruf"],
+                                           "benar": hasil["benar"], "mttc_detik": hasil["mttc_detik"],
+                                           "darurat": hasil["darurat"], "deteksi_lengkap": hasil["deteksi_lengkap"]})
+    return {"hasil": hasil}
+
+
+# --------------------------------------------------------------------------
 # v5.1: QUICK CALL (PIC teknis cabang)
 # --------------------------------------------------------------------------
 @app.post("/api/komando/panggil", dependencies=[Depends(batasi("ubah"))])
@@ -798,7 +880,9 @@ def ekspor_lapsit(akun: Akun = Depends(butuh_izin("lihat"))) -> Response:
         peringatan = MENARA.peringatan_lapsit(LAYANAN)
     LOG.catat(akun.nama, "EKSPOR_LAPSIT", {"jumlah_layanan": len(data)})
     titik = TITIK.buat("EKSPOR_LAPSIT")
-    pdf = buat_pdf(data, LOG.verifikasi(), akun.nama, peringatan, rincian, titik=TITIK.ringkasan(titik))
+    with _kunci_state:
+        drill = list(DRILL.riwayat)[:3]
+    pdf = buat_pdf(data, LOG.verifikasi(), akun.nama, peringatan, rincian, titik=TITIK.ringkasan(titik), drill=drill)
     nama_berkas = f"LAPSIT-NusantaraShield-{datetime.now(timezone.utc):%Y%m%d-%H%M}.pdf"
     return Response(pdf, media_type="application/pdf",
                     headers={"Content-Disposition": f'attachment; filename="{nama_berkas}"'})
