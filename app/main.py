@@ -755,9 +755,13 @@ def impor_log(f: ImporLogMasuk, akun: Akun = Depends(butuh_izin("ubah"))) -> dic
     dengan latihan menilainya; temuan hanya menaikkan WASPADA. Log audit mencatat nama berkas dan jumlah saja,
     bukan isi log."""
     nama = re.sub(r"[^\w.\- ]", "_", f.nama.replace("\\", "/").rsplit("/", 1)[-1])[:80] or "berkas"
+    try:   # v5.4.1 (audit): berkas diurai DI LUAR kunci keadaan, jadi berkas besar tidak membekukan dasbor layar lain
+        terurai = MENARA.urai_log(f.isi, f.aset_id or "ssh")
+    except (GalatImpor, ValueError) as e:
+        raise HTTPException(422, str(e)) from None
     with _kunci_state:
         try:
-            hasil = MENARA.impor_log(LAYANAN, nama, f.isi, f.aset_id or "ssh")
+            hasil = MENARA.impor_log(LAYANAN, nama, f.isi, f.aset_id or "ssh", terurai=terurai)
         except (GalatImpor, ValueError) as e:
             raise HTTPException(422, str(e)) from None
     LOG.catat(akun.nama, "IMPOR_LOG", {"berkas": nama, "baris": hasil["baris"], "dikenali": hasil["dikenali"],

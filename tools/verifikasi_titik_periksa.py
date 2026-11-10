@@ -191,6 +191,9 @@ def main(argv: list[str] | None = None, keluar=sys.stdout) -> int:
     p.add_argument("--titik", default="data/titik_periksa.jsonl", help="berkas titik periksa")
     p.add_argument("--log", action="append", default=[], metavar="NAMA=BERKAS",
                    help="berkas buku; bawaan: audit_log=data/audit_log.jsonl, rantai_bukti=data/rantai_bukti.jsonl")
+    p.add_argument("--minimal-titik", type=int, default=0, metavar="N",
+                   help="nomor titik periksa yang tercatat di LAPSIT/berita acara terakhir; berkas yang berhenti sebelum "
+                        "nomor ini = riwayat digulung mundur")
     a = p.parse_args(argv)
     tulis = lambda teks="": print(teks, file=keluar)
     akar = a.akar.strip().lower()
@@ -209,6 +212,13 @@ def main(argv: list[str] | None = None, keluar=sys.stdout) -> int:
         tulis(f"[RUSAK] {e}")
         return 1
     sah, pesan = periksa(titik, akar, log)
+    terakhir = titik[-1].get("no", len(titik)) if titik else 0
+    if sah and a.minimal_titik > terakhir:
+        # Log DAN berkas titik periksa yang dikembalikan bersama ke keadaan lama tetap sah secara kriptografi;
+        # yang menangkapnya hanya nomor titik periksa yang sudah tercatat di luar server (LAPSIT, berita acara).
+        sah = False
+        pesan.append(f"[RUSAK] Riwayat digulung mundur: dokumen di luar server mencatat titik periksa #{a.minimal_titik}, "
+                     f"berkas ini hanya sampai #{terakhir}. Entri dan titik periksa sesudahnya telah dibuang.")
     for baris in pesan:
         tulis(baris)
     tulis("Catatan: yang dibuktikan adalah keutuhan entri sampai titik periksa terakhir, diperiksa dengan kunci publik "

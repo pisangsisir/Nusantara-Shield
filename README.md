@@ -1,4 +1,4 @@
-# Nusantara Shield v5.4.0
+# Nusantara Shield v5.4.1
 
 <p align="center"><img src="docs/logo/banner.png" width="100%" alt="Nusantara Shield: perisai berisi Merah Putih, radar dua cincin, peta Nusantara, dan titik ancaman yang terkunci di cincin luar. Mendeteksi, mencegah, membantu merespons. Kartika Cyber Hackathon 2026, Kategori 02 Penangkalan."></p>
 
@@ -9,7 +9,7 @@ Dasbor pusat operasi keamanan siber (SOC) **defensif** untuk Kartika Cyber Hacka
 (bukti → isolasi → LAPSIT, otomatis setelah satu keputusan Operator; perintah ke perangkat masih simulasi).
 *Server* FastAPI + browser Vanilla JS/Canvas, siaran langsung (SSE), dan jejak audit berantai HMAC.
 
-Banyak sistem pertahanan berhenti di alarm. Nusantara Shield berlanjut sampai bukti tersegel, jalur terputus, dan LAPSIT terbit, dan otaknya (aturan deteksi, AI lokal, korelasi kabar ancaman) berjalan di *server* satuan sendiri, sehingga tidak ikut lumpuh saat koneksi internasional terganggu. Setiap klaim dikunci **411 uji** yang bisa dijalankan ulang siapa pun; angka di dasbor bukan animasi, dan asal setiap angka serta peta lima kriteria penilaian ada di [Proposal §7](docs/01-Proposal-Solusi-Nusantara-Shield.md#7-peta-kriteria-penilaian-dan-asal-angka).
+Banyak sistem pertahanan berhenti di alarm. Nusantara Shield berlanjut sampai bukti tersegel, jalur terputus, dan LAPSIT terbit, dan otaknya (aturan deteksi, AI lokal, korelasi kabar ancaman) berjalan di *server* satuan sendiri, sehingga tidak ikut lumpuh saat koneksi internasional terganggu. Setiap klaim dikunci **425 uji** yang bisa dijalankan ulang siapa pun; angka di dasbor bukan animasi, dan asal setiap angka serta peta lima kriteria penilaian ada di [Proposal §7](docs/01-Proposal-Solusi-Nusantara-Shield.md#7-peta-kriteria-penilaian-dan-asal-angka).
 
 - **Isolasi tidak pernah otomatis.** Isolasi otomatis terdengar cepat, sampai ia memutus segmen OT karena alarm keliru. Di sini isolasi selalu didahului bukti tersegel dan keputusan Operator; yang diputus jalurnya, genset tetap menyala.
 - **"Tanpa awan" berlaku sampai ke demonya.** Aplikasi dipasang dari paket bersidik jari tanpa internet, lalu seluruh uji dijalankan di mesin itu juga.
@@ -26,14 +26,14 @@ Banyak sistem pertahanan berhenti di alarm. Nusantara Shield berlanjut sampai bu
 ```
 app/            kode server: FastAPI, dapur situasi, rantai bukti, LAPSIT, AI lokal
 static/         dasbor (HTML, CSS, JavaScript polos; tanpa pustaka luar atau CDN)
-tests/          411 uji otomatis (pytest), dijalankan dengan ./run_tests.sh
+tests/          425 uji otomatis (pytest), dijalankan dengan ./run_tests.sh
 tools/          alat bantu: pengemasan rilis, paket pasang luring, paket Ubuntu bertanda tangan, verifikasi audit tanpa server
 installer/      pasang.sh, layanan systemd, dan pembungkus verifikasi audit untuk Ubuntu 24.04
 kunci/          kunci PUBLIK rilis (kunci privat tidak pernah ada di repo)
 docs/           Proposal, Dokumentasi Teknis, Panduan Belajar (PDF), contoh LAPSIT dan log, diagram alur, logo
 presentation/   dek presentasi: index.html (satu berkas mandiri, bisa dibuka luring)
 LICENSE         GNU GPL v3.0 (GPL-3.0-only)
-CHANGELOG.md    riwayat versi v1.0 (15 Okt 2026) sampai v5.4.0 (9 Nov 2026)
+CHANGELOG.md    riwayat versi v1.0 (15 Okt 2026) sampai v5.4.1 (10 Nov 2026)
 ```
 
 > **Folder proyek dipindah lalu muncul `cannot execute: No such file or directory` atau `No module named 'numpy'`?**
@@ -67,7 +67,7 @@ CHANGELOG.md    riwayat versi v1.0 (15 Okt 2026) sampai v5.4.0 (9 Nov 2026)
 
 ```bash
 # 1. Masuk ke folder proyek
-cd nusantara-shield-v5.4.0
+cd nusantara-shield-v5.4.1
 
 # 2. Buat ruang kerja Python milik Anda sendiri (sekali saja)
 python3 -m venv .venv
@@ -83,7 +83,7 @@ python -m uvicorn app.main:app --host 127.0.0.1 --port 8000 --no-access-log --no
 ### Windows (PowerShell)
 
 ```powershell
-cd nusantara-shield-v5.4.0
+cd nusantara-shield-v5.4.1
 python -m venv .venv
 .venv\Scripts\Activate.ps1          # CMD: .venv\Scripts\activate.bat
 pip install -r requirements.txt
@@ -121,7 +121,7 @@ atau tidak cocok, 2 tidak bisa memeriksa. Kunci tidak diterima sebagai argumen d
 ### Mengemas zip untuk juri / repositori
 
 ```bash
-python tools/kemas_rilis.py            # → dist/nusantara-shield-v5.4.0.zip (versi dari app/versi.py)
+python tools/kemas_rilis.py            # → dist/nusantara-shield-v5.4.1.zip (versi dari app/versi.py)
 python tools/kemas_rilis.py --periksa  # hanya menampilkan daftar berkas
 ```
 
@@ -137,7 +137,7 @@ Untuk posko yang sama sekali tidak tersambung internet, kode dan seluruh pustaka
 python tools/kemas_luring.py --platform win_amd64 --python 3.12           # posko Windows 64-bit
 python tools/kemas_luring.py --platform macosx_14_0_arm64 --python 3.12   # posko Mac Apple Silicon
 python tools/kemas_luring.py                                              # posko sama dengan komputer ini
-#    → dist/nusantara-shield-v5.4.0-luring-<platform>.zip + dua sidik jari untuk berita acara
+#    → dist/nusantara-shield-v5.4.1-luring-<platform>.zip + dua sidik jari untuk berita acara
 
 # 2) Di posko tanpa internet: ekstrak zip, masuk ke foldernya, lalu
 python pasang_luring.py --periksa-saja    # cocokkan sidik jari SHA256SUMS dengan berita acara
@@ -162,13 +162,13 @@ sidik jari kunci (berita acara) → SHA256SUMS.sig (Ed25519) → SHA256SUMS → 
 python3 tools/kunci_rilis.py buat
 # Setiap rilis (pohon kerja git harus bersih):
 python3 tools/kemas_installer.py susun                         # payload + manifest + SHA256SUMS
-python3 tools/kunci_rilis.py tandatangani dist/nusantara-shield-5.4.0-ubuntu24.04-amd64/SHA256SUMS
-python3 tools/kemas_installer.py bungkus dist/nusantara-shield-5.4.0-ubuntu24.04-amd64
-#   → dist/nusantara-shield-5.4.0-ubuntu24.04-amd64.tar + SIDIK-JARI-PAKET-<tanggal>-v5.4.0.txt
+python3 tools/kunci_rilis.py tandatangani dist/nusantara-shield-5.4.1-ubuntu24.04-amd64/SHA256SUMS
+python3 tools/kemas_installer.py bungkus dist/nusantara-shield-5.4.1-ubuntu24.04-amd64
+#   → dist/nusantara-shield-5.4.1-ubuntu24.04-amd64.tar + SIDIK-JARI-PAKET-<tanggal>-v5.4.1.txt
 
 # Di Ubuntu 24.04 tanpa internet (langkah lengkap ada di BACA-SAYA.txt dalam paket):
-sha256sum nusantara-shield-5.4.0-ubuntu24.04-amd64.tar      # cocokkan dengan berita acara
-tar -xf nusantara-shield-5.4.0-ubuntu24.04-amd64.tar && cd nusantara-shield-5.4.0-ubuntu24.04-amd64
+sha256sum nusantara-shield-5.4.1-ubuntu24.04-amd64.tar      # cocokkan dengan berita acara
+tar -xf nusantara-shield-5.4.1-ubuntu24.04-amd64.tar && cd nusantara-shield-5.4.1-ubuntu24.04-amd64
 openssl pkeyutl -verify -pubin -inkey kunci-publik-rilis.pem -rawin -in SHA256SUMS -sigfile SHA256SUMS.sig
 sudo sh pasang.sh            # --uji: jalankan seluruh uji dulu · --kembali · --hapus · --bantuan
 ```
@@ -193,7 +193,8 @@ sudo sh pasang.sh            # --uji: jalankan seluruh uji dulu · --kembali · 
   tidak boleh memuat nama akun. Sandi disimpan sebagai hash PBKDF2 (200.000 putaran) + garam acak.
 - Tanpa `NS_KODE_OPERATOR`, pendaftaran Operator mandiri **tertutup**: akun yang bisa memutus jaringan
   tidak boleh dicetak sendiri oleh siapa pun.
-- Pendaftaran dibatasi 5 kali per 5 menit per alamat. `NS_DAFTAR_PENGAMAT=0` menutup pendaftaran Pengamat.
+- Pendaftaran dibatasi 5 kali per 5 menit per alamat. `NS_DAFTAR_PENGAMAT=0` menutup pendaftaran Pengamat; pemasang produksi (`pasang.sh`) menulisnya bawaan sejak v5.4.1.
+- Pengamat boleh mencetak LAPSIT (pimpinan memang pembaca LAPSIT). Akun belum bisa dinonaktifkan dari dasbor (peta jalan).
 - **Tab Akun (khusus Operator)** menampilkan jumlah Pengamat **terdaftar**, **sedang login**, dan
   **sedang memantau** dasbor (siaran terbuka), diperbarui otomatis tiap 5 detik, plus formulir tambah akun.
 
@@ -346,12 +347,12 @@ kelompok muncul setiap kali pytest pindah bagian, dan di akhir tampil ringkasan 
 Contoh memilih sebagian: `./run_tests.sh -k akun`, `./run_tests.sh tests/test_rantai_bukti.py`,
 `./run_tests.sh --lf` (ulangi yang gagal). **Jangan memakai `-q`** — opsi itu menyembunyikan nama uji.
 
-**Total: 411 uji** dalam 20 kelompok. Di akhir `./run_tests.sh`, uji yang lulus juga diringkas **per aturan doktrin** (Tangkal lebih dulu 122 · Manusia memutuskan 123, termasuk drill kesiapan · Bukti dulu, baru putus 36 · Jejak tidak bisa ditulis ulang 27 · Luring dan paket tepercaya 32 · pendukung 71), karena jumlah uji sendiri bukan ukuran mutu.
+**Total: 425 uji** dalam 20 kelompok. Di akhir `./run_tests.sh`, uji yang lulus juga diringkas **per aturan doktrin** (Tangkal lebih dulu 135 · Manusia memutuskan 123, termasuk drill kesiapan · Bukti dulu, baru putus 36 · Jejak tidak bisa ditulis ulang 28 · Luring dan paket tepercaya 32 · pendukung 71), karena jumlah uji sendiri bukan ukuran mutu.
 
 **Keamanan & akses** — `tests/test_keamanan.py` (38 uji)
 - Semua loket menolak permintaan tanpa login; token palsu & sandi salah ditolak; logout mencabut token
 - Pengamat tidak bisa mengubah data; tebak sandi dibatasi 5×/menit
-- Input aneh & indikator tidak valid ditolak; kiriman > 16 KB ditolak sebelum mencapai router (termasuk *chunked*)
+- Input aneh & indikator tidak valid ditolak; kiriman > 16 KB ditolak sebelum mencapai router (termasuk *chunked*); pengecualian tunggal: impor log ≈2,6 MB, hanya dengan token sah
 - Header keamanan terpasang (juga pada penolakan); dokumentasi API dimatikan; CORS menolak situs asing
 - Log audit menyimpan data seminimal mungkin dan mendeteksi manipulasi; LAPSIT PDF terbentuk
 
@@ -418,13 +419,14 @@ Contoh memilih sebagian: `./run_tests.sh -k akun`, `./run_tests.sh tests/test_ra
 - Setiap aturan dan skenario berlabel MITRE ATT&CK (AI sengaja tanpa label); setiap peringatan menulis sumber datanya
 - LAPSIT PDF memuat teknik ATT&CK, label sumber data, dan blok pengesahan dua tanda tangan
 
-**Impor log luring** — `tests/test_impor_log.py` (25 uji)
+**Impor log luring** — `tests/test_impor_log.py` (38 uji)
 - auth.log OpenSSH, log firewall UFW/iptables, CSV, Wazuh `alerts.json`, dan Suricata `eve.json` dibaca menjadi peristiwa mentah; nama akun tidak disalin
 - Wazuh: agregat *brute force* bawaan, `sudo`, dan FIM tidak dihitung; Suricata: aliran ke *port* 502 menjadi koneksi OT, jam Modbus dari stempel sensor
 - Baris dengan IP, port, jenis, waktu, atau aset tidak sah dilewati dan dihitung; berkas tak dikenali ditolak 422
 - Aturan yang sama dengan latihan: auth.log → *login* gagal + *login* tembus; CSV OT → tiga temuan OT; firewall → pemindaian *port*
 - Dua kunci utuh: hanya WASPADA, tanpa insiden, bukti, atau isolasi; log audit hanya mencatat nama berkas dan jumlah
-- Hanya jalur impor yang boleh ≈2 MB, dan hanya bila membawa token; jalur lain tetap 16 KB; dibatasi 6 kali per menit
+- Hanya jalur impor yang boleh ≈2,6 MB (berkas log ≈2 MB), dan body baru dibaca bila tokennya sah; jalur lain tetap 16 KB; dibatasi 6 kali per menit
+- Berkas beracun (baris ribuan `SRC=1 DST=1`, JSON bersarang, sel CSV raksasa, tahun 0001) diurai < 1 detik atau ditolak 422; penguraian berjalan di luar kunci keadaan, jadi dasbor layar lain tidak membeku
 
 **Verifikasi audit tanpa server** — `tests/test_verifikasi_audit.py` (12 uji)
 - Log yang ditulis kelas server dinyatakan utuh, dan sidik jari terakhirnya sama dengan yang dicetak LAPSIT
@@ -440,9 +442,10 @@ Contoh memilih sebagian: `./run_tests.sh -k akun`, `./run_tests.sh tests/test_ra
 - Versi sama/turun ditolak (14), naik dan `--kembali` berjalan; `--hapus` mempertahankan env dan data; bukan Ubuntu 24.04 → 20
 - Langkah yang terlewat (paket belum disusun) memberi pesan jelas; kata sandi tidak ditanyakan untuk berkas yang tidak ada
 
-**Titik periksa Ed25519** — `tests/test_titik_periksa.py` (15 uji)
+**Titik periksa Ed25519** — `tests/test_titik_periksa.py` (16 uji)
 - Auditor memeriksa dengan sidik jari kunci akar saja; Ed25519 di alat auditor (pustaka bawaan Python) sama dengan pustaka *cryptography*
 - Entri sebelum titik periksa diubah, log dipotong, akar salah, titik periksa ditandatangani ulang dengan kunci curian → tertangkap; kunci periode lama tidak tersisa di disk
+- Log **dan** berkas titik periksa digulung mundur bersama → tetap sah secara kriptografi, tetapi tertangkap dengan `--minimal-titik N` (nomor dari LAPSIT terakhir)
 - Status kunci tidak cocok → titik periksa dinonaktifkan, akar baru tidak dibuat diam-diam
 - Pemasangan baru (Buku Rantai Bukti belum berisi, berkasnya belum ada) tetap lolos; buku berisi yang berkasnya hilang ditolak
 
@@ -510,7 +513,7 @@ dibatasi lajunya dan dicatat di log audit.
 | Otorisasi | Peran `pengamat` (lihat) dan `operator` (lihat, ubah, kelola akun) | `app/keamanan.py` |
 | Pendaftaran aman | Operator hanya dengan kode undangan atau oleh Operator; pembatasan laju | `app/keamanan.py`, `app/main.py` |
 | Batas laju | Login 5/menit, daftar 5/5 menit, ubah 30/menit, PDF 5/menit, baca 120/menit | `app/keamanan.py` |
-| Batas ukuran | Kiriman > 16 KB ditolak di middleware ASGI sebelum router | `app/keamanan.py` |
+| Batas ukuran | Kiriman > 16 KB ditolak di middleware ASGI sebelum router; impor log ≈2,6 MB hanya dengan token sah | `app/keamanan.py` |
 | Header keamanan | CSP ketat, nosniff, anti-iframe, no-referrer, HSTS bila HTTPS | `app/keamanan.py` |
 | Validasi input | Pydantic `extra="forbid"`, daftar nilai tetap, batas panjang | `app/main.py` |
 | Anti-XSS | Semua teks dipasang via `textContent` | `static/app.js` |
@@ -547,7 +550,7 @@ static/peta.js        Peta Ancaman Global (Canvas)
 static/penjadwal.js   satu mesin animasi berbasis visibilitas
 static/style.css      tema gelap + aksen hijau neon
 docs/                 diagram alur (sumber Mermaid + SVG)
-tests/                411 uji otomatis (lihat bagian 6)
+tests/                425 uji otomatis (lihat bagian 6)
 tools/kemas_rilis.py  pembuat zip rilis bersih
 tools/bangun_situs.py  membangun unduhan situs (PDF dari Markdown, dek PDF/PPTX) dan menulis sidik jarinya
 situs/                situs statis (GitHub Pages): huruf disimpan sendiri, tanpa CDN
@@ -573,7 +576,7 @@ pytest.ini            pengaturan tampilan pytest
 
 **Status fitur — jujur dan tegas.**
 
-| Sudah berjalan (purwarupa v5.4.0) | Belum dibangun (peta jalan: Mode Hybrid dan eskalasi) |
+| Sudah berjalan (purwarupa v5.4.1) | Belum dibangun (peta jalan: Mode Hybrid dan eskalasi) |
 | --- | --- |
 | Operasi luring penuh di 1 satuan/RS (*on-premise*) | Pengiriman LAPSIT otomatis berjenjang ke Sansidam (Kodam) dan Kartika CSIRT (Pussiberad) |
 | Peran Pengamat dan Operator | Akses dan tampilan lintas satuan untuk pemantauan serentak di Mabes |

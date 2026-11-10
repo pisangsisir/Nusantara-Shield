@@ -83,6 +83,8 @@ class LogAudit:
                 self._berkas.parent.mkdir(parents=True, exist_ok=True)
                 with self._berkas.open("a", encoding="utf-8") as f:  # hanya menambah, tidak menimpa
                     f.write(json.dumps(entri, ensure_ascii=False) + "\n")
+                    f.flush()
+                    os.fsync(f.fileno())    # v5.4.1: entri sudah di disk sebelum titik periksa mana pun merujuknya
         for fungsi in list(self._pengamat):         # di luar kunci tulis: pengamat boleh membaca buku ini
             fungsi()
         return entri

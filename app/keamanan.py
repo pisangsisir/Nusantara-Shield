@@ -521,9 +521,11 @@ class BatasBody:
             return await self.app(scope, receive, send)
         header = dict(scope["headers"])                       # nama header sudah huruf kecil (ASGI)
         batas = self.batas
-        if scope["path"] in self.khusus:                      # jalur berkas besar (impor log): hanya untuk yang
-            if not header.get(b"authorization", b"").startswith(b"Bearer "):   # membawa token; tanpa token,
-                return await self._tolak(send, 401, b'{"detail":"Wajib login"}')  # body tidak dibaca sama sekali
+        if scope["path"] in self.khusus:                      # jalur berkas besar (impor log): hanya untuk token SAH.
+            otorisasi = header.get(b"authorization", b"")      # Token kosong, palsu, atau kedaluwarsa → 401 dan body
+            token = otorisasi[7:].decode("latin-1") if otorisasi.startswith(b"Bearer ") else ""   # tidak dibaca sama
+            if not token or akun_dari_token(token) is None:   # sekali (v5.4.1: dulu cukup berawalan "Bearer ").
+                return await self._tolak(send, 401, b'{"detail":"Wajib login"}')
             batas = self.khusus[scope["path"]]
         panjang = header.get(b"content-length")
         if panjang is not None and (not panjang.isdigit() or int(panjang) > batas):
