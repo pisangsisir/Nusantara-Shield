@@ -26,6 +26,9 @@ Prinsip keamanan dan privasi:
 - Sepenuhnya defensif dan luring: modul ini hanya membaca teks yang diserahkan; ia tidak memindai atau menghubungi apa pun.
 - Validasi ketat di batas kepercayaan: alamat IP harus sah, port 1–65535, jam 0–23; baris yang tidak dikenali dilewati
   dan dihitung, bukan ditebak.
+- Isi log bisa dikendalikan penyerang (mis. nama akun pada percobaan login). Karena itu pola tidak boleh menelusur ulang
+  tanpa batas, baris di atas MAKS_PANJANG_BARIS dilewati, dan JSON/CSV yang ganjil berakhir sebagai GalatImpor (422),
+  bukan galat 500. Uji waktu-urai ada di tests/test_impor_log.py.
 - Nama akun dalam log TIDAK disimpan (tidak dibutuhkan aturan mana pun). Isi mentah log tidak masuk log audit.
 """
 
@@ -40,6 +43,7 @@ from datetime import datetime, timezone
 
 MAKS_BARIS = 50_000
 MAKS_PERISTIWA = 20_000
+MAKS_PANJANG_BARIS = 4_096      # karakter; baris log asli jauh di bawah ini. Lebih panjang = dilewati dan dihitung, tidak diurai
 
 _BULAN = {b: i for i, b in enumerate(("Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"), 1)}
 _SYSLOG = re.compile(r"^(?P<bln>[A-Z][a-z]{2})\s+(?P<hari>\d{1,2}) (?P<j>\d\d):(?P<m>\d\d):(?P<d>\d\d) \S+ (?P<isi>.*)$")
@@ -47,7 +51,9 @@ _ISO = re.compile(r"^(?P<iso>\d{4}-\d\d-\d\d[T ]\d\d:\d\d:\d\d(?:\.\d+)?(?:Z|[+-
 _SSH_GAGAL = re.compile(r"sshd(?:\[\d+\])?: Failed (?:password|publickey|none|keyboard-interactive/pam) for "
                         r"(?:invalid user )?\S+ from (?P<ip>[0-9A-Fa-f:.]+) port \d+")
 _SSH_MASUK = re.compile(r"sshd(?:\[\d+\])?: Accepted \S+ for \S+ from (?P<ip>[0-9A-Fa-f:.]+) port \d+")
-_FW = re.compile(r"\bSRC=(?P<src>[0-9A-Fa-f:.]+)\b.*\bDST=(?P<dst>[0-9A-Fa-f:.]+)\b.*\bDPT=(?P<dpt>\d+)\b")
+# Log firewall: tiap kolom dibaca sebagai pasangan KUNCI=nilai yang berdiri sendiri. Pola lama memakai dua ".*" berturut-turut;
+# satu baris beracun (ribuan "SRC=1 DST=1") membuatnya menelusur ulang ratusan juta kali dan membekukan posko (audit v5.4.1).
+_FW_KOLOM = re.compile(r"(?<!\S)(SRC|DST|DPT)=([0-9A-Fa-f:.]{1,45})(?=\s|$)")
 JENIS_CSV = ("login", "koneksi", "koneksi_ot", "modbus")
 PORT_OT = {502}                                    # Modbus/TCP: koneksi ke aset di port ini = koneksi ke zona kendali
 GRUP_WAZUH_GAGAL = {"authentication_failed", "invalid_login"}
@@ -88,7 +94,7 @@ def _waktu_iso(teks: str) -> float | None:
         return float(teks)
     try:
         return datetime.fromisoformat(teks.replace("Z", "+00:00")).timestamp()
-    except ValueError:
+    except (ValueError, OverflowError, OSError):                    # termasuk tahun di luar jangkauan sistem
         return None
 
 
@@ -107,6 +113,8 @@ def _aset(teks: str | None, aset_by_ip: dict[str, str], aset_dikenal: set[str]) 
 
 
 def _baris_teks(baris: str, tahun: int, aset_ssh: str, port_aset: dict[tuple[str, int], str]) -> tuple[float, dict] | None:
+    if len(baris) > MAKS_PANJANG_BARIS:
+        return None
     m = _SYSLOG.match(baris)
     t = _waktu_syslog(m, tahun) if m else None
     if not m:
@@ -119,9 +127,13 @@ def _baris_teks(baris: str, tahun: int, aset_ssh: str, port_aset: dict[tuple[str
         k = pola.search(isi)
         if k and (ip := _ip(k["ip"])):
             return t, {"jenis": "login", "sumber": ip, "aset": aset_ssh, "berhasil": berhasil}
-    k = _FW.search(isi)
-    if k and (src := _ip(k["src"])) and (dst := _ip(k["dst"])) and 0 < int(k["dpt"]) < 65536:
-        port = int(k["dpt"])
+    kolom: dict[str, str] = {}
+    for kunci, nilai in _FW_KOLOM.findall(isi):
+        kolom.setdefault(kunci, nilai)                                   # kemunculan pertama yang dipakai
+    dpt = kolom.get("DPT", "")
+    if (src := _ip(kolom.get("SRC", ""))) and (dst := _ip(kolom.get("DST", ""))) and dpt.isdigit() and len(dpt) <= 5 \
+            and 0 < int(dpt) < 65536:
+        port = int(dpt)
         return t, {"jenis": "koneksi", "sumber": src, "ip": dst, "port": port, "aset": port_aset.get((dst, port))}
     return None
 
@@ -174,7 +186,10 @@ def _baris_json(o, aset_ssh: str, aset_by_ip: dict[str, str],
     d = _dt_iso(o.get("timestamp"))
     if d is None:
         return None
-    t = d.timestamp()
+    try:
+        t = d.timestamp()
+    except (ValueError, OverflowError, OSError):                    # mis. tahun 0001 tanpa zona waktu
+        return None
     if isinstance(o.get("rule"), dict) and "agent" in o:                      # Wazuh
         grup = set(o["rule"].get("groups") or [])
         berhasil = True if grup & GRUP_WAZUH_BERHASIL else False if grup & GRUP_WAZUH_GAGAL else None
@@ -212,7 +227,7 @@ def _objek_json(isi: str, baris: list[str]) -> list | None:
     if awal == "[":
         try:
             data = json.loads(isi)
-        except json.JSONDecodeError:
+        except (json.JSONDecodeError, RecursionError):                    # larik bersarang ribuan tingkat
             return None
         return data if isinstance(data, list) else None
     if awal != "{":
@@ -221,9 +236,12 @@ def _objek_json(isi: str, baris: list[str]) -> list | None:
     for b in baris:
         if not b.strip():
             continue
+        if len(b) > MAKS_PANJANG_BARIS * 4:                                  # satu peristiwa sensor jarang > 16 KB
+            hasil.append(None)
+            continue
         try:
             hasil.append(json.loads(b))
-        except json.JSONDecodeError:
+        except (json.JSONDecodeError, RecursionError):
             hasil.append(None)                                                 # baris rusak: dihitung, tidak ditebak
     return hasil
 
@@ -255,10 +273,13 @@ def baca(isi: str, simpul: list[dict], aset_ssh: str = "ssh", tahun: int | None 
         pembaca = csv.DictReader(io.StringIO(isi))
         pembaca.fieldnames = [f.strip().lower() for f in (pembaca.fieldnames or [])]
         jumlah = 0
-        for r in pembaca:
-            jumlah += 1
-            if (x := _baris_csv(r, aset_by_ip, aset_dikenal, port_aset)) is not None:
-                hasil.append(x)
+        try:
+            for r in pembaca:
+                jumlah += 1
+                if (x := _baris_csv(r, aset_by_ip, aset_dikenal, port_aset)) is not None:
+                    hasil.append(x)
+        except csv.Error as e:                                              # sel raksasa, kutip tidak tertutup, dsb.
+            raise GalatImpor(f"CSV rusak di sekitar baris {jumlah}: sel terlalu panjang atau tanda kutip tidak tertutup") from e
     else:
         format_, jumlah = "teks", 0
         for b in baris:

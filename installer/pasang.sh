@@ -420,6 +420,8 @@ else
 		echo "NS_OPERATOR_PASSWORD=$(acak 24)"
 		echo "NS_VIEWER_PASSWORD=$(acak 24)"
 		echo "NS_WAJIB_GANTI_SANDI=1"
+		echo "# Pendaftaran Pengamat mandiri ditutup: akun baru dibuat Operator dari tab Akun (ubah ke 1 dengan sadar risikonya)."
+		echo "NS_DAFTAR_PENGAMAT=0"
 		echo "NS_ALLOWED_HOSTS=$host"
 		echo "NS_ALLOWED_ORIGINS=$asal"
 		echo "NS_ZONA_WAKTU=WIB"

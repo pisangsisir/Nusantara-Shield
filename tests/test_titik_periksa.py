@@ -61,14 +61,14 @@ def isi(sistem, n_log=8, n_bukti=4):
         sistem["bukti"].catat("operator", "BUKTI_DIAMANKAN", {"nomor": f"BB-2026-{i + 1:03d}"})
 
 
-def periksa(sistem, akar=None, tanpa_hmac=True, monkeypatch=None):
+def periksa(sistem, akar=None, tanpa_hmac=True, monkeypatch=None, tambahan=()):
     d = sistem["dir"]
     if tanpa_hmac and monkeypatch:
         monkeypatch.delenv("NS_AUDIT_KEY", raising=False)     # auditor TIDAK memegang kunci HMAC
     keluar = io.StringIO()
     kode = alat.main(["--titik", str(d / "titik_periksa.jsonl"), "--akar", akar or sistem["titik"].sidik_jari_akar,
-                      "--log", f"audit_log={d / 'audit_log.jsonl'}", "--log", f"rantai_bukti={d / 'rantai_bukti.jsonl'}"],
-                     keluar=keluar)
+                      "--log", f"audit_log={d / 'audit_log.jsonl'}", "--log", f"rantai_bukti={d / 'rantai_bukti.jsonl'}",
+                      *tambahan], keluar=keluar)
     return kode, keluar.getvalue()
 
 
@@ -157,6 +157,25 @@ def test_log_dipotong_di_bawah_titik_periksa_tertangkap(sistem, monkeypatch):
     tulis(berkas, catatan(berkas)[:6])
     kode, teks = periksa(sistem, monkeypatch=monkeypatch)
     assert kode == 1 and "dipotong" in teks, teks
+
+
+def test_gulung_mundur_log_dan_titik_periksa_bersama_tertangkap_nomor_dari_lapsit(sistem, monkeypatch):
+    """Audit v5.4.1: log DAN berkas titik periksa dikembalikan bersama ke titik periksa #1. Secara kriptografi keduanya
+    masih sah; yang menangkapnya nomor titik periksa yang sudah tercatat di LAPSIT (--minimal-titik)."""
+    isi(sistem)                                               # titik periksa #1 dan #2
+    d = sistem["dir"]
+    tp = catatan(d / "titik_periksa.jsonl")
+    assert len(tp) == 2
+    n1 = tp[0]["log"]
+    tulis(d / "titik_periksa.jsonl", tp[:1])
+    tulis(d / "audit_log.jsonl", catatan(d / "audit_log.jsonl")[:n1["audit_log"]["jumlah"]])
+    tulis(d / "rantai_bukti.jsonl", catatan(d / "rantai_bukti.jsonl")[:n1["rantai_bukti"]["jumlah"]])
+    kode, teks = periksa(sistem, monkeypatch=monkeypatch)
+    assert kode == 0                                          # tanpa nomor dari luar server: tidak terlihat
+    kode, teks = periksa(sistem, monkeypatch=monkeypatch, tambahan=["--minimal-titik", "2"])
+    assert kode == 1 and "digulung mundur" in teks and "#2" in teks and "#1" in teks, teks
+    kode, _ = periksa(sistem, monkeypatch=monkeypatch, tambahan=["--minimal-titik", "1"])
+    assert kode == 0                                          # nomor yang memang ada: tetap sah
 
 
 def test_akar_salah_ditolak(sistem, monkeypatch):

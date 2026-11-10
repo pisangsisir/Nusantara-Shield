@@ -513,7 +513,8 @@ def buat_pdf(layanan: list[dict], hasil_audit: dict, pembuat: str, peringatan: l
         "<font face='Courier'>GET /api/audit/verifikasi</font>), atau tanpa <i>server</i>: "
         "<font face='Courier'>python3 tools/verifikasi_audit.py --cocokkan &lt;sidik jari&gt;</font>. "
         + ("Titik periksa diperiksa tanpa kunci rahasia: <font face='Courier'>python3 tools/verifikasi_titik_periksa.py "
-           "--akar &lt;sidik jari akar&gt;</font>. " if titik and titik.get("aktif") else "")
+           f"--akar &lt;sidik jari akar&gt; --minimal-titik {int(titik.get('no') or 0)}</font> (nomor ini menangkap riwayat yang "
+           "digulung mundur). " if titik and titik.get("aktif") else "")
         + f"Telusuri nomor bukti di {escape(ISTILAH['buku_bukti'])}. Sidik jari ini menjamin keutuhan log audit, bukan "
         f"keutuhan berkas PDF; salinan yang diteruskan wajib bertanda tangan di bagian {escape(ISTILAH['ttd_judul'])}.",
         sel)],

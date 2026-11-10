@@ -244,6 +244,73 @@ def test_tanpa_token_body_besar_ditolak_sebelum_dibaca(k):
     assert r.status_code == 401 and r.headers["connection"] == "close"
 
 
+@pytest.mark.parametrize("otorisasi", ["Bearer palsu", "Bearer ", "Basic abc"])
+def test_token_palsu_body_besar_ditolak_sebelum_dibaca(k, otorisasi):
+    """Audit v5.4.1: berawalan 'Bearer' saja tidak cukup; token harus sah sebelum ≈2 MB boleh dibaca."""
+    r = k.post("/api/deteksi/impor", content=b"x" * 2_400_000,
+               headers={"Content-Type": "application/json", "Authorization": otorisasi})
+    assert r.status_code == 401 and r.headers["connection"] == "close"
+
+
+def _baris_fw(sumber="203.0.113.9", tujuan="192.0.2.21", port=22, detik=0):
+    return f"Nov  9 10:00:{detik:02d} posko kernel: [UFW BLOCK] IN=eth0 SRC={sumber} DST={tujuan} PROTO=TCP DPT={port}"
+
+
+@pytest.mark.parametrize("racun", ["SRC=1 DST=1 " * 1500, "SRC=1 " * 20000, "DST=1.1.1.1 SRC=2.2.2.2 " * 900],
+                         ids=["src-dst", "src-saja", "urutan-terbalik"])
+def test_baris_beracun_diurai_cepat_dan_dilewati(racun):
+    """Audit v5.4.1: satu baris 18 KB dulu membuat pola firewall menelusur ulang ±108 detik sambil memegang kunci."""
+    import time
+    isi = _baris_fw() + "\nNov  9 10:00:01 posko kernel: " + racun + "\n"
+    mulai = time.perf_counter()
+    _, r = baca(isi, SIMPUL)
+    assert time.perf_counter() - mulai < 1.0
+    assert r["dikenali"] == 1 and r["diabaikan"] == 1
+
+
+def test_kolom_firewall_dibaca_tanpa_bergantung_urutan_dan_nilai_tak_sah_dilewati():
+    isi = "\n".join([
+        "Nov  9 10:00:00 posko kernel: DPT=22 PROTO=TCP DST=192.0.2.21 SRC=203.0.113.9",      # urutan lain: dikenali
+        "Nov  9 10:00:01 posko kernel: SRC=203.0.113.9 DST=192.0.2.21 DPT=" + "9" * 5000,    # port ribuan digit
+        "Nov  9 10:00:02 posko kernel: SRC=203.0.113.9 DST=192.0.2.21 DPT=70000",            # port di luar jangkauan
+        "Nov  9 10:00:03 posko kernel: XSRC=203.0.113.9 DST=192.0.2.21 DPT=22",              # bukan kolom SRC
+    ])
+    peristiwa, r = baca(isi, SIMPUL)
+    assert r["dikenali"] == 1 and r["diabaikan"] == 3
+    assert peristiwa[0][1] == {"jenis": "koneksi", "sumber": "203.0.113.9", "ip": "192.0.2.21", "port": 22, "aset": "ssh"}
+
+
+def test_baris_terlalu_panjang_dilewati_dan_dihitung():
+    from app.impor_log import MAKS_PANJANG_BARIS
+    panjang = _baris_fw(detik=1) + " PAD=" + "a" * MAKS_PANJANG_BARIS
+    _, r = baca(_baris_fw() + "\n" + panjang + "\n", SIMPUL)
+    assert r["dikenali"] == 1 and r["diabaikan"] == 1
+
+
+@pytest.mark.parametrize("isi", [
+    "[" * 100_000,                                                                    # larik bersarang sangat dalam
+    "waktu,jenis,sumber\n\"" + "a" * 200_000 + "\",login,203.0.113.9\n",                  # sel CSV raksasa
+    '{"timestamp":"0001-01-01T00:00:00","event_type":"flow","src_ip":"203.0.113.9","dest_ip":"192.0.2.21","dest_port":22}',
+    "waktu,jenis,sumber,aset,berhasil\n0001-01-01T00:00:00,login,203.0.113.9,ssh,tidak\n",
+], ids=["json-bersarang", "csv-sel-raksasa", "json-tahun-0001", "csv-tahun-0001"])
+def test_masukan_ganjil_berakhir_galat_impor_bukan_galat_500(k, isi):
+    with pytest.raises(GalatImpor):
+        baca(isi, SIMPUL)
+    r = k.post("/api/deteksi/impor", headers=masuk(k), json={"nama": "aneh.log", "isi": isi})
+    assert r.status_code == 422
+
+
+def test_berkas_diurai_di_luar_kunci_keadaan(k, monkeypatch):
+    """Berkas besar tidak boleh menahan dasbor layar lain: penguraian berjalan tanpa memegang kunci keadaan."""
+    asli, saat_urai = main.MENARA.urai_log, []
+    def urai(*a, **kw):
+        saat_urai.append(main._kunci_state.locked())
+        return asli(*a, **kw)
+    monkeypatch.setattr(main.MENARA, "urai_log", urai)
+    assert impor(k, masuk(k), "auth.log").status_code == 200
+    assert saat_urai == [False]
+
+
 def test_hanya_jalur_impor_yang_boleh_lebih_dari_16_kb(k):
     h = masuk(k)
     besar = "\n".join([(CONTOH / "auth.log").read_text()] * 40)          # ≈45 KB: lolos di jalur impor

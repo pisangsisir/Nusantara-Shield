@@ -1231,12 +1231,14 @@ class Menara:
         return {"jenis": jenis, "aset_id": aset_id, "peristiwa": len(rangkaian),
                 "durasi_detik": round(rangkaian[-1][0], 1)}
 
-    def impor_log(self, layanan: dict, nama: str, isi: str, aset_ssh: str = "ssh") -> dict:
+    def impor_log(self, layanan: dict, nama: str, isi: str, aset_ssh: str = "ssh", terurai: tuple | None = None) -> dict:
         """Log ASLI dari Operator → peristiwa mentah → aturan yang sama dengan latihan. Waktu diputar ulang relatif:
-        peristiwa terakhir di log = saat ini, jarak antarperistiwa tetap. Temuan hanya menaikkan WASPADA."""
+        peristiwa terakhir di log = saat ini, jarak antarperistiwa tetap. Temuan hanya menaikkan WASPADA.
+        terurai = hasil urai_log() yang sudah dikerjakan pemanggil DI LUAR kunci keadaan (berkas besar tidak boleh
+        menahan dasbor semua layar); bila None, diurai di sini (dipakai drill: log ceritanya pendek)."""
         if aset_ssh not in INDEKS_SIMPUL or not INDEKS_SIMPUL[aset_ssh]["port"]:
             raise ValueError("Aset tidak dikenal")
-        peristiwa, ringkasan = baca_log(isi, SIMPUL, aset_ssh)
+        peristiwa, ringkasan = terurai or baca_log(isi, SIMPUL, aset_ssh)
         sekarang, akhir = self._jam(), peristiwa[-1][0]
         baru = []
         for t, ev in peristiwa:
@@ -1257,6 +1259,13 @@ class Menara:
                             "sumber": tm.sumber, "aset": tm.aset, "alasan": tm.alasan(), "mitre": teknik_mitre(tm.aturan)}
                            for tm in baru],
                 "waspada": [INDEKS_SIMPUL[a]["nama"] for a in naik]}
+
+    @staticmethod
+    def urai_log(isi: str, aset_ssh: str = "ssh") -> tuple:
+        """Urai berkas log tanpa menyentuh keadaan Menara: aman dipanggil tanpa memegang kunci keadaan."""
+        if aset_ssh not in INDEKS_SIMPUL or not INDEKS_SIMPUL[aset_ssh]["port"]:
+            raise ValueError("Aset tidak dikenal")
+        return baca_log(isi, SIMPUL, aset_ssh)
 
     def _proses_deteksi(self) -> None:
         sekarang = self._jam()
