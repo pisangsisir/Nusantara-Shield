@@ -2,7 +2,23 @@
 
 Seluruh kode dikembangkan sejak **15 Oktober 2026**, setelah publikasi program Kartika Cyber Hackathon 2026 (12 Oktober 2026), sesuai Deklarasi di Proposal §6.1 (Rulebook bagian G). Repositori Git ini dimulai pada **20 Oktober 2026**; riwayat sebelumnya disusun dari folder versi dan folder cadangan per fase yang tersimpan di laptop pengembang (beserta catatan `BACA-SAYA.txt`), bukan dari commit.
 
-## Belum dirilis
+## v5.4.1 — 10 November 2026
+
+Tambalan dari tinjauan independen (sudut pandang Dewan Juri). Tidak ada fitur baru; gagasan baru masuk peta jalan (Proposal §5.6).
+
+### Keamanan dan ketahanan (branch `fix/audit-v541`)
+- **Impor log tahan berkas beracun.** Pola kolom firewall diganti pencarian kolom yang tidak bisa mundur berulang; satu baris 18 KB berisi `SRC=1 DST=1` berulang sebelumnya menahan _server_ 108 detik, kini selesai seketika. Baris lebih dari 4.096 karakter dilewati; JSON bersarang terlalu dalam, sel CSV raksasa, dan tahun di luar jangkauan ditolak 422 atau dilewati, tidak menjadi galat 500.
+- **Penguraian di luar kunci keadaan.** Berkas impor diurai sebelum kunci keadaan diambil, jadi dasbor Operator lain tidak membeku selama impor.
+- **Body impor baru dibaca bila token sah.** Sebelumnya cukup ada token apa pun untuk mengirim ≈2,6 MB; kini token palsu ditolak 401 sebelum body dibaca.
+- **Pendaftaran Pengamat tertutup di produksi.** `pasang.sh` menulis `NS_DAFTAR_PENGAMAT=0` ke env baru.
+- **Penggulungan mundur tertangkap.** `tools/verifikasi_titik_periksa.py --minimal-titik N` menolak riwayat yang berhenti sebelum nomor titik periksa yang tercatat di LAPSIT terakhir; petunjuk verifikasi di LAPSIT kini mencetak opsi ini.
+- Log audit di-`fsync` setelah setiap entri.
+- Uji **425** (sebelumnya 411): Tangkal 135, Manusia 123, Bukti 36, Jejak 28, Luring 32, Pendukung 71.
+
+### Dokumen
+- Klaim yang terlalu tinggi dikoreksi: kebutuhan penyimpanan (terukur ≈400 MB setelah terpasang, bukan 50 MB), Pengamat juga mencetak LAPSIT, pengecualian batas 16 KB untuk impor log, angka 1,2 detik sebagai jeda alur purwarupa, tahan 0,6 detik dijaga di peramban.
+- Batas baru ditulis terbuka di Dokumentasi Teknis §2.7: temuan log asli belum bisa langsung dibuka menjadi insiden, akun belum bisa dinonaktifkan, tingkat alarm keliru belum diukur.
+- Catatan pembicara dek memuat jawaban lima pertanyaan tersulit.
 
 ### Tautan repositori dan situs mengikuti nama baru — 9 November 2026 (branch `fix/tautan-nama-repo`)
 - Repositori berganti nama menjadi `Nusantara-Shield`. Tautan di dek, poster, README, dan situs diganti; poster dan unduhan situs dibangun ulang.

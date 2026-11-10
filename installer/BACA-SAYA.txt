@@ -46,6 +46,10 @@ Perintah sesudahnya:
                                                     login pertama; sandi baru hanya tersimpan sebagai hash)
   systemctl status nusantara-shield                 status layanan
   sudo ns-verifikasi-audit --cocokkan <sidik jari>  cocokkan log audit dengan sidik jari di LAPSIT
+  cd /var/lib/nusantara-shield && sudo /usr/bin/python3.12 -I /opt/nusantara-shield/kini/tools/verifikasi_titik_periksa.py \
+       --akar <sidik jari akar> --minimal-titik <nomor titik periksa dari LAPSIT terakhir>
+                                                    periksa titik periksa Ed25519; --minimal-titik menangkap
+                                                    log dan titik periksa yang digulung mundur bersama
   sudo sh pasang.sh --kembali                       kembali ke rilis sebelumnya
   sudo sh pasang.sh --hapus                         hapus program (env dan data dipertahankan)
 
@@ -59,3 +63,6 @@ Pada kode 2, 10, 11, 12, dan 20 tidak ada yang diubah di sistem.
 Layanan hanya mendengar di 127.0.0.1. Untuk dibuka ke jaringan internal, pasang reverse proxy TLS
 (mis. nginx dari repositori lokal) di depannya, atau ubah NS_DENGAR_ALAMAT, NS_ALLOWED_HOSTS, dan
 NS_ALLOWED_ORIGINS di /etc/nusantara-shield/env dengan sadar risikonya.
+
+Pendaftaran akun Pengamat ditutup (NS_DAFTAR_PENGAMAT=0 di env). Akun baru dibuat Operator;
+ubah ke 1 hanya bila memang ingin siapa pun di jaringan bisa mendaftar sebagai Pengamat.

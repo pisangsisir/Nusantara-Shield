@@ -1,11 +1,11 @@
-# Dokumentasi Teknis — Nusantara Shield v5.4.0
+# Dokumentasi Teknis — Nusantara Shield v5.4.1
 
 **Posko Pertahanan Siber Luring: Peringatan Dini, Isolasi Cepat, dan Rantai Bukti Forensik**
 
 | | |
 | --- | --- |
-| **Versi** | 5.4.0 · Drill Kesiapan (latihan tanggap insiden bernilai), impor keluaran Wazuh dan Suricata, situs untuk Dewan Juri · 9 November 2026. Sebelumnya 5.3.0 (1 November 2026): titik periksa log audit bertanda tangan Ed25519 dengan kunci berevolusi |
-| **Status uji** | **411 / 411 uji otomatis lulus** · diverifikasi dari paket rilis bersih |
+| **Versi** | 5.4.1 · tambalan hasil tinjauan independen: impor log tahan berkas beracun dan diurai di luar kunci, body impor baru dibaca bila token sah, pendaftaran Pengamat tertutup di pemasang produksi, auditor menangkap penggulungan mundur (`--minimal-titik`) · 10 November 2026. Sebelumnya 5.4.0 (9 November 2026): Drill Kesiapan, impor keluaran Wazuh dan Suricata, situs untuk Dewan Juri. Sebelumnya 5.3.0 (1 November 2026): titik periksa log audit bertanda tangan Ed25519 dengan kunci berevolusi |
+| **Status uji** | **425 / 425 uji otomatis lulus** · diverifikasi dari paket rilis bersih |
 | **AI** | **Mesin Deteksi Anomali (_anomaly detection engine_) berjalan lokal**: _Isolation Forest_ (scikit-learn), dilatih dan dijalankan di _server_ satuan, tanpa Application Programming Interface (API) luar |
 | **Arsitektur** | _Server_ FastAPI (Python) · peramban Vanilla JS + Canvas · siaran langsung Server-Sent Events (SSE) · buku berantai HMAC-SHA256 |
 | **Mode operasi** | **Luring penuh**: tanpa internet, Content Delivery Network (CDN), atau layanan awan saat berjalan |
@@ -15,7 +15,7 @@ Nusantara Shield adalah perisai pertahanan siber (kategori **Penangkalan, _Defen
 
 **Status fitur.** Tabel ini membedakan dengan tegas apa yang sudah didemonstrasikan dan apa yang masih rencana.
 
-| Sudah berjalan di purwarupa v5.4.0 | Belum dibangun (peta jalan: Mode Hybrid dan eskalasi) |
+| Sudah berjalan di purwarupa v5.4.1 | Belum dibangun (peta jalan: Mode Hybrid dan eskalasi) |
 | --- | --- |
 | Operasi luring penuh di satu satuan/rumah sakit (*on-premise*) | **(1) Pengiriman LAPSIT otomatis berjenjang** ke Sandi dan Siber Kodam (Sansidam) dan Kartika CSIRT (Pussiberad) |
 | Dua peran: Pengamat dan Operator | **(2) Akses dan tampilan lintas satuan** untuk pemantauan serentak di Mabes |
@@ -40,7 +40,7 @@ Nusantara Shield adalah perisai pertahanan siber (kategori **Penangkalan, _Defen
 | **Python** | **3.10 atau lebih baru** | Satu-satunya _runtime_ yang perlu dipasang |
 | **Prosesor** | 2 inti | Terukur **≈1,5% Central Processing Unit (CPU)** saat siaga dan **≈1,7%** saat serangan untuk 300 layar pemantau serentak (§2.3) |
 | **Memori** | 512 MB bebas | Terukur **≈207 MB** untuk 300 layar, termasuk pustaka AI (scikit-learn dan numpy, ≈130 MB) |
-| **Penyimpanan** | 50 MB | Paket rilis **187 KB**; sisanya pustaka Python |
+| **Penyimpanan** | 1 GB | Terukur **≈400 MB** setelah terpasang: pustaka Python ≈380 MB (scikit-learn, NumPy, SciPy), kode dan dokumen ≈12 MB. Paket pasang Ubuntu 95 MB |
 | **Peramban** | Chrome, Edge, atau Firefox versi terbaru | Tanpa *plugin*; bekerja di jaringan tertutup |
 | **Jaringan** | Internet sekali saat `pip install`, **atau tidak sama sekali** dengan paket pasang luring (4.4) | Setelah terpasang, seluruh operasi luring |
 | **Port** | 8000/TCP (dapat diubah) | Hanya untuk akses dari jaringan internal satuan |
@@ -53,7 +53,7 @@ Nusantara Shield adalah perisai pertahanan siber (kategori **Penangkalan, _Defen
 | **uvicorn[standard]** | ≥0.30 | _Server_ web asinkron (siaran langsung SSE) |
 | **reportlab** | ≥4.0 | Ekspor laporan situasi (LAPSIT) ke PDF |
 | **scikit-learn** | ≥1.3 | AI lokal: model _Isolation Forest_ untuk deteksi anomali (membawa numpy); berjalan luring |
-| **pytest** | ≥8.0 | Menjalankan 411 uji otomatis |
+| **pytest** | ≥8.0 | Menjalankan 425 uji otomatis |
 | **httpx** | ≥0.27 | Klien uji untuk loket API |
 | **hmac**, **hashlib**, **secrets** | bawaan Python | Segel HMAC-SHA256 berantai untuk log audit dan Buku Rantai Bukti, sidik jari SHA-256 barang bukti, dan kunci acak. Tidak memakai pustaka kriptografi pihak ketiga |
 
@@ -66,7 +66,7 @@ Nusantara Shield adalah perisai pertahanan siber (kategori **Penangkalan, _Defen
 | `NS_OPERATOR_PASSWORD` · `NS_VIEWER_PASSWORD` | Sandi akun bawaan (min. 12 karakter) | Sandi acak dicetak sekali di terminal |
 | `NS_AUDIT_KEY` | Kunci Hash-based Message Authentication Code (HMAC) buku audit dan buku bukti; mengaktifkan penyimpanan permanen | Buku hanya di memori (mode demo) |
 | `NS_KODE_OPERATOR` | Kode undangan untuk mendaftar sebagai Operator | Pendaftaran Operator mandiri **tertutup** |
-| `NS_DAFTAR_PENGAMAT` | `1` = siapa pun boleh mendaftar sebagai Pengamat | Terbuka |
+| `NS_DAFTAR_PENGAMAT` | `1` = siapa pun boleh mendaftar sebagai Pengamat | Terbuka di mode pengembangan; **`pasang.sh` menulis `0`** (v5.4.1) |
 | `NS_HTTPS` | `1` = aktifkan HTTP Strict Transport Security (HSTS) di belakang Hypertext Transfer Protocol Secure (HTTPS) | Nonaktif |
 | `NS_ZONA_WAKTU` | Zona waktu di LAPSIT PDF: `WIB`, `WITA`, atau `WIT` | `WIB` |
 
@@ -123,7 +123,7 @@ graph TD
 | Komponen | Berkas | Tanggung jawab |
 | --- | --- | --- |
 | **Loket API** | `app/main.py` | Menerima perintah, validasi masukan, otorisasi per peran |
-| **Gerbang keamanan** | `app/keamanan.py` | _Login_, token, peran, batas laju, batas ukuran kiriman 16 KB |
+| **Gerbang keamanan** | `app/keamanan.py` | _Login_, token, peran, batas laju, batas ukuran kiriman 16 KB (impor log ≈2,6 MB, hanya dengan token sah) |
 | **Mesin Deteksi Aturan** | `app/deteksi.py` | Menghitung peristiwa mentah _login_ dan koneksi masuk dengan ambang terbuka; menghasilkan temuan `DET-…` (§2.8) |
 | **Mesin Deteksi Anomali (AI lokal)** | `app/ai_anomali.py` | Melatih _Isolation Forest_ dari profil lalu lintas normal saat _server_ menyala; menilai enam ciri lalu lintas tiap aset; menyusun alasan yang bisa dibaca |
 | **Dapur situasi** | `app/telemetri.py` | Topologi (zona Information Technology (IT) dan zona kendali OT), korelasi Cyber Threat Intelligence (CTI), _playbook_ 4 skenario (termasuk Sabotase OT), **kunci urutan bukti → isolasi → pulihkan** |
@@ -240,7 +240,7 @@ Kategori yang **sengaja tidak diklaim**, antara lain GV.SC (rantai pasok; baru s
 | Penyalahgunaan wewenang | Pengamat ditolak (403) untuk setiap tindakan; akun Operator hanya lewat kode undangan (dibandingkan dalam waktu konstan) atau dibuat Operator lain | `test_pengamat_tidak_boleh_mengubah`, `test_hanya_operator_yang_boleh_menutup` |
 | Skrip jahat atau halaman disusupi | CSP hanya mengizinkan skrip dan gaya milik sendiri; `X-Frame-Options: DENY`, `nosniff`, `Referrer-Policy: no-referrer`; tanpa CDN | `test_header_keamanan` |
 | Sandi awal dari pemasang diketahui orang lain | Pemasangan produksi (`pasang.sh`) menyalakan `NS_WAJIB_GANTI_SANDI=1`: akun bawaan hanya boleh mengganti sandi atau keluar sampai sandi awal diganti (min. 12 karakter, berbeda, tanpa nama akun). Penggantian dibatasi laju seperti _login_, mencabut sesi lain akun itu, tercatat `GANTI_SANDI` tanpa sandi, dan hanya hash-nya yang disimpan | `test_akun.py` (bagian c) |
-| Banjir kiriman | Batas laju per kelompok loket; kiriman di atas 16 KB ditolak sebelum mencapai logika aplikasi, termasuk kiriman bertahap (_chunked_) | `test_kiriman_terlalu_besar_ditolak`, `test_body_chunked_besar_ditolak_sebelum_router` |
+| Banjir kiriman | Batas laju per kelompok loket; kiriman di atas 16 KB ditolak sebelum mencapai logika aplikasi, termasuk kiriman bertahap (_chunked_); impor log boleh ≈2,6 MB, tetapi body baru dibaca bila token sah | `test_kiriman_terlalu_besar_ditolak`, `test_body_chunked_besar_ditolak_sebelum_router` |
 | Masukan aneh | Semua formulir divalidasi ketat; kolom yang tidak dikenal ditolak | `test_input_simulasi_aneh_ditolak` |
 | Pengintaian loket | Dokumentasi API otomatis dimatikan; `/api/health` tidak membocorkan rincian sistem; situs asing ditolak (CORS); nama _host_ asing ditolak | `test_dokumentasi_api_dimatikan`, `test_health_tidak_membocorkan_info`, `test_cors_menolak_situs_asing` |
 | Jejak dihapus | Log audit dan Buku Rantai Bukti berantai HMAC-SHA256; satu catatan diubah, rantai putus dan ketahuan. Auditor dapat memeriksanya **tanpa menyalakan _server_** dengan `tools/verifikasi_audit.py` (pustaka bawaan Python saja, tanpa kode aplikasi); `--cocokkan` mencocokkan sidik jari yang tercetak di LAPSIT sehingga log yang dipotong di ujung juga ketahuan | `test_audit_mendeteksi_manipulasi`, `test_verifikasi_audit.py` |
@@ -254,6 +254,12 @@ Kategori yang **sengaja tidak diklaim**, antara lain GV.SC (rantai pasok; baru s
 - Belum ada verifikasi dua langkah; rencananya lewat SSO instansi (Proposal §5.2).
 - Kunci `NS_AUDIT_KEY` disimpan sebagai variabel lingkungan, belum di modul keamanan perangkat keras (_Hardware Security Module_, HSM). Tanpa kunci ini, kedua buku hanya tersimpan di memori.
 - HMAC memakai satu kunci untuk membuat sekaligus memeriksa: siapa pun yang memegang `NS_AUDIT_KEY` (termasuk penyerang yang membobol _server_) dapat membuat entri yang lolos pemeriksaan HMAC. Sejak v5.4.0, entri sampai titik periksa terakhir dilindungi tanda tangan Ed25519 yang kuncinya sudah dihapus (lihat §2.7.1). Entri sesudah titik periksa terakhir masih hanya dilindungi HMAC, dan kunci HMAC sendiri belum berevolusi.
+- Temuan dari log asli (impor berkas) menaikkan WASPADA, tetapi belum bisa langsung dibuka menjadi insiden; insiden, bukti, dan isolasi masih lewat jalur latihan dan Drill. Tombol "buka insiden dari temuan" ada di peta jalan.
+- Tahan 0,6 detik dijaga di peramban. _Server_ menjaga peran Operator, adanya insiden, dan urutan bukti → putus → pulihkan.
+- Angka ≈1,2 detik adalah jeda alur purwarupa (`JEDA_RUNBOOK`), bukan hasil ukur pemutusan sungguhan; pengambilan bukti disimulasikan.
+- Akun belum bisa dinonaktifkan atau dihapus dari dasbor, dan Operator belum bisa mencabut sesi akun lain.
+- Log **dan** berkas titik periksa yang digulung mundur bersama tetap sah secara kriptografi; yang menangkapnya nomor titik periksa dari LAPSIT terakhir (`tools/verifikasi_titik_periksa.py --minimal-titik N`).
+- Belum ada pengukuran tingkat alarm keliru pada lalu lintas lapangan; semua data uji sintetis.
 - Hanya paket Ubuntu 24.04 yang ditandatangani digital; zip luring Mac/Windows masih bersandar pada sidik jari di berita acara. Belum ada uji penetrasi oleh pihak independen.
 - **Purwarupa belum memegang kredensial perangkat lain**, karena pemutusan masih simulasi. Saat tersambung ke _firewall_, sakelar, atau Active Directory sungguhan, kredensial itu wajib disimpan di brankas kredensial, setiap _playbook_ hanya diberi hak minimum yang diperlukannya, _playbook_ ditandatangani digital, dan perubahan _playbook_ memerlukan persetujuan dua orang.
 
@@ -325,7 +331,7 @@ Waktu ditulis dalam zona `NS_ZONA_WAKTU` (bawaan WIB). Contoh hasilnya ada di `d
 | **Suricata `eve.json`** | `event_type` `flow`, `alert`, `netflow`; dan `modbus` (`request.function_raw`) | Koneksi (ke _port_ 502 aset OT: koneksi ke zona kendali); perintah Modbus. Jam perintah diambil dari stempel waktu sensor, jadi jendela pemeliharaan dinilai menurut jam di lokasi sensor |
 
 - **Validasi di batas kepercayaan:** IP harus sah, _port_ 1–65535, fungsi Modbus 1–127, jam 0–23, aset harus ada di inventaris. Baris yang tidak sah dilewati dan dihitung (`diabaikan`); berkas tanpa satu pun baris dikenali ditolak 422. Batas ≈2 MB dan 50.000 baris per berkas.
-- **Batas ukuran khusus jalur:** hanya `/api/deteksi/impor` yang boleh menerima kiriman sampai ≈2,6 MB, dan hanya bila membawa token; tanpa token, kiriman ditolak 401 sebelum body dibaca. Jalur lain tetap 16 KB.
+- **Batas ukuran khusus jalur:** hanya `/api/deteksi/impor` yang boleh menerima kiriman sampai ≈2,6 MB, dan body baru dibaca bila tokennya sah (v5.4.1; sebelumnya cukup ada token). Tanpa token sah, kiriman ditolak 401 sebelum body dibaca. Jalur lain tetap 16 KB.
 - **Waktu diputar ulang relatif:** peristiwa terakhir di log dianggap terjadi saat ini, jarak antarperistiwa tetap. Jam lokal untuk aturan Modbus diambil dari kolom `jam`, atau dari `waktu` menurut zona waktu _server_.
 - **Privasi:** nama akun dalam log tidak disalin ke peristiwa, dan isi log tidak masuk log audit; yang dicatat hanya nama berkas, jumlah baris, dan jumlah temuan.
 - **Dua kunci tetap:** temuan dari log asli hanya menaikkan WASPADA. Peringatannya diberi label "Sumber: log impor «nama berkas» dari Operator".
@@ -510,7 +516,7 @@ Loket: `GET /api/drill` (semua peran; katalog, drill aktif, riwayat), `POST /api
 
 ```bash
 # 1. Masuk ke folder proyek
-cd nusantara-shield-v5.4.0
+cd nusantara-shield-v5.4.1
 
 # 2. Buat lingkungan Python lokal (sekali saja)
 python3 -m venv .venv
@@ -539,18 +545,18 @@ Cuplikan **keluaran asli** `./run_tests.sh` (tiga uji pertama tiap kelompok dita
     <span style="width:11px;height:11px;border-radius:50%;background:#ef4444;display:inline-block"></span>
     <span style="width:11px;height:11px;border-radius:50%;background:#f59e0b;display:inline-block"></span>
     <span style="width:11px;height:11px;border-radius:50%;background:#22c55e;display:inline-block"></span>
-    <span style="flex:1;text-align:center;color:#94a3b8;font-size:7.6pt;margin-right:40px">operator@posko-siber: ~/nusantara-shield-v5.4.0 — ./run_tests.sh</span>
+    <span style="flex:1;text-align:center;color:#94a3b8;font-size:7.6pt;margin-right:40px">operator@posko-siber: ~/nusantara-shield-v5.4.1 — ./run_tests.sh</span>
   </div>
   <div style="padding:10px 14px 12px;color:#e2e8f0">
-    <div style="white-space:pre-wrap;word-break:break-all;margin:0"><span style="color:#4ade80">operator@posko-siber</span><span style="color:#94a3b8">:~/nusantara-shield-v5.4.0$</span> ./run_tests.sh</div>
-    <div style="color:#fbbf24;white-space:pre-wrap;word-break:break-all;margin:0">▶ Menjalankan uji otomatis Nusantara Shield v5.4.0 — setiap uji tampil satu baris beserta hasilnya</div>
+    <div style="white-space:pre-wrap;word-break:break-all;margin:0"><span style="color:#4ade80">operator@posko-siber</span><span style="color:#94a3b8">:~/nusantara-shield-v5.4.1$</span> ./run_tests.sh</div>
+    <div style="color:#fbbf24;white-space:pre-wrap;word-break:break-all;margin:0">▶ Menjalankan uji otomatis Nusantara Shield v5.4.1 — setiap uji tampil satu baris beserta hasilnya</div>
     <div style="color:#94a3b8;white-space:pre-wrap;word-break:break-all;margin:0">============================= test session starts ==============================</div>
     <div style="color:#94a3b8;white-space:pre-wrap;word-break:break-all;margin:0">platform linux -- Python 3.13.16, pytest-9.1.1, pluggy-1.7.0 -- /usr/bin/python3</div>
-    <div style="color:#94a3b8;white-space:pre-wrap;word-break:break-all;margin:0">rootdir: …/nusantara-shield-v5.4.0</div>
+    <div style="color:#94a3b8;white-space:pre-wrap;word-break:break-all;margin:0">rootdir: …/nusantara-shield-v5.4.1</div>
     <div style="color:#94a3b8;white-space:pre-wrap;word-break:break-all;margin:0">configfile: pytest.ini</div>
     <div style="color:#94a3b8;white-space:pre-wrap;word-break:break-all;margin:0">testpaths: tests</div>
     <div style="color:#94a3b8;white-space:pre-wrap;word-break:break-all;margin:0">plugins: anyio-4.15.1</div>
-    <div style="color:#94a3b8;white-space:pre-wrap;word-break:break-all;margin:0">collecting ... collected 411 items</div>
+    <div style="color:#94a3b8;white-space:pre-wrap;word-break:break-all;margin:0">collecting ... collected 425 items</div>
     <div style="color:#38bdf8;font-weight:700;margin:8px 0 2px;white-space:pre-wrap;word-break:break-all;margin:0">── ▶ AI lokal: deteksi anomali Isolation Forest, luring, dengan alasan yang bisa dibaca ──</div>
     <div style="white-space:pre-wrap;word-break:break-all;margin:0"><span style="color:#64748b">test_ai.py::</span><span style="color:#e2e8f0">test_model_dilatih_lokal_dengan_benih_tetap_dan_hasilnya_dapat_diaudit</span> <span style="color:#4ade80;font-weight:700">PASSED</span> <span style="color:#64748b">[0%]</span></div>
     <div style="white-space:pre-wrap;word-break:break-all;margin:0"><span style="color:#64748b">test_ai.py::</span><span style="color:#e2e8f0">test_lalu_lintas_wajar_tidak_memicu_alarm_palsu</span> <span style="color:#4ade80;font-weight:700">PASSED</span> <span style="color:#64748b">[0%]</span></div>
@@ -562,72 +568,72 @@ Cuplikan **keluaran asli** `./run_tests.sh` (tiga uji pertama tiap kelompok dita
     <div style="white-space:pre-wrap;word-break:break-all;margin:0"><span style="color:#64748b">test_akun.py::</span><span style="color:#e2e8f0">test_operator_dengan_kode_undangan_sah_bisa_mengubah</span> <span style="color:#4ade80;font-weight:700">PASSED</span> <span style="color:#64748b">[3%]</span></div>
     <div style="color:#64748b;font-style:italic;white-space:pre-wrap;word-break:break-all;margin:0">   ⋯ 24 uji lain dalam kelompok ini · semuanya PASSED</div>
     <div style="color:#38bdf8;font-weight:700;margin:8px 0 2px;white-space:pre-wrap;word-break:break-all;margin:0">── ▶ Intelijen ancaman (CTI) &amp; SOAR: prediksi, pengerasan, isolasi, peta ──</div>
-    <div style="white-space:pre-wrap;word-break:break-all;margin:0"><span style="color:#64748b">test_cti_soar.py::</span><span style="color:#e2e8f0">test_loket_baru_wajib_login_dan_hanya_operator[/api/cti/siarkan-data0]</span> <span style="color:#4ade80;font-weight:700">PASSED</span> <span style="color:#64748b">[9%]</span></div>
+    <div style="white-space:pre-wrap;word-break:break-all;margin:0"><span style="color:#64748b">test_cti_soar.py::</span><span style="color:#e2e8f0">test_loket_baru_wajib_login_dan_hanya_operator[/api/cti/siarkan-data0]</span> <span style="color:#4ade80;font-weight:700">PASSED</span> <span style="color:#64748b">[8%]</span></div>
     <div style="white-space:pre-wrap;word-break:break-all;margin:0"><span style="color:#64748b">test_cti_soar.py::</span><span style="color:#e2e8f0">test_loket_baru_wajib_login_dan_hanya_operator[/api/soar/jalankan-data1]</span> <span style="color:#4ade80;font-weight:700">PASSED</span> <span style="color:#64748b">[9%]</span></div>
     <div style="white-space:pre-wrap;word-break:break-all;margin:0"><span style="color:#64748b">test_cti_soar.py::</span><span style="color:#e2e8f0">test_loket_baru_wajib_login_dan_hanya_operator[/api/soar/perketat-data2]</span> <span style="color:#4ade80;font-weight:700">PASSED</span> <span style="color:#64748b">[9%]</span></div>
     <div style="color:#64748b;font-style:italic;white-space:pre-wrap;word-break:break-all;margin:0">   ⋯ 15 uji lain dalam kelompok ini · semuanya PASSED</div>
     <div style="color:#38bdf8;font-weight:700;margin:8px 0 2px;white-space:pre-wrap;word-break:break-all;margin:0">── ▶ Mesin Deteksi Aturan: login gagal berulang, login tembus, pemindaian port (ambang terbuka) ──</div>
     <div style="white-space:pre-wrap;word-break:break-all;margin:0"><span style="color:#64748b">test_deteksi.py::</span><span style="color:#e2e8f0">test_ambang_terbuka_sesuai_dokumentasi</span> <span style="color:#4ade80;font-weight:700">PASSED</span> <span style="color:#64748b">[13%]</span></div>
     <div style="white-space:pre-wrap;word-break:break-all;margin:0"><span style="color:#64748b">test_deteksi.py::</span><span style="color:#e2e8f0">test_temuan_muncul_tepat_pada_gagal_kedelapan</span> <span style="color:#4ade80;font-weight:700">PASSED</span> <span style="color:#64748b">[13%]</span></div>
-    <div style="white-space:pre-wrap;word-break:break-all;margin:0"><span style="color:#64748b">test_deteksi.py::</span><span style="color:#e2e8f0">test_login_gagal_ambang_tepat</span> <span style="color:#4ade80;font-weight:700">PASSED</span> <span style="color:#64748b">[14%]</span></div>
+    <div style="white-space:pre-wrap;word-break:break-all;margin:0"><span style="color:#64748b">test_deteksi.py::</span><span style="color:#e2e8f0">test_login_gagal_ambang_tepat</span> <span style="color:#4ade80;font-weight:700">PASSED</span> <span style="color:#64748b">[13%]</span></div>
     <div style="color:#64748b;font-style:italic;white-space:pre-wrap;word-break:break-all;margin:0">   ⋯ 21 uji lain dalam kelompok ini · semuanya PASSED</div>
     <div style="color:#38bdf8;font-weight:700;margin:8px 0 2px;white-space:pre-wrap;word-break:break-all;margin:0">── ▶ Drill kesiapan: log cerita sintetis lewat aturan yang sama, nilai dari jejak tercatat ──</div>
-    <div style="white-space:pre-wrap;word-break:break-all;margin:0"><span style="color:#64748b">test_drill.py::</span><span style="color:#e2e8f0">test_pengamat_melihat_katalog_tetapi_tidak_bisa_memulai_atau_menjawab</span> <span style="color:#4ade80;font-weight:700">PASSED</span> <span style="color:#64748b">[19%]</span></div>
+    <div style="white-space:pre-wrap;word-break:break-all;margin:0"><span style="color:#64748b">test_drill.py::</span><span style="color:#e2e8f0">test_pengamat_melihat_katalog_tetapi_tidak_bisa_memulai_atau_menjawab</span> <span style="color:#4ade80;font-weight:700">PASSED</span> <span style="color:#64748b">[18%]</span></div>
     <div style="white-space:pre-wrap;word-break:break-all;margin:0"><span style="color:#64748b">test_drill.py::</span><span style="color:#e2e8f0">test_tanpa_login_ditolak</span> <span style="color:#4ade80;font-weight:700">PASSED</span> <span style="color:#64748b">[19%]</span></div>
     <div style="white-space:pre-wrap;word-break:break-all;margin:0"><span style="color:#64748b">test_drill.py::</span><span style="color:#e2e8f0">test_kode_drill_dan_kolom_asing_ditolak</span> <span style="color:#4ade80;font-weight:700">PASSED</span> <span style="color:#64748b">[19%]</span></div>
     <div style="color:#64748b;font-style:italic;white-space:pre-wrap;word-break:break-all;margin:0">   ⋯ 33 uji lain dalam kelompok ini · semuanya PASSED</div>
     <div style="color:#38bdf8;font-weight:700;margin:8px 0 2px;white-space:pre-wrap;word-break:break-all;margin:0">── ▶ Impor log luring: auth.log, firewall, CSV, Wazuh alerts.json, Suricata eve.json; aturan sama, dua kunci utuh ──</div>
-    <div style="white-space:pre-wrap;word-break:break-all;margin:0"><span style="color:#64748b">test_impor_log.py::</span><span style="color:#e2e8f0">test_auth_log_openssh_dibaca_tanpa_nama_akun</span> <span style="color:#4ade80;font-weight:700">PASSED</span> <span style="color:#64748b">[28%]</span></div>
-    <div style="white-space:pre-wrap;word-break:break-all;margin:0"><span style="color:#64748b">test_impor_log.py::</span><span style="color:#e2e8f0">test_log_firewall_ufw_menjadi_koneksi_dan_aset_dikenali_dari_port</span> <span style="color:#4ade80;font-weight:700">PASSED</span> <span style="color:#64748b">[28%]</span></div>
-    <div style="white-space:pre-wrap;word-break:break-all;margin:0"><span style="color:#64748b">test_impor_log.py::</span><span style="color:#e2e8f0">test_csv_berkepala_dan_alamat_ip_aset_dipetakan</span> <span style="color:#4ade80;font-weight:700">PASSED</span> <span style="color:#64748b">[28%]</span></div>
-    <div style="color:#64748b;font-style:italic;white-space:pre-wrap;word-break:break-all;margin:0">   ⋯ 22 uji lain dalam kelompok ini · semuanya PASSED</div>
+    <div style="white-space:pre-wrap;word-break:break-all;margin:0"><span style="color:#64748b">test_impor_log.py::</span><span style="color:#e2e8f0">test_auth_log_openssh_dibaca_tanpa_nama_akun</span> <span style="color:#4ade80;font-weight:700">PASSED</span> <span style="color:#64748b">[27%]</span></div>
+    <div style="white-space:pre-wrap;word-break:break-all;margin:0"><span style="color:#64748b">test_impor_log.py::</span><span style="color:#e2e8f0">test_log_firewall_ufw_menjadi_koneksi_dan_aset_dikenali_dari_port</span> <span style="color:#4ade80;font-weight:700">PASSED</span> <span style="color:#64748b">[27%]</span></div>
+    <div style="white-space:pre-wrap;word-break:break-all;margin:0"><span style="color:#64748b">test_impor_log.py::</span><span style="color:#e2e8f0">test_csv_berkepala_dan_alamat_ip_aset_dipetakan</span> <span style="color:#4ade80;font-weight:700">PASSED</span> <span style="color:#64748b">[27%]</span></div>
+    <div style="color:#64748b;font-style:italic;white-space:pre-wrap;word-break:break-all;margin:0">   ⋯ 35 uji lain dalam kelompok ini · semuanya PASSED</div>
     <div style="color:#38bdf8;font-weight:700;margin:8px 0 2px;white-space:pre-wrap;word-break:break-all;margin:0">── ▶ Kamus istilah: tidak ada label yang tertanam di luar app/istilah.py ──</div>
-    <div style="white-space:pre-wrap;word-break:break-all;margin:0"><span style="color:#64748b">test_istilah.py::</span><span style="color:#e2e8f0">test_tidak_ada_label_tertanam_di_luar_kamus[Amankan bukti]</span> <span style="color:#4ade80;font-weight:700">PASSED</span> <span style="color:#64748b">[34%]</span></div>
-    <div style="white-space:pre-wrap;word-break:break-all;margin:0"><span style="color:#64748b">test_istilah.py::</span><span style="color:#e2e8f0">test_tidak_ada_label_tertanam_di_luar_kamus[BUKTI DIAMANKAN]</span> <span style="color:#4ade80;font-weight:700">PASSED</span> <span style="color:#64748b">[34%]</span></div>
-    <div style="white-space:pre-wrap;word-break:break-all;margin:0"><span style="color:#64748b">test_istilah.py::</span><span style="color:#e2e8f0">test_tidak_ada_label_tertanam_di_luar_kamus[Buku Rantai Bukti]</span> <span style="color:#4ade80;font-weight:700">PASSED</span> <span style="color:#64748b">[34%]</span></div>
+    <div style="white-space:pre-wrap;word-break:break-all;margin:0"><span style="color:#64748b">test_istilah.py::</span><span style="color:#e2e8f0">test_tidak_ada_label_tertanam_di_luar_kamus[Amankan bukti]</span> <span style="color:#4ade80;font-weight:700">PASSED</span> <span style="color:#64748b">[36%]</span></div>
+    <div style="white-space:pre-wrap;word-break:break-all;margin:0"><span style="color:#64748b">test_istilah.py::</span><span style="color:#e2e8f0">test_tidak_ada_label_tertanam_di_luar_kamus[BUKTI DIAMANKAN]</span> <span style="color:#4ade80;font-weight:700">PASSED</span> <span style="color:#64748b">[36%]</span></div>
+    <div style="white-space:pre-wrap;word-break:break-all;margin:0"><span style="color:#64748b">test_istilah.py::</span><span style="color:#e2e8f0">test_tidak_ada_label_tertanam_di_luar_kamus[Buku Rantai Bukti]</span> <span style="color:#4ade80;font-weight:700">PASSED</span> <span style="color:#64748b">[36%]</span></div>
     <div style="color:#64748b;font-style:italic;white-space:pre-wrap;word-break:break-all;margin:0">   ⋯ 38 uji lain dalam kelompok ini · semuanya PASSED</div>
     <div style="color:#38bdf8;font-weight:700;margin:8px 0 2px;white-space:pre-wrap;word-break:break-all;margin:0">── ▶ Keamanan &amp; akses: login, peran, batas laju, header, batas ukuran kiriman, log audit ──</div>
-    <div style="white-space:pre-wrap;word-break:break-all;margin:0"><span style="color:#64748b">test_keamanan.py::</span><span style="color:#e2e8f0">test_semua_endpoint_wajib_login[get-/api/layanan-None]</span> <span style="color:#4ade80;font-weight:700">PASSED</span> <span style="color:#64748b">[44%]</span></div>
-    <div style="white-space:pre-wrap;word-break:break-all;margin:0"><span style="color:#64748b">test_keamanan.py::</span><span style="color:#e2e8f0">test_semua_endpoint_wajib_login[post-/api/indikator/cari-data1]</span> <span style="color:#4ade80;font-weight:700">PASSED</span> <span style="color:#64748b">[44%]</span></div>
-    <div style="white-space:pre-wrap;word-break:break-all;margin:0"><span style="color:#64748b">test_keamanan.py::</span><span style="color:#e2e8f0">test_semua_endpoint_wajib_login[post-/api/simulasi-data2]</span> <span style="color:#4ade80;font-weight:700">PASSED</span> <span style="color:#64748b">[44%]</span></div>
+    <div style="white-space:pre-wrap;word-break:break-all;margin:0"><span style="color:#64748b">test_keamanan.py::</span><span style="color:#e2e8f0">test_semua_endpoint_wajib_login[get-/api/layanan-None]</span> <span style="color:#4ade80;font-weight:700">PASSED</span> <span style="color:#64748b">[45%]</span></div>
+    <div style="white-space:pre-wrap;word-break:break-all;margin:0"><span style="color:#64748b">test_keamanan.py::</span><span style="color:#e2e8f0">test_semua_endpoint_wajib_login[post-/api/indikator/cari-data1]</span> <span style="color:#4ade80;font-weight:700">PASSED</span> <span style="color:#64748b">[46%]</span></div>
+    <div style="white-space:pre-wrap;word-break:break-all;margin:0"><span style="color:#64748b">test_keamanan.py::</span><span style="color:#e2e8f0">test_semua_endpoint_wajib_login[post-/api/simulasi-data2]</span> <span style="color:#4ade80;font-weight:700">PASSED</span> <span style="color:#64748b">[46%]</span></div>
     <div style="color:#64748b;font-style:italic;white-space:pre-wrap;word-break:break-all;margin:0">   ⋯ 35 uji lain dalam kelompok ini · semuanya PASSED</div>
     <div style="color:#38bdf8;font-weight:700;margin:8px 0 2px;white-space:pre-wrap;word-break:break-all;margin:0">── ▶ Rantai komando &amp; laporan: isolasi pre-authorized, LAPSIT, Quick Call ──</div>
-    <div style="white-space:pre-wrap;word-break:break-all;margin:0"><span style="color:#64748b">test_komando.py::</span><span style="color:#e2e8f0">test_quick_call_wajib_login_dan_hanya_operator</span> <span style="color:#4ade80;font-weight:700">PASSED</span> <span style="color:#64748b">[53%]</span></div>
-    <div style="white-space:pre-wrap;word-break:break-all;margin:0"><span style="color:#64748b">test_komando.py::</span><span style="color:#e2e8f0">test_quick_call_menolak_input_aneh[data0]</span> <span style="color:#4ade80;font-weight:700">PASSED</span> <span style="color:#64748b">[53%]</span></div>
-    <div style="white-space:pre-wrap;word-break:break-all;margin:0"><span style="color:#64748b">test_komando.py::</span><span style="color:#e2e8f0">test_quick_call_menolak_input_aneh[data1]</span> <span style="color:#4ade80;font-weight:700">PASSED</span> <span style="color:#64748b">[54%]</span></div>
+    <div style="white-space:pre-wrap;word-break:break-all;margin:0"><span style="color:#64748b">test_komando.py::</span><span style="color:#e2e8f0">test_quick_call_wajib_login_dan_hanya_operator</span> <span style="color:#4ade80;font-weight:700">PASSED</span> <span style="color:#64748b">[54%]</span></div>
+    <div style="white-space:pre-wrap;word-break:break-all;margin:0"><span style="color:#64748b">test_komando.py::</span><span style="color:#e2e8f0">test_quick_call_menolak_input_aneh[data0]</span> <span style="color:#4ade80;font-weight:700">PASSED</span> <span style="color:#64748b">[55%]</span></div>
+    <div style="white-space:pre-wrap;word-break:break-all;margin:0"><span style="color:#64748b">test_komando.py::</span><span style="color:#e2e8f0">test_quick_call_menolak_input_aneh[data1]</span> <span style="color:#4ade80;font-weight:700">PASSED</span> <span style="color:#64748b">[55%]</span></div>
     <div style="color:#64748b;font-style:italic;white-space:pre-wrap;word-break:break-all;margin:0">   ⋯ 19 uji lain dalam kelompok ini · semuanya PASSED</div>
     <div style="color:#38bdf8;font-weight:700;margin:8px 0 2px;white-space:pre-wrap;word-break:break-all;margin:0">── ▶ Linimasa 60 menit (data latihan), pita anomali AI per aset, KPI MTTC dan insiden ──</div>
-    <div style="white-space:pre-wrap;word-break:break-all;margin:0"><span style="color:#64748b">test_linimasa.py::</span><span style="color:#e2e8f0">test_posko_baru_berisi_60_menit_data_latihan_yang_bersih</span> <span style="color:#4ade80;font-weight:700">PASSED</span> <span style="color:#64748b">[58%]</span></div>
-    <div style="white-space:pre-wrap;word-break:break-all;margin:0"><span style="color:#64748b">test_linimasa.py::</span><span style="color:#e2e8f0">test_data_latihan_berbenih_tetap</span> <span style="color:#4ade80;font-weight:700">PASSED</span> <span style="color:#64748b">[59%]</span></div>
-    <div style="white-space:pre-wrap;word-break:break-all;margin:0"><span style="color:#64748b">test_linimasa.py::</span><span style="color:#e2e8f0">test_setiap_60_detik_menjadi_satu_titik_posko</span> <span style="color:#4ade80;font-weight:700">PASSED</span> <span style="color:#64748b">[59%]</span></div>
+    <div style="white-space:pre-wrap;word-break:break-all;margin:0"><span style="color:#64748b">test_linimasa.py::</span><span style="color:#e2e8f0">test_posko_baru_berisi_60_menit_data_latihan_yang_bersih</span> <span style="color:#4ade80;font-weight:700">PASSED</span> <span style="color:#64748b">[60%]</span></div>
+    <div style="white-space:pre-wrap;word-break:break-all;margin:0"><span style="color:#64748b">test_linimasa.py::</span><span style="color:#e2e8f0">test_data_latihan_berbenih_tetap</span> <span style="color:#4ade80;font-weight:700">PASSED</span> <span style="color:#64748b">[60%]</span></div>
+    <div style="white-space:pre-wrap;word-break:break-all;margin:0"><span style="color:#64748b">test_linimasa.py::</span><span style="color:#e2e8f0">test_setiap_60_detik_menjadi_satu_titik_posko</span> <span style="color:#4ade80;font-weight:700">PASSED</span> <span style="color:#64748b">[60%]</span></div>
     <div style="color:#64748b;font-style:italic;white-space:pre-wrap;word-break:break-all;margin:0">   ⋯ 3 uji lain dalam kelompok ini · semuanya PASSED</div>
     <div style="color:#38bdf8;font-weight:700;margin:8px 0 2px;white-space:pre-wrap;word-break:break-all;margin:0">── ▶ Sinergi IT/OT: kabar Modbus menaikkan pengendali genset ke WASPADA ──</div>
-    <div style="white-space:pre-wrap;word-break:break-all;margin:0"><span style="color:#64748b">test_ot.py::</span><span style="color:#e2e8f0">test_genset_terdaftar_sebagai_aset_ot_di_topologi_dan_radar</span> <span style="color:#4ade80;font-weight:700">PASSED</span> <span style="color:#64748b">[60%]</span></div>
-    <div style="white-space:pre-wrap;word-break:break-all;margin:0"><span style="color:#64748b">test_ot.py::</span><span style="color:#e2e8f0">test_kabar_modbus_menaikkan_genset_ke_waspada_sebelum_serangan</span> <span style="color:#4ade80;font-weight:700">PASSED</span> <span style="color:#64748b">[60%]</span></div>
-    <div style="white-space:pre-wrap;word-break:break-all;margin:0"><span style="color:#64748b">test_ot.py::</span><span style="color:#e2e8f0">test_perketat_genset_menurunkan_peluang_di_bawah_ambang</span> <span style="color:#4ade80;font-weight:700">PASSED</span> <span style="color:#64748b">[60%]</span></div>
+    <div style="white-space:pre-wrap;word-break:break-all;margin:0"><span style="color:#64748b">test_ot.py::</span><span style="color:#e2e8f0">test_genset_terdaftar_sebagai_aset_ot_di_topologi_dan_radar</span> <span style="color:#4ade80;font-weight:700">PASSED</span> <span style="color:#64748b">[61%]</span></div>
+    <div style="white-space:pre-wrap;word-break:break-all;margin:0"><span style="color:#64748b">test_ot.py::</span><span style="color:#e2e8f0">test_kabar_modbus_menaikkan_genset_ke_waspada_sebelum_serangan</span> <span style="color:#4ade80;font-weight:700">PASSED</span> <span style="color:#64748b">[61%]</span></div>
+    <div style="white-space:pre-wrap;word-break:break-all;margin:0"><span style="color:#64748b">test_ot.py::</span><span style="color:#e2e8f0">test_perketat_genset_menurunkan_peluang_di_bawah_ambang</span> <span style="color:#4ade80;font-weight:700">PASSED</span> <span style="color:#64748b">[61%]</span></div>
     <div style="color:#64748b;font-style:italic;white-space:pre-wrap;word-break:break-all;margin:0">   ⋯ 3 uji lain dalam kelompok ini · semuanya PASSED</div>
     <div style="color:#38bdf8;font-weight:700;margin:8px 0 2px;white-space:pre-wrap;word-break:break-all;margin:0">── ▶ Aturan OT, label MITRE ATT&amp;CK, label sumber data, dan pengesahan dua tanda tangan LAPSIT ──</div>
-    <div style="white-space:pre-wrap;word-break:break-all;margin:0"><span style="color:#64748b">test_ot_mitre_lapsit.py::</span><span style="color:#e2e8f0">test_aturan_ot_terbuka_sesuai_dokumentasi</span> <span style="color:#4ade80;font-weight:700">PASSED</span> <span style="color:#64748b">[61%]</span></div>
-    <div style="white-space:pre-wrap;word-break:break-all;margin:0"><span style="color:#64748b">test_ot_mitre_lapsit.py::</span><span style="color:#e2e8f0">test_jalur_ot_resmi_bukan_temuan</span> <span style="color:#4ade80;font-weight:700">PASSED</span> <span style="color:#64748b">[62%]</span></div>
-    <div style="white-space:pre-wrap;word-break:break-all;margin:0"><span style="color:#64748b">test_ot_mitre_lapsit.py::</span><span style="color:#e2e8f0">test_koneksi_ot_tanpa_izin_menjadi_temuan_sekali_per_episode</span> <span style="color:#4ade80;font-weight:700">PASSED</span> <span style="color:#64748b">[62%]</span></div>
+    <div style="white-space:pre-wrap;word-break:break-all;margin:0"><span style="color:#64748b">test_ot_mitre_lapsit.py::</span><span style="color:#e2e8f0">test_aturan_ot_terbuka_sesuai_dokumentasi</span> <span style="color:#4ade80;font-weight:700">PASSED</span> <span style="color:#64748b">[62%]</span></div>
+    <div style="white-space:pre-wrap;word-break:break-all;margin:0"><span style="color:#64748b">test_ot_mitre_lapsit.py::</span><span style="color:#e2e8f0">test_jalur_ot_resmi_bukan_temuan</span> <span style="color:#4ade80;font-weight:700">PASSED</span> <span style="color:#64748b">[63%]</span></div>
+    <div style="white-space:pre-wrap;word-break:break-all;margin:0"><span style="color:#64748b">test_ot_mitre_lapsit.py::</span><span style="color:#e2e8f0">test_koneksi_ot_tanpa_izin_menjadi_temuan_sekali_per_episode</span> <span style="color:#4ade80;font-weight:700">PASSED</span> <span style="color:#64748b">[63%]</span></div>
     <div style="color:#64748b;font-style:italic;white-space:pre-wrap;word-break:break-all;margin:0">   ⋯ 20 uji lain dalam kelompok ini · semuanya PASSED</div>
     <div style="color:#38bdf8;font-weight:700;margin:8px 0 2px;white-space:pre-wrap;word-break:break-all;margin:0">── ▶ Paket pasang luring: sidik jari SHA-256, pemasangan tanpa internet ──</div>
-    <div style="white-space:pre-wrap;word-break:break-all;margin:0"><span style="color:#64748b">test_paket_luring.py::</span><span style="color:#e2e8f0">test_paket_utuh_lolos_pemeriksaan</span> <span style="color:#4ade80;font-weight:700">PASSED</span> <span style="color:#64748b">[67%]</span></div>
-    <div style="white-space:pre-wrap;word-break:break-all;margin:0"><span style="color:#64748b">test_paket_luring.py::</span><span style="color:#e2e8f0">test_satu_bait_berubah_langsung_ditolak</span> <span style="color:#4ade80;font-weight:700">PASSED</span> <span style="color:#64748b">[67%]</span></div>
-    <div style="white-space:pre-wrap;word-break:break-all;margin:0"><span style="color:#64748b">test_paket_luring.py::</span><span style="color:#e2e8f0">test_pemasang_menerima_paket_utuh</span> <span style="color:#4ade80;font-weight:700">PASSED</span> <span style="color:#64748b">[67%]</span></div>
+    <div style="white-space:pre-wrap;word-break:break-all;margin:0"><span style="color:#64748b">test_paket_luring.py::</span><span style="color:#e2e8f0">test_paket_utuh_lolos_pemeriksaan</span> <span style="color:#4ade80;font-weight:700">PASSED</span> <span style="color:#64748b">[68%]</span></div>
+    <div style="white-space:pre-wrap;word-break:break-all;margin:0"><span style="color:#64748b">test_paket_luring.py::</span><span style="color:#e2e8f0">test_satu_bait_berubah_langsung_ditolak</span> <span style="color:#4ade80;font-weight:700">PASSED</span> <span style="color:#64748b">[68%]</span></div>
+    <div style="white-space:pre-wrap;word-break:break-all;margin:0"><span style="color:#64748b">test_paket_luring.py::</span><span style="color:#e2e8f0">test_pemasang_menerima_paket_utuh</span> <span style="color:#4ade80;font-weight:700">PASSED</span> <span style="color:#64748b">[68%]</span></div>
     <div style="color:#64748b;font-style:italic;white-space:pre-wrap;word-break:break-all;margin:0">   ⋯ 5 uji lain dalam kelompok ini · semuanya PASSED</div>
     <div style="color:#38bdf8;font-weight:700;margin:8px 0 2px;white-space:pre-wrap;word-break:break-all;margin:0">── ▶ Paket pasang Ubuntu 24.04: tanda tangan Ed25519, manifest SHA-256, pemasang menolak paket yang diubah ──</div>
-    <div style="white-space:pre-wrap;word-break:break-all;margin:0"><span style="color:#64748b">test_paket_ubuntu.py::</span><span style="color:#e2e8f0">test_paket_tersusun_lengkap_terkunci_dan_tanpa_rahasia</span> <span style="color:#4ade80;font-weight:700">PASSED</span> <span style="color:#64748b">[69%]</span></div>
-    <div style="white-space:pre-wrap;word-break:break-all;margin:0"><span style="color:#64748b">test_paket_ubuntu.py::</span><span style="color:#e2e8f0">test_payload_deterministik_dari_commit_dan_wheel_yang_sama</span> <span style="color:#4ade80;font-weight:700">PASSED</span> <span style="color:#64748b">[69%]</span></div>
-    <div style="white-space:pre-wrap;word-break:break-all;margin:0"><span style="color:#64748b">test_paket_ubuntu.py::</span><span style="color:#e2e8f0">test_pembuat_paket_menolak_kunci_privat_wheel_ganda_dan_versi_aneh</span> <span style="color:#4ade80;font-weight:700">PASSED</span> <span style="color:#64748b">[69%]</span></div>
+    <div style="white-space:pre-wrap;word-break:break-all;margin:0"><span style="color:#64748b">test_paket_ubuntu.py::</span><span style="color:#e2e8f0">test_paket_tersusun_lengkap_terkunci_dan_tanpa_rahasia</span> <span style="color:#4ade80;font-weight:700">PASSED</span> <span style="color:#64748b">[70%]</span></div>
+    <div style="white-space:pre-wrap;word-break:break-all;margin:0"><span style="color:#64748b">test_paket_ubuntu.py::</span><span style="color:#e2e8f0">test_payload_deterministik_dari_commit_dan_wheel_yang_sama</span> <span style="color:#4ade80;font-weight:700">PASSED</span> <span style="color:#64748b">[70%]</span></div>
+    <div style="white-space:pre-wrap;word-break:break-all;margin:0"><span style="color:#64748b">test_paket_ubuntu.py::</span><span style="color:#e2e8f0">test_pembuat_paket_menolak_kunci_privat_wheel_ganda_dan_versi_aneh</span> <span style="color:#4ade80;font-weight:700">PASSED</span> <span style="color:#64748b">[70%]</span></div>
     <div style="color:#64748b;font-style:italic;white-space:pre-wrap;word-break:break-all;margin:0">   ⋯ 21 uji lain dalam kelompok ini · semuanya PASSED</div>
     <div style="color:#38bdf8;font-weight:700;margin:8px 0 2px;white-space:pre-wrap;word-break:break-all;margin:0">── ▶ Rantai bukti forensik: bukti sebelum isolasi, isolasi darurat, cocok hash ──</div>
     <div style="white-space:pre-wrap;word-break:break-all;margin:0"><span style="color:#64748b">test_rantai_bukti.py::</span><span style="color:#e2e8f0">test_setiap_playbook_diawali_amankan_bukti_sebelum_pemutusan[ransomware]</span> <span style="color:#4ade80;font-weight:700">PASSED</span> <span style="color:#64748b">[75%]</span></div>
-    <div style="white-space:pre-wrap;word-break:break-all;margin:0"><span style="color:#64748b">test_rantai_bukti.py::</span><span style="color:#e2e8f0">test_setiap_playbook_diawali_amankan_bukti_sebelum_pemutusan[ddos]</span> <span style="color:#4ade80;font-weight:700">PASSED</span> <span style="color:#64748b">[75%]</span></div>
-    <div style="white-space:pre-wrap;word-break:break-all;margin:0"><span style="color:#64748b">test_rantai_bukti.py::</span><span style="color:#e2e8f0">test_setiap_playbook_diawali_amankan_bukti_sebelum_pemutusan[sabotase_ot]</span> <span style="color:#4ade80;font-weight:700">PASSED</span> <span style="color:#64748b">[75%]</span></div>
+    <div style="white-space:pre-wrap;word-break:break-all;margin:0"><span style="color:#64748b">test_rantai_bukti.py::</span><span style="color:#e2e8f0">test_setiap_playbook_diawali_amankan_bukti_sebelum_pemutusan[ddos]</span> <span style="color:#4ade80;font-weight:700">PASSED</span> <span style="color:#64748b">[76%]</span></div>
+    <div style="white-space:pre-wrap;word-break:break-all;margin:0"><span style="color:#64748b">test_rantai_bukti.py::</span><span style="color:#e2e8f0">test_setiap_playbook_diawali_amankan_bukti_sebelum_pemutusan[sabotase_ot]</span> <span style="color:#4ade80;font-weight:700">PASSED</span> <span style="color:#64748b">[76%]</span></div>
     <div style="color:#64748b;font-style:italic;white-space:pre-wrap;word-break:break-all;margin:0">   ⋯ 33 uji lain dalam kelompok ini · semuanya PASSED</div>
     <div style="color:#38bdf8;font-weight:700;margin:8px 0 2px;white-space:pre-wrap;word-break:break-all;margin:0">── ▶ Telemetri &amp; siaran: panel bergerak, dapur tunggal, tambalan delta ──</div>
-    <div style="white-space:pre-wrap;word-break:break-all;margin:0"><span style="color:#64748b">test_telemetri.py::</span><span style="color:#e2e8f0">test_telemetri_wajib_login[/api/telemetri]</span> <span style="color:#4ade80;font-weight:700">PASSED</span> <span style="color:#64748b">[83%]</span></div>
+    <div style="white-space:pre-wrap;word-break:break-all;margin:0"><span style="color:#64748b">test_telemetri.py::</span><span style="color:#e2e8f0">test_telemetri_wajib_login[/api/telemetri]</span> <span style="color:#4ade80;font-weight:700">PASSED</span> <span style="color:#64748b">[84%]</span></div>
     <div style="white-space:pre-wrap;word-break:break-all;margin:0"><span style="color:#64748b">test_telemetri.py::</span><span style="color:#e2e8f0">test_telemetri_wajib_login[/api/telemetri/siaran]</span> <span style="color:#4ade80;font-weight:700">PASSED</span> <span style="color:#64748b">[84%]</span></div>
     <div style="white-space:pre-wrap;word-break:break-all;margin:0"><span style="color:#64748b">test_telemetri.py::</span><span style="color:#e2e8f0">test_pengamat_boleh_melihat_tetapi_tidak_memicu</span> <span style="color:#4ade80;font-weight:700">PASSED</span> <span style="color:#64748b">[84%]</span></div>
     <div style="color:#64748b;font-style:italic;white-space:pre-wrap;word-break:break-all;margin:0">   ⋯ 16 uji lain dalam kelompok ini · semuanya PASSED</div>
@@ -635,7 +641,7 @@ Cuplikan **keluaran asli** `./run_tests.sh` (tiga uji pertama tiap kelompok dita
     <div style="white-space:pre-wrap;word-break:break-all;margin:0"><span style="color:#64748b">test_titik_periksa.py::</span><span style="color:#e2e8f0">test_ed25519_murni_sama_dengan_cryptography</span> <span style="color:#4ade80;font-weight:700">PASSED</span> <span style="color:#64748b">[88%]</span></div>
     <div style="white-space:pre-wrap;word-break:break-all;margin:0"><span style="color:#64748b">test_titik_periksa.py::</span><span style="color:#e2e8f0">test_alat_auditor_tidak_mengimpor_pustaka_luar</span> <span style="color:#4ade80;font-weight:700">PASSED</span> <span style="color:#64748b">[88%]</span></div>
     <div style="white-space:pre-wrap;word-break:break-all;margin:0"><span style="color:#64748b">test_titik_periksa.py::</span><span style="color:#e2e8f0">test_mode_demo_tanpa_kunci_hmac_tidak_aktif</span> <span style="color:#4ade80;font-weight:700">PASSED</span> <span style="color:#64748b">[89%]</span></div>
-    <div style="color:#64748b;font-style:italic;white-space:pre-wrap;word-break:break-all;margin:0">   ⋯ 12 uji lain dalam kelompok ini · semuanya PASSED</div>
+    <div style="color:#64748b;font-style:italic;white-space:pre-wrap;word-break:break-all;margin:0">   ⋯ 13 uji lain dalam kelompok ini · semuanya PASSED</div>
     <div style="color:#38bdf8;font-weight:700;margin:8px 0 2px;white-space:pre-wrap;word-break:break-all;margin:0">── ▶ Triase &amp; Kesiapan Siber: penutupan peringatan beralasan, nilai A–E terbuka ──</div>
     <div style="white-space:pre-wrap;word-break:break-all;margin:0"><span style="color:#64748b">test_triase_kesiapan.py::</span><span style="color:#e2e8f0">test_huruf_mengikuti_batas_terbuka</span> <span style="color:#4ade80;font-weight:700">PASSED</span> <span style="color:#64748b">[92%]</span></div>
     <div style="white-space:pre-wrap;word-break:break-all;margin:0"><span style="color:#64748b">test_triase_kesiapan.py::</span><span style="color:#e2e8f0">test_nilai_awal_mengikuti_rumus_terbuka</span> <span style="color:#4ade80;font-weight:700">PASSED</span> <span style="color:#64748b">[92%]</span></div>
@@ -651,12 +657,12 @@ Cuplikan **keluaran asli** `./run_tests.sh` (tiga uji pertama tiap kelompok dita
     <div style="white-space:pre-wrap;word-break:break-all;margin:0"><span style="color:#64748b">test_versi.py::</span><span style="color:#e2e8f0">test_alat_pengemas_membaca_versi_yang_sama</span> <span style="color:#4ade80;font-weight:700">PASSED</span> <span style="color:#64748b">[99%]</span></div>
     <div style="white-space:pre-wrap;word-break:break-all;margin:0"><span style="color:#64748b">test_versi.py::</span><span style="color:#e2e8f0">test_tidak_ada_label_versi_tertulis_langsung</span> <span style="color:#4ade80;font-weight:700">PASSED</span> <span style="color:#64748b">[99%]</span></div>
     <div style="color:#64748b;font-style:italic;white-space:pre-wrap;word-break:break-all;margin:0">   ⋯ 2 uji lain dalam kelompok ini · semuanya PASSED</div>
-    <div style="margin-top:10px;padding:6px 10px;border-radius:6px;background:rgba(74,222,128,.12);color:#4ade80;font-weight:700;text-align:center;white-space:pre-wrap;word-break:break-all;margin:0">═══════ 411 passed in 54.98s ═══════</div>
+    <div style="margin-top:10px;padding:6px 10px;border-radius:6px;background:rgba(74,222,128,.12);color:#4ade80;font-weight:700;text-align:center;white-space:pre-wrap;word-break:break-all;margin:0">═══════ 425 passed in 47.63s ═══════</div>
   </div>
 </div>
 
 
-Setiap uji tampil satu baris beserta hasilnya. Target: `411 passed`.
+Setiap uji tampil satu baris beserta hasilnya. Target: `425 passed`.
 
 | Kelompok uji | Jumlah | Yang dijamin |
 | --- | --- | --- |
@@ -671,20 +677,20 @@ Setiap uji tampil satu baris beserta hasilnya. Target: `411 passed`.
 | Linimasa dan KPI | 6 | Data latihan bersih dan berbenih tetap; satu titik per 60 detik; tanda insiden; pita AI dan berakhirnya; KPI dari kejadian nyata |
 | AI lokal | 10 | Model dilatih lokal dengan benih tetap; tanpa alarm palsu; Modbus tak wajar → WASPADA beserta alasan; gabungan dengan CTI; Perketat; penilaian dalam milidetik; berjalan tanpa jaringan |
 | Paket pasang luring | 8 | Daftar sidik jari SHA-256 mencakup setiap berkas; satu bait berubah, berkas hilang, berkas selundupan, atau jalur keluar paket langsung ditolak; pemasangan memakai `--no-index`; paket tanpa `.env`/`.venv`/data |
-| Impor log luring | 25 | auth.log, firewall, CSV, Wazuh alerts.json, dan Suricata eve.json dibaca tanpa nama akun; jam Modbus dari stempel sensor; baris tidak sah dilewati dan dihitung; aturan yang sama dengan latihan; dua kunci utuh; log audit tanpa isi log; hanya jalur impor boleh ≈2 MB dan hanya dengan token; batas laju |
+| Impor log luring | 38 | auth.log, firewall, CSV, Wazuh alerts.json, dan Suricata eve.json dibaca tanpa nama akun; jam Modbus dari stempel sensor; baris tidak sah dilewati dan dihitung; aturan yang sama dengan latihan; dua kunci utuh; log audit tanpa isi log; hanya jalur impor boleh ≈2 MB dan hanya dengan token; batas laju |
 | Aturan OT, label MITRE ATT&CK, label sumber data, pengesahan LAPSIT | 23 | Jalur OT resmi dan perintah baca bukan temuan; jendela pemeliharaan 22.00–02.00 diuji per jam; rantai IT → OT; dua kunci utuh (genset hanya WASPADA, tanpa insiden, bukti, atau isolasi); setiap aturan dan skenario berlabel ATT&CK; AI tanpa label; setiap peringatan menulis sumber datanya; LAPSIT memuat teknik ATT&CK dan dua tanda tangan |
 | Sinergi IT/OT | 6 | Genset (Modbus 502) terdaftar; kabar Modbus → WASPADA; Perketat; tanpa alarm palsu IT ⇄ OT; Sabotase OT: bukti → putus jalur ≈1,2 dtk, genset tetap menyala; pemulihan terkunci bila _hash_ beda |
 | Verifikasi audit tanpa _server_ | 12 | CLI mandiri menghitung ulang rantai HMAC log audit dan Buku Rantai Bukti; isi diubah, entri dihapus, entri dari log lain disisipkan, baris rusak, dan kunci salah tertangkap beserta letaknya; `--cocokkan` menangkap log yang dipotong di ujung; kunci tidak pernah dicetak; tanpa kode aplikasi dan tanpa jaringan |
 | Triase dan Kesiapan Siber | 16 | Rumus Kesiapan Siber terbuka (dua sub-skor, nilai = yang lebih rendah, huruf A–E); kabar ancaman menurunkan nilai, Perketat memulihkannya; penutupan peringatan wajib beralasan dan hanya untuk Operator |
 | Paket pasang Ubuntu 24.04 | 24 | _Payload_ deterministik dan bertanda tangan Ed25519; satu bita berubah, kunci lain, atau berkas tak tercatat → pemasangan ditolak; versi turun ditolak, `--kembali` dan `--hapus` berjalan |
-| Titik periksa Ed25519 | 15 | Ed25519 murni di alat auditor sama dengan pustaka _cryptography_; akar dibuat sekali dan dicatat; entri diubah, log dipotong, akar salah, titik periksa ditandatangani ulang kunci curian → tertangkap; kunci lama tidak tersisa di disk |
+| Titik periksa Ed25519 | 16 | Ed25519 murni di alat auditor sama dengan pustaka _cryptography_; akar dibuat sekali dan dicatat; entri diubah, log dipotong, akar salah, titik periksa ditandatangani ulang kunci curian → tertangkap; kunci lama tidak tersisa di disk |
 | Drill Kesiapan | 36 | Log cerita sintetis (auth.log dan Suricata eve.json) lewat aturan yang sama; aturan yang diam dilaporkan; kunci jawaban tidak dikirim sebelum dijawab; nilai dari jejak tercatat (bukti 30/15/0, ambang MTTC terbuka); cerita OT selalu di luar jendela pemeliharaan; hanya Operator; tercetak di LAPSIT sebagai LATIHAN |
 | Satu sumber versi | 5 | Dasbor, kop LAPSIT, nama zip, dan paket memakai `app/versi.py`; label versi tertulis langsung → gagal; nama peran tampil berhuruf kapital |
 
 ### 4.3 Mengemas untuk Distribusi
 
 ```bash
-python tools/kemas_rilis.py      # → dist/nusantara-shield-v5.4.0.zip (≈ 187 KB)
+python tools/kemas_rilis.py      # → dist/nusantara-shield-v5.4.1.zip (≈ 17 MB, termasuk dokumen PDF)
 ```
 
 Paket dibuat **tanpa** `.venv`, `.env`, data operasional, dan *cache*. Penerima cukup mengulang langkah 4.1.
@@ -698,7 +704,7 @@ Untuk posko tanpa internet, kode dan seluruh pustaka dikemas menjadi satu zip be
 python tools/kemas_luring.py --platform win_amd64 --python 3.12           # posko Windows 64-bit
 python tools/kemas_luring.py --platform macosx_14_0_arm64 --python 3.12   # posko Mac Apple Silicon
 python tools/kemas_luring.py                                              # posko sama dengan komputer ini
-#    → dist/nusantara-shield-v5.4.0-luring-<platform>.zip + dua sidik jari untuk berita acara
+#    → dist/nusantara-shield-v5.4.1-luring-<platform>.zip + dua sidik jari untuk berita acara
 
 # 2) Di posko tanpa internet: ekstrak zip, masuk ke foldernya, lalu
 python pasang_luring.py --periksa-saja    # cocokkan sidik jari SHA256SUMS dengan berita acara
@@ -734,7 +740,7 @@ Layanan `nusantara-shield.service` berjalan sebagai `nshield` dengan `ProtectSys
 
 ## 5. Cara Penggunaan Singkat
 
-1. **Masuk.** Buka alamat _server_ di peramban, lalu masuk sebagai `operator` (boleh bertindak) atau `pengamat` (hanya melihat). Sandi diambil dari pengaturan `NS_OPERATOR_PASSWORD` dan `NS_VIEWER_PASSWORD`, atau dicetak di terminal saat _server_ menyala.
+1. **Masuk.** Buka alamat _server_ di peramban, lalu masuk sebagai `operator` (boleh bertindak) atau `pengamat` (melihat dan mencetak LAPSIT). Sandi diambil dari pengaturan `NS_OPERATOR_PASSWORD` dan `NS_VIEWER_PASSWORD`, atau dicetak di terminal saat _server_ menyala.
 2. **Baca situasi.** Kotak Postur, Topologi Internal atau Peta Global, Radar Anomali, dan pita Radio CTI menunjukkan kondisi seluruh aset.
 3. **Latih skenario.** Pada panel Latihan, pilih target layanan dan skenario (_Ransomware_, Distributed Denial of Service (DDoS), Cadangan mati, atau Sabotase OT). Tombol latihan OT menyiarkan kabar Modbus untuk melihat peringatan dini; tombol **Latihan AI** menyuntik lalu lintas tak wajar untuk melihat AI lokal bekerja.
 4. **Tangani insiden.** Di Action Center, tahan tombol **EKSEKUSI ISOLASI** selama 0,6 detik. Bukti disegel lebih dulu, lalu pemutusan berjalan dan LAPSIT terbit.
