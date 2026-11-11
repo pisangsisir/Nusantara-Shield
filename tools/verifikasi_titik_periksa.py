@@ -15,10 +15,13 @@ Yang diperiksa:
   2. kunci publik titik periksa #i+1 sama dengan "kunci_publik_berikut" yang disahkan titik periksa #i;
   3. tanda tangan setiap titik periksa sah;
   4. untuk setiap buku: jumlah entri tidak pernah mundur, dan SHA-256 kumulatif entri 1..n di berkas log sama
-     dengan yang ditandatangani.
+     dengan yang ditandatangani;
+  5. (opsional, --saksi) berkas saksi yang dulu diserahkan ke satuan atasan: rantai titik periksa di posko harus
+     memuat SEMUA titik periksa dalam saksi, sama persis. Kurang = riwayat digulung mundur; beda = riwayat bercabang.
 
 Pemakaian (dari akar repo):
     python3 tools/verifikasi_titik_periksa.py --akar <sidik jari akar>
+    python3 tools/verifikasi_titik_periksa.py --akar <...> --saksi saksi-posko-titik12.json
     python3 tools/verifikasi_titik_periksa.py --akar <...> --titik data/titik_periksa.jsonl \\
         --log audit_log=data/audit_log.jsonl --log rantai_bukti=data/rantai_bukti.jsonl
 
@@ -35,6 +38,7 @@ from pathlib import Path
 
 DOMAIN = b"nusantara-shield/titik-periksa/1\n"
 HASH_AWAL = "0" * 64
+JENIS_SAKSI = "nusantara-shield/saksi/1"
 LOG_BAWAAN = {"audit_log": "data/audit_log.jsonl", "rantai_bukti": "data/rantai_bukti.jsonl"}
 
 # ---------------------------------------------------------------- Ed25519 (RFC 8032 §6, hanya verifikasi)
@@ -132,27 +136,53 @@ def kepala(entri: list[dict], n: int) -> str:
     return h.hex()
 
 
-def periksa(titik: list[dict], akar: str, log: dict[str, list[dict]]) -> tuple[bool, list[str]]:
-    pesan: list[str] = []
+def periksa_rantai(titik: list[dict], akar: str) -> str | None:
+    """Rantai kunci dari akar, nomor urut, dan tanda tangan setiap titik periksa. None = sah; selain itu pesan [RUSAK]."""
     if not titik:
-        return False, ["[RUSAK] Berkas titik periksa kosong: tidak ada yang bisa dicocokkan dengan akar."]
-    if hashlib.sha256(bytes.fromhex(titik[0].get("kunci_publik", ""))).hexdigest() != akar:
-        return False, ["[RUSAK] Kunci publik titik periksa #1 tidak cocok dengan sidik jari akar dari berita acara: "
-                       "rantai titik periksa diganti atau berasal dari sistem lain."]
-    jumlah_lama: dict[str, int] = {}
+        return "[RUSAK] Berkas titik periksa kosong: tidak ada yang bisa dicocokkan dengan akar."
+    try:
+        akar_berkas = hashlib.sha256(bytes.fromhex(titik[0].get("kunci_publik", ""))).hexdigest()
+    except (AttributeError, TypeError, ValueError):
+        akar_berkas = ""
+    if akar_berkas != akar:
+        return ("[RUSAK] Kunci publik titik periksa #1 tidak cocok dengan sidik jari akar dari berita acara: "
+                "rantai titik periksa diganti atau berasal dari sistem lain.")
     for i, c in enumerate(titik, start=1):
-        if c.get("no") != i:
-            return False, pesan + [f"[RUSAK] Nomor titik periksa loncat: tertulis #{c.get('no')}, seharusnya #{i}."]
+        if not isinstance(c, dict) or c.get("no") != i:
+            return f"[RUSAK] Nomor titik periksa loncat: tertulis #{c.get('no') if isinstance(c, dict) else '?'}, seharusnya #{i}."
         if i > 1 and c.get("kunci_publik") != titik[i - 2].get("kunci_publik_berikut"):
-            return False, pesan + [f"[RUSAK] Kunci titik periksa #{i} bukan kunci yang disahkan titik periksa #{i - 1}."]
+            return f"[RUSAK] Kunci titik periksa #{i} bukan kunci yang disahkan titik periksa #{i - 1}."
         try:
             sah = ed25519_sah(bytes.fromhex(c["kunci_publik"]), DOMAIN + kanonik(
                 {k: v for k, v in c.items() if k != "tanda_tangan"}), bytes.fromhex(c.get("tanda_tangan", "")))
-        except (KeyError, ValueError):
+        except (KeyError, TypeError, ValueError):
             sah = False
         if not sah:
-            return False, pesan + [f"[RUSAK] Tanda tangan titik periksa #{i} tidak sah: isinya diubah sesudah "
-                                   "ditandatangani, atau ditandatangani kunci lain."]
+            return (f"[RUSAK] Tanda tangan titik periksa #{i} tidak sah: isinya diubah sesudah ditandatangani, "
+                    "atau ditandatangani kunci lain.")
+    return None
+
+
+def bandingkan_saksi(titik: list[dict], saksi: list[dict]) -> str | None:
+    """Rantai di posko harus memuat seluruh titik periksa saksi, sama persis. None = cocok; selain itu pesan [RUSAK]."""
+    if len(titik) < len(saksi):
+        return (f"[RUSAK] Riwayat digulung mundur: saksi di satuan atasan memuat titik periksa sampai #{len(saksi)}, "
+                f"berkas posko hanya sampai #{len(titik)}. Entri dan titik periksa sesudahnya telah dibuang.")
+    for i, (a, b) in enumerate(zip(titik, saksi), start=1):
+        if kanonik(a) != kanonik(b):
+            return (f"[RUSAK] Riwayat bercabang: titik periksa #{i} di posko berbeda dengan yang tercatat di saksi satuan "
+                    "atasan, padahal keduanya bertanda tangan. Kunci periode itu pernah bocor; riwayat sejak "
+                    f"#{i} tidak bisa dipercaya.")
+    return None
+
+
+def periksa(titik: list[dict], akar: str, log: dict[str, list[dict]]) -> tuple[bool, list[str]]:
+    pesan: list[str] = []
+    rusak = periksa_rantai(titik, akar)
+    if rusak:
+        return False, [rusak]
+    jumlah_lama: dict[str, int] = {}
+    for i, c in enumerate(titik, start=1):
         for nama, kp in c.get("log", {}).items():
             n = kp["jumlah"]
             if log.get(nama) is None:
@@ -194,6 +224,9 @@ def main(argv: list[str] | None = None, keluar=sys.stdout) -> int:
     p.add_argument("--minimal-titik", type=int, default=0, metavar="N",
                    help="nomor titik periksa yang tercatat di LAPSIT/berita acara terakhir; berkas yang berhenti sebelum "
                         "nomor ini = riwayat digulung mundur")
+    p.add_argument("--saksi", metavar="BERKAS",
+                   help="berkas saksi yang pernah diserahkan ke satuan atasan (Ekspor Saksi di dasbor); titik periksa "
+                        "di dalamnya harus ada di berkas posko, sama persis")
     a = p.parse_args(argv)
     tulis = lambda teks="": print(teks, file=keluar)
     akar = a.akar.strip().lower()
@@ -211,7 +244,31 @@ def main(argv: list[str] | None = None, keluar=sys.stdout) -> int:
     except ValueError as e:
         tulis(f"[RUSAK] {e}")
         return 1
+    saksi: list[dict] | None = None
+    if a.saksi:
+        try:
+            berkas_saksi = json.loads(Path(a.saksi).read_text(encoding="utf-8"))
+        except FileNotFoundError:
+            tulis(f"GAGAL: berkas saksi tidak ditemukan: {a.saksi}")
+            return 2
+        except (ValueError, UnicodeDecodeError):
+            tulis(f"[RUSAK] Berkas saksi {a.saksi} bukan JSON yang sah.")
+            return 1
+        if not isinstance(berkas_saksi, dict) or berkas_saksi.get("jenis") != JENIS_SAKSI:
+            tulis(f"[RUSAK] {a.saksi} bukan berkas saksi Nusantara Shield ({JENIS_SAKSI}).")
+            return 1
+        saksi = berkas_saksi.get("titik_periksa")
+        if not isinstance(saksi, list) or (rusak := periksa_rantai(saksi, akar)):
+            tulis("[RUSAK] Berkas saksi tidak sah untuk akar ini: "
+                  + (rusak.removeprefix("[RUSAK] ") if isinstance(saksi, list) else "daftar titik periksa tidak ada."))
+            return 1
     sah, pesan = periksa(titik, akar, log)
+    if sah and saksi is not None:
+        if rusak := bandingkan_saksi(titik, saksi):
+            sah = False
+            pesan.append(rusak)
+        else:
+            pesan.append(f"[COCOK] Saksi satuan atasan (titik periksa #1–#{len(saksi)}) sama persis dengan berkas posko.")
     terakhir = titik[-1].get("no", len(titik)) if titik else 0
     if sah and a.minimal_titik > terakhir:
         # Log DAN berkas titik periksa yang dikembalikan bersama ke keadaan lama tetap sah secara kriptografi;

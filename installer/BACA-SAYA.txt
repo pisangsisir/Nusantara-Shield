@@ -50,6 +50,9 @@ Perintah sesudahnya:
        --akar <sidik jari akar> --minimal-titik <nomor titik periksa dari LAPSIT terakhir>
                                                     periksa titik periksa Ed25519; --minimal-titik menangkap
                                                     log dan titik periksa yang digulung mundur bersama
+       (ganti --minimal-titik dengan --saksi <berkas saksi dari arsip satuan atasan> bila ada)
+  Ekspor Saksi di dasbor (tab Audit & LAPSIT)        Berkas Saksi untuk satuan atasan; satuan atasan memeriksa dan
+                                                    mencatatnya dengan tools/saksi.py di komputernya sendiri
   sudo sh pasang.sh --kembali                       kembali ke rilis sebelumnya
   sudo sh pasang.sh --hapus                         hapus program (env dan data dipertahankan)
 
@@ -63,6 +66,9 @@ Pada kode 2, 10, 11, 12, dan 20 tidak ada yang diubah di sistem.
 Layanan hanya mendengar di 127.0.0.1. Untuk dibuka ke jaringan internal, pasang reverse proxy TLS
 (mis. nginx dari repositori lokal) di depannya, atau ubah NS_DENGAR_ALAMAT, NS_ALLOWED_HOSTS, dan
 NS_ALLOWED_ORIGINS di /etc/nusantara-shield/env dengan sadar risikonya.
+
+Label posko di Berkas Saksi: tambahkan NS_NAMA_POSKO="<nama posko>" ke /etc/nusantara-shield/env
+(bawaan "Posko Nusantara Shield"), lalu nyalakan ulang layanan.
 
 Pendaftaran akun Pengamat ditutup (NS_DAFTAR_PENGAMAT=0 di env). Akun baru dibuat Operator;
 ubah ke 1 hanya bila memang ingin siapa pun di jaringan bisa mendaftar sebagai Pengamat.

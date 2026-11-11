@@ -31,6 +31,7 @@ KELOMPOK = {
     "test_paket_ubuntu.py": "Paket pasang Ubuntu 24.04: tanda tangan Ed25519, manifest SHA-256, pemasang menolak paket yang diubah",
     "test_versi.py": "Satu sumber versi: dasbor, LAPSIT, dan paket memakai app/versi.py; nama peran berhuruf kapital",
     "test_titik_periksa.py": "Titik periksa Ed25519: kunci berevolusi, auditor memeriksa dengan kunci publik saja",
+    "test_saksi.py": "Saksi Berjenjang Luring: posko → satuan atasan → jenjang di atasnya; mundur atau bercabang ditolak",
     "test_drill.py": "Drill kesiapan: log cerita sintetis lewat aturan yang sama, nilai dari jejak tercatat",
 }
 _berkas_terakhir = {"nama": None}
@@ -64,7 +65,8 @@ DOKTRIN = [
     ("Manusia memutuskan: peran, tombol ditahan, mesin tidak mengeksekusi", ["test_keamanan.py", "test_akun.py", "test_komando.py",
                                                                               "test_drill.py"]),
     ("Bukti dulu, baru putus: tanpa bukti ditolak sistem", ["test_rantai_bukti.py"]),
-    ("Jejak tidak bisa ditulis ulang: HMAC + titik periksa Ed25519", ["test_verifikasi_audit.py", "test_titik_periksa.py"]),
+    ("Jejak tidak bisa ditulis ulang: HMAC + titik periksa Ed25519", ["test_verifikasi_audit.py", "test_titik_periksa.py",
+                                                                   "test_saksi.py"]),
     ("Luring dan paket tepercaya: sidik jari, tanda tangan", ["test_paket_luring.py", "test_paket_ubuntu.py"]),
     ("Pendukung (bukan doktrin): istilah, versi, siaran, linimasa", ["test_istilah.py", "test_versi.py", "test_telemetri.py",
                                                                      "test_linimasa.py"]),

@@ -1397,6 +1397,18 @@ async function eksporLapsit(ev) {
   toast("LAPSIT PDF berhasil dibuat.");
   muatAudit();
 }
+/** Saksi Berjenjang Luring: rantai titik periksa untuk satuan atasan (tools/saksi.py di komputer satuan atasan). */
+async function eksporSaksi(ev) {
+  const r = await coba(() => sibuk(ev.currentTarget, () => api("/api/saksi", { metode: "POST", mentah: true })));
+  if (!r) return;
+  const blob = await r.blob();
+  const cocok = /filename="([^"]+)"/.exec(r.headers.get("Content-Disposition") || "");
+  const a = el("a", { href: URL.createObjectURL(blob), download: cocok ? cocok[1] : "SAKSI.json" });
+  document.body.append(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(a.href), 4000);
+  toast("Berkas Saksi dibuat. Serahkan ke satuan atasan lewat media fisik.");
+  muatAudit();
+}
 async function resetDemo() {
   const ok = await konfirmasi("Reset demo?", "Semua layanan dan jaringan kembali ke kondisi awal. Log audit tetap disimpan sebagai bukti.", "Reset");
   if (!ok) return;
@@ -1836,6 +1848,7 @@ document.addEventListener("DOMContentLoaded", () => {
   $$(".majukan").forEach((b) => b.addEventListener("click", majukanWaktu));
   $("#tombol-verifikasi").addEventListener("click", verifikasi);
   $("#tombol-lapsit").addEventListener("click", eksporLapsit);
+  $("#tombol-saksi").addEventListener("click", eksporSaksi);
   $("#tombol-reset").addEventListener("click", resetDemo);
   $("#tombol-ke-drill").addEventListener("click", () => { pilihTab("drill", true); $("#panel-drill").scrollIntoView({ behavior: "smooth", block: "start" }); });
   // drill berjalan: segarkan tiap 5 dtk selama tab terlihat (Pengamat ikut memantau jawaban dan nilai)

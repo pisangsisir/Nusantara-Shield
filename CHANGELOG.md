@@ -2,9 +2,19 @@
 
 Seluruh kode dikembangkan sejak **15 Oktober 2026**, setelah publikasi program Kartika Cyber Hackathon 2026 (12 Oktober 2026), sesuai Deklarasi di Proposal §6.1 (Rulebook bagian G). Repositori Git ini dimulai pada **20 Oktober 2026**; riwayat sebelumnya disusun dari folder versi dan folder cadangan per fase yang tersimpan di laptop pengembang (beserta catatan `BACA-SAYA.txt`), bukan dari commit.
 
-## v5.4.1 — 10 November 2026
+## v5.4.1 — 11 November 2026
 
-Tambalan dari tinjauan independen (sudut pandang Dewan Juri). Tidak ada fitur baru; gagasan baru masuk peta jalan (Proposal §5.6).
+Tambalan dari tinjauan independen (sudut pandang Dewan Juri), ditambah satu fitur yang langsung menutup celah terbesarnya: Saksi Berjenjang Luring. Gagasan lain masuk peta jalan (Proposal §5.6).
+
+### Saksi Berjenjang Luring — 11 November 2026 (branch `feature/saksi-berjenjang`)
+- **Masalah:** penyerang yang menguasai _server_ posko bisa mengembalikan log dan berkas titik periksa ke keadaan lama; hasilnya tetap sah secara kriptografi. Yang menangkapnya hanya salinan di luar posko.
+- **Ekspor Saksi** (tab Audit & LAPSIT, hanya Operator; `POST /api/saksi`): titik periksa baru beralasan `SAKSI`, lalu seluruh rantai titik periksa diunduh sebagai satu berkas JSON untuk diserahkan lewat media fisik. Tercatat `EKSPOR_SAKSI` di log audit; mode demo menolak dengan 409.
+- **`tools/saksi.py`** untuk satuan atasan (pustaka bawaan Python, tanpa jaringan): `kunci`, `terima`, `status`, `rekap`, `periksa-tanda-terima`. Kiriman baru harus memuat seluruh isi kiriman lama, sama persis; lebih pendek → digulung mundur, isi lama berbeda → bercabang, keduanya ditolak. Setiap penerimaan masuk Buku Saksi (bernomor, berantai, bertanda tangan Ed25519 jenjang itu) dan menghasilkan Tanda Terima. Rekap diterima jenjang di atas dengan aturan yang sama, sehingga jenjang bawah yang menulis ulang bukunya sendiri ikut tertangkap.
+- **`verifikasi_titik_periksa.py --saksi BERKAS`**: auditor di posko memakai saksi dari arsip atasan; rantai posko harus memuat seluruh titik periksa saksi.
+- Penandatangan Ed25519 Python murni (RFC 8032) diuji identik dengan pustaka _cryptography_.
+- **16 uji baru** (`tests/test_saksi.py`, aturan Jejak). Total **441** (21 kelompok, ≈55 detik): Tangkal 135, Manusia 123, Bukti 36, Jejak 44, Luring 32, Pendukung 71.
+- Diuji ujung ke ujung di peramban: dua kali Ekspor Saksi dari _server_ yang menyimpan log ke berkas, diterima satuan atasan, saksi lama ditolak, rekap diterima jenjang atas, Tanda Terima sah, auditor `[COCOK]`; tombol nonaktif untuk Pengamat.
+- Dokumen: Dokumentasi Teknis §2.7.2, README, Proposal §5.4 dan §5.6, catatan pembicara dek, situs, BACA-SAYA pemasang.
 
 ### Keamanan dan ketahanan (branch `fix/audit-v541`)
 - **Impor log tahan berkas beracun.** Pola kolom firewall diganti pencarian kolom yang tidak bisa mundur berulang; satu baris 18 KB berisi `SRC=1 DST=1` berulang sebelumnya menahan _server_ 108 detik, kini selesai seketika. Baris lebih dari 4.096 karakter dilewati; JSON bersarang terlalu dalam, sel CSV raksasa, dan tahun di luar jangkauan ditolak 422 atau dilewati, tidak menjadi galat 500.
@@ -13,7 +23,7 @@ Tambalan dari tinjauan independen (sudut pandang Dewan Juri). Tidak ada fitur ba
 - **Pendaftaran Pengamat tertutup di produksi.** `pasang.sh` menulis `NS_DAFTAR_PENGAMAT=0` ke env baru.
 - **Penggulungan mundur tertangkap.** `tools/verifikasi_titik_periksa.py --minimal-titik N` menolak riwayat yang berhenti sebelum nomor titik periksa yang tercatat di LAPSIT terakhir; petunjuk verifikasi di LAPSIT kini mencetak opsi ini.
 - Log audit di-`fsync` setelah setiap entri.
-- Uji **425** (sebelumnya 411): Tangkal 135, Manusia 123, Bukti 36, Jejak 28, Luring 32, Pendukung 71.
+- Uji 425 setelah tambalan ini (sebelumnya 411); 441 setelah Saksi Berjenjang Luring.
 
 ### Dokumen
 - Klaim yang terlalu tinggi dikoreksi: kebutuhan penyimpanan (terukur ≈400 MB setelah terpasang, bukan 50 MB), Pengamat juga mencetak LAPSIT, pengecualian batas 16 KB untuk impor log, angka 1,2 detik sebagai jeda alur purwarupa, tahan 0,6 detik dijaga di peramban.

@@ -44,7 +44,8 @@ from cryptography.hazmat.primitives.serialization import Encoding, PrivateFormat
 
 from .audit import HASH_AWAL, LogAudit
 
-DOMAIN = b"nusantara-shield/titik-periksa/1\n"   # awalan tanda tangan: tidak bisa dipakai ulang untuk hal lain
+DOMAIN = b"nusantara-shield/titik-periksa/1\n"
+JENIS_SAKSI = "nusantara-shield/saksi/1"           # Berkas Saksi untuk satuan atasan (tools/saksi.py)   # awalan tanda tangan: tidak bisa dipakai ulang untuk hal lain
 VERSI_FORMAT = 1
 
 
@@ -189,6 +190,25 @@ class TitikPeriksa:
             self._simpan_kunci(sk_berikut, no + 1)              # 2) baru kunci lama ditimpa kunci berikutnya
             self._sk, self._terakhir = sk_berikut, catatan
             return catatan
+
+    def berkas_saksi(self, posko: str, versi: str) -> dict | None:
+        """Saksi Berjenjang Luring: titik periksa baru, lalu SELURUH rantai titik periksa sebagai satu berkas.
+
+        Berkas ini diserahkan ke satuan atasan (media fisik) dan diterima tools/saksi.py di sana. Isinya sudah
+        bertanda tangan rantai kunci dari akar, jadi tidak perlu tanda tangan tambahan; "posko" hanya label.
+        Selama satuan atasan memegang salinan, riwayat posko tidak bisa digulung mundur atau dicabangkan diam-diam:
+        tools/verifikasi_titik_periksa.py --saksi menangkapnya.
+        """
+        catatan = self.buat("SAKSI")
+        if catatan is None:
+            return None
+        with self._kunci:
+            rantai = [json.loads(b) for b in self._berkas.read_text(encoding="utf-8").splitlines() if b.strip()]
+        rantai = [c for c in rantai if c["no"] <= catatan["no"]]
+        return {"jenis": JENIS_SAKSI, "posko": posko, "versi_aplikasi": versi,
+                "dibuat": datetime.now(timezone.utc).isoformat(timespec="seconds"),
+                "sidik_jari_akar": self.sidik_jari_akar, "titik_terakhir": catatan["no"],
+                "log": {n: v["jumlah"] for n, v in catatan["log"].items()}, "titik_periksa": rantai}
 
     def ringkasan(self, catatan: dict | None = None) -> dict:
         """Untuk LAPSIT dan API: cukup untuk auditor menjalankan tools/verifikasi_titik_periksa.py."""
