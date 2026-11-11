@@ -32,6 +32,7 @@ import contextlib
 import ipaddress
 import json
 import logging
+import os
 import re
 import threading
 import time
@@ -50,6 +51,7 @@ from pydantic import BaseModel, ConfigDict, Field
 
 from .audit import LOG
 from .titik_periksa import TitikPeriksa
+from .versi import VERSI
 from .data_contoh import (BATAS_JAM_BACKUP, INDEKS_BERITA, INDEKS_INDIKATOR, LOG_PERINGATAN,
                           PLAYBOOK, SKENARIO, salin_layanan_awal)
 from .keamanan import (KONFIG, MIN_SANDI, SIARAN, Akun, BatasBody, GalatAkun, HeaderKeamanan, akun_dari_token,
@@ -874,6 +876,21 @@ def lihat_audit(akun: Akun = Depends(butuh_izin("lihat"))) -> dict:
 @app.get("/api/audit/verifikasi", dependencies=[Depends(batasi("umum"))])
 def verifikasi_audit(akun: Akun = Depends(butuh_izin("lihat"))) -> dict:
     return {**LOG.verifikasi(), "titik_periksa": TITIK.ringkasan()}
+
+
+@app.post("/api/saksi", dependencies=[Depends(batasi("pdf"))])
+def ekspor_saksi(akun: Akun = Depends(butuh_izin("ubah"))) -> Response:
+    """Saksi Berjenjang Luring: rantai titik periksa untuk diserahkan ke satuan atasan (tools/saksi.py)."""
+    if not TITIK.aktif:
+        raise HTTPException(409, TITIK.galat or "Titik periksa tidak aktif; Berkas Saksi tidak bisa dibuat.")
+    LOG.catat(akun.nama, "EKSPOR_SAKSI", {"titik_sebelumnya": TITIK.ringkasan()["no"]})
+    saksi = TITIK.berkas_saksi(os.getenv("NS_NAMA_POSKO", "Posko Nusantara Shield"), VERSI)
+    if saksi is None:
+        raise HTTPException(409, "Titik periksa tidak aktif; Berkas Saksi tidak bisa dibuat.")
+    isi = json.dumps(saksi, ensure_ascii=False, indent=1).encode()
+    nama_berkas = f"SAKSI-NusantaraShield-titik{saksi['titik_terakhir']}-{datetime.now(timezone.utc):%Y%m%d-%H%M}.json"
+    return Response(isi, media_type="application/json",
+                    headers={"Content-Disposition": f'attachment; filename="{nama_berkas}"'})
 
 
 @app.post("/api/lapsit", dependencies=[Depends(batasi("pdf"))])

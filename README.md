@@ -9,7 +9,7 @@ Dasbor pusat operasi keamanan siber (SOC) **defensif** untuk Kartika Cyber Hacka
 (bukti → isolasi → LAPSIT, otomatis setelah satu keputusan Operator; perintah ke perangkat masih simulasi).
 *Server* FastAPI + browser Vanilla JS/Canvas, siaran langsung (SSE), dan jejak audit berantai HMAC.
 
-Banyak sistem pertahanan berhenti di alarm. Nusantara Shield berlanjut sampai bukti tersegel, jalur terputus, dan LAPSIT terbit, dan otaknya (aturan deteksi, AI lokal, korelasi kabar ancaman) berjalan di *server* satuan sendiri, sehingga tidak ikut lumpuh saat koneksi internasional terganggu. Setiap klaim dikunci **425 uji** yang bisa dijalankan ulang siapa pun; angka di dasbor bukan animasi, dan asal setiap angka serta peta lima kriteria penilaian ada di [Proposal §7](docs/01-Proposal-Solusi-Nusantara-Shield.md#7-peta-kriteria-penilaian-dan-asal-angka).
+Banyak sistem pertahanan berhenti di alarm. Nusantara Shield berlanjut sampai bukti tersegel, jalur terputus, dan LAPSIT terbit, dan otaknya (aturan deteksi, AI lokal, korelasi kabar ancaman) berjalan di *server* satuan sendiri, sehingga tidak ikut lumpuh saat koneksi internasional terganggu. Setiap klaim dikunci **441 uji** yang bisa dijalankan ulang siapa pun; angka di dasbor bukan animasi, dan asal setiap angka serta peta lima kriteria penilaian ada di [Proposal §7](docs/01-Proposal-Solusi-Nusantara-Shield.md#7-peta-kriteria-penilaian-dan-asal-angka).
 
 - **Isolasi tidak pernah otomatis.** Isolasi otomatis terdengar cepat, sampai ia memutus segmen OT karena alarm keliru. Di sini isolasi selalu didahului bukti tersegel dan keputusan Operator; yang diputus jalurnya, genset tetap menyala.
 - **"Tanpa awan" berlaku sampai ke demonya.** Aplikasi dipasang dari paket bersidik jari tanpa internet, lalu seluruh uji dijalankan di mesin itu juga.
@@ -26,7 +26,7 @@ Banyak sistem pertahanan berhenti di alarm. Nusantara Shield berlanjut sampai bu
 ```
 app/            kode server: FastAPI, dapur situasi, rantai bukti, LAPSIT, AI lokal
 static/         dasbor (HTML, CSS, JavaScript polos; tanpa pustaka luar atau CDN)
-tests/          425 uji otomatis (pytest), dijalankan dengan ./run_tests.sh
+tests/          441 uji otomatis (pytest), dijalankan dengan ./run_tests.sh
 tools/          alat bantu: pengemasan rilis, paket pasang luring, paket Ubuntu bertanda tangan, verifikasi audit tanpa server
 installer/      pasang.sh, layanan systemd, dan pembungkus verifikasi audit untuk Ubuntu 24.04
 kunci/          kunci PUBLIK rilis (kunci privat tidak pernah ada di repo)
@@ -117,6 +117,26 @@ Setiap entri dihitung ulang: nomor urut, mata rantai (`hash_sebelumnya`), dan HM
 disebut letaknya (misalnya "Sidik jari entri #2 tidak cocok"). `--cocokkan` memastikan sidik jari yang tercetak
 di LAPSIT ada di rantai, sehingga log yang dipotong di ujungnya juga ketahuan. Kode keluar: 0 utuh, 1 rusak
 atau tidak cocok, 2 tidak bisa memeriksa. Kunci tidak diterima sebagai argumen dan tidak pernah dicetak.
+
+### Saksi Berjenjang Luring (v5.4.1)
+
+Penyerang yang menguasai *server* posko bisa mengembalikan log **dan** berkas titik periksa ke keadaan lama; hasilnya
+tetap sah secara kriptografi. Yang menangkapnya hanya salinan di luar posko. Operator menekan **Ekspor Saksi** (tab
+Audit & LAPSIT) dan menyerahkan berkasnya lewat media fisik. Satuan atasan memeriksa dan mencatatnya dengan
+`tools/saksi.py` di komputernya sendiri (hanya pustaka bawaan Python, tanpa jaringan):
+
+```bash
+python3 tools/saksi.py kunci  --dir SAKSI --label "Sansidam Jaya"       # sekali; catat sidik jari kuncinya
+python3 tools/saksi.py terima SAKSI-NusantaraShield-titik12-….json --dir SAKSI --harap <sidik jari akar posko>
+python3 tools/saksi.py status --dir SAKSI                               # kiriman terakhir per posko
+python3 tools/saksi.py rekap  --dir SAKSI --keluar rekap.json           # untuk jenjang di atasnya (diterima dengan `terima`)
+python3 tools/verifikasi_titik_periksa.py --akar <…> --saksi <saksi dari arsip atasan>   # pemeriksaan di posko
+```
+
+Kiriman baru harus memuat seluruh isi kiriman lama, sama persis. Lebih pendek → **digulung mundur**; isi lama berbeda →
+**bercabang**; keduanya ditolak dan tidak dicatat. Setiap penerimaan masuk Buku Saksi (bernomor, berantai, bertanda
+tangan kunci Ed25519 jenjang itu) dan menghasilkan Tanda Terima yang bisa diperiksa posko. Jenjang di atas yang
+menerima rekap juga menangkap bila jenjang bawah menulis ulang Buku Saksinya sendiri.
 
 ### Mengemas zip untuk juri / repositori
 
@@ -347,7 +367,7 @@ kelompok muncul setiap kali pytest pindah bagian, dan di akhir tampil ringkasan 
 Contoh memilih sebagian: `./run_tests.sh -k akun`, `./run_tests.sh tests/test_rantai_bukti.py`,
 `./run_tests.sh --lf` (ulangi yang gagal). **Jangan memakai `-q`** — opsi itu menyembunyikan nama uji.
 
-**Total: 425 uji** dalam 20 kelompok. Di akhir `./run_tests.sh`, uji yang lulus juga diringkas **per aturan doktrin** (Tangkal lebih dulu 135 · Manusia memutuskan 123, termasuk drill kesiapan · Bukti dulu, baru putus 36 · Jejak tidak bisa ditulis ulang 28 · Luring dan paket tepercaya 32 · pendukung 71), karena jumlah uji sendiri bukan ukuran mutu.
+**Total: 441 uji** dalam 21 kelompok. Di akhir `./run_tests.sh`, uji yang lulus juga diringkas **per aturan doktrin** (Tangkal lebih dulu 135 · Manusia memutuskan 123, termasuk drill kesiapan · Bukti dulu, baru putus 36 · Jejak tidak bisa ditulis ulang 44 · Luring dan paket tepercaya 32 · pendukung 71), karena jumlah uji sendiri bukan ukuran mutu.
 
 **Keamanan & akses** — `tests/test_keamanan.py` (38 uji)
 - Semua loket menolak permintaan tanpa login; token palsu & sandi salah ditolak; logout mencabut token
@@ -449,6 +469,15 @@ Contoh memilih sebagian: `./run_tests.sh -k akun`, `./run_tests.sh tests/test_ra
 - Status kunci tidak cocok → titik periksa dinonaktifkan, akar baru tidak dibuat diam-diam
 - Pemasangan baru (Buku Rantai Bukti belum berisi, berkasnya belum ada) tetap lolos; buku berisi yang berkasnya hilang ditolak
 
+**Saksi Berjenjang Luring** — `tests/test_saksi.py` (16 uji)
+- Tanda tangan Ed25519 Python murni di alat atasan identik dengan pustaka *cryptography*; alat hanya memakai pustaka bawaan
+- Saksi posko diterima, dicatat, dan diberi Tanda Terima yang sah; Tanda Terima disunting atau dari kunci lain → ditolak
+- Saksi lama sesudah saksi baru → **digulung mundur**, tidak dicatat; cabang bertanda tangan sah (kunci periode bocor) → **bercabang**
+- Berkas disunting, bukan JSON, pengirim tidak sesuai `--harap`, Buku Saksi milik sendiri disunting → ditolak
+- Rekap berjenjang: jenjang bawah menghapus entri lalu menandatangani ulang seluruh bukunya → tertangkap di jenjang atas
+- Log dan titik periksa posko digulung mundur bersama: tanpa saksi tampak sah, dengan `--saksi` tertangkap
+- `POST /api/saksi`: hanya Operator (Pengamat 403), mode demo 409, berkasnya diterima alat atasan dan tercatat di log audit
+
 **Drill Kesiapan** — `tests/test_drill.py` (36 uji)
 - Dua skenario: cadangan dilepas (auth.log) dan perintah asing ke genset (Suricata eve.json; cerita selalu di luar jendela pemeliharaan)
 - Log cerita sintetis (alamat RFC 5737) dinilai lewat jalur impor log yang sama dengan log asli; aturan yang seharusnya menangkap tetapi diam ikut dilaporkan
@@ -500,6 +529,7 @@ dibatasi lajunya dan dicatat di log audit.
 | `GET /api/bukti` | semua | Buku Rantai Bukti + verifikasi rantai |
 | `GET /api/audit` · `GET /api/audit/verifikasi` | semua | Log audit + verifikasi rantai |
 | `POST /api/lapsit` | semua | Ekspor LAPSIT PDF |
+| `POST /api/saksi` | Operator | Berkas Saksi (rantai titik periksa) untuk satuan atasan; 409 di mode demo |
 | `POST /api/indikator/cari`, `/api/backup/catat`, `/api/demo/majukan-waktu`, `/api/reset-demo` | campuran | Alat Operator |
 | `GET /api/health` · `GET /api/istilah` | publik | Status minimal · kamus label |
 
@@ -519,6 +549,7 @@ dibatasi lajunya dan dicatat di log audit.
 | Anti-XSS | Semua teks dipasang via `textContent` | `static/app.js` |
 | Jejak audit | Dua buku berantai HMAC-SHA256 (log audit & Buku Rantai Bukti); dapat diverifikasi auditor tanpa server | `app/audit.py`, `app/bukti.py`, `tools/verifikasi_audit.py` |
 | Titik periksa Ed25519 | Kepala kedua buku ditandatangani kunci periode berjalan; kunci berikutnya disahkan, kunci lama dihapus; auditor cukup memegang sidik jari akar | `app/titik_periksa.py`, `tools/verifikasi_titik_periksa.py` |
+| Saksi Berjenjang Luring | Rantai titik periksa disimpan satuan atasan dan direkap ke atas; riwayat mundur atau bercabang ditolak di setiap jenjang | `app/titik_periksa.py`, `tools/saksi.py` |
 | Siaran aman | Token di header (bukan URL), diperiksa ulang tiap 2 detik; maks 4 siaran/akun | `app/main.py` |
 
 Batas yang perlu diketahui: *server* berjalan sebagai **satu proses** (Hub siaran ada di memori proses itu).
@@ -550,12 +581,13 @@ static/peta.js        Peta Ancaman Global (Canvas)
 static/penjadwal.js   satu mesin animasi berbasis visibilitas
 static/style.css      tema gelap + aksen hijau neon
 docs/                 diagram alur (sumber Mermaid + SVG)
-tests/                425 uji otomatis (lihat bagian 6)
+tests/                441 uji otomatis (lihat bagian 6)
 tools/kemas_rilis.py  pembuat zip rilis bersih
 tools/bangun_situs.py  membangun unduhan situs (PDF dari Markdown, dek PDF/PPTX) dan menulis sidik jarinya
 situs/                situs statis (GitHub Pages): huruf disimpan sendiri, tanpa CDN
 tools/verifikasi_audit.py  verifikasi rantai HMAC log audit & Buku Rantai Bukti tanpa server
-tools/verifikasi_titik_periksa.py  verifikasi titik periksa Ed25519 dengan sidik jari akar saja
+tools/verifikasi_titik_periksa.py  verifikasi titik periksa Ed25519 dengan sidik jari akar saja (--saksi: dengan saksi atasan)
+tools/saksi.py        Saksi Berjenjang Luring untuk satuan atasan: terima, Buku Saksi, Tanda Terima, rekap
 tools/kunci_rilis.py  kunci rilis Ed25519 (dibuat dan dipakai di komputer pembuat rilis)
 tools/kemas_installer.py  pembuat paket pasang Ubuntu 24.04 bertanda tangan
 installer/pasang.sh   pemasang luring Ubuntu 24.04 (verifikasi sebelum ekstraksi)
