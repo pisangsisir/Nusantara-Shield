@@ -491,3 +491,50 @@ def test_rekap_ditandatangani_ulang_dengan_panjang_sama_bercabang(posko, tmp_pat
     jalankan(saksi, "rekap", "--dir", bawah, "--keluar", r)
     kode, teks = jalankan(saksi, "terima", r, "--dir", atas)
     assert kode == 1 and "bercabang" in teks, teks
+
+
+def test_arsip_lebih_baru_yang_belum_tercatat_tetap_jadi_patokan(posko, tmp_path):
+    d, lama, baru = _dua_saksi(posko, tmp_path)
+    isi(posko, 6)
+    lebih_baru = ekspor(posko, "lebih-baru.json")
+    (d / "arsip" / posko["titik"].sidik_jari_akar / "terakhir.json").write_bytes(lebih_baru.read_bytes())
+    kode, teks = jalankan(saksi, "terima", baru, "--dir", d)      # yang tercatat, tetapi lebih pendek dari arsip
+    assert kode == 1 and "digulung mundur" in teks, teks
+
+
+def test_arsip_tanam_atau_rusak_untuk_pengirim_baru_galat_bukan_traceback(posko, tmp_path):
+    d, _ = jenjang(tmp_path, "atasan", "Sansidam Uji")
+    isi(posko)
+    f = ekspor(posko)
+    folder = d / "arsip" / posko["titik"].sidik_jari_akar
+    folder.mkdir(parents=True)
+    for isi_rusak in (b"{rusak", b"[1]", json.dumps({"jenis": "nusantara-shield/rekap-saksi/1"}).encode()):
+        (folder / "terakhir.json").write_bytes(isi_rusak)
+        kode, teks = jalankan(saksi, "terima", f, "--dir", d)
+        assert kode == 2 and "rusak" in teks, teks
+
+
+def test_buku_hilang_dari_kepala_titik_periksa_ditolak(tmp_path):
+    kunci = [Ed25519PrivateKey.generate() for _ in range(4)]
+    rantai = _rantai(kunci, [5, 15])
+    c = {"versi_format": 1, "no": 3, "waktu": "2026-11-11T00:00:00+00:00", "alasan": "BERKALA", "log": {},
+         "kunci_publik": rantai[1]["kunci_publik_berikut"],
+         "kunci_publik_berikut": kunci[3].public_key().public_bytes(Encoding.Raw, PublicFormat.Raw).hex()}
+    c["tanda_tangan"] = kunci[2].sign(kanonik_tanda_tangan(c)).hex()
+    f, akar = _berkas(tmp_path, "hilang.json", rantai + [c])
+    assert "hilang" in vtp.periksa_rantai(rantai + [c], akar)
+    d, _ = jenjang(tmp_path, "atasan", "Sansidam Uji")
+    assert jalankan(saksi, "terima", f, "--dir", d)[0] == 1
+
+
+@pytest.mark.parametrize("nama", ["posko bercabang", "Posko Bercabang.", "Ｐｏｓｋｏ Ｂｅｒｃａｂａｎｇ", "Posko​Bercabang"])
+def test_nama_mirip_dengan_sidik_jari_lain_tetap_butuh_harap(tmp_path, nama):
+    d, _ = jenjang(tmp_path, "atasan", "Sansidam Uji")
+    asli, _ = _berkas(tmp_path, "a.json", _rantai([Ed25519PrivateKey.generate() for _ in range(3)], [5, 10]))
+    assert jalankan(saksi, "terima", asli, "--dir", d)[0] == 0
+    lain, _ = _berkas(tmp_path, "b.json", _rantai([Ed25519PrivateKey.generate() for _ in range(2)], [1]))
+    j = json.loads(lain.read_text())
+    j["posko"] = nama
+    lain.write_text(json.dumps(j))
+    kode, teks = jalankan(saksi, "terima", lain, "--dir", d)
+    assert kode == 1 and "sudah tercatat dengan sidik jari lain" in teks, teks

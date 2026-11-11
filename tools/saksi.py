@@ -72,6 +72,12 @@ def bersihkan_label(nilai) -> str:
     return " ".join(teks.split())[:80] or "(tanpa nama)"
 
 
+def kunci_nama(label: str) -> str:
+    """Kunci pembanding nama: huruf lebar/penuh dinormalkan (NFKC), huruf kecil, hanya huruf dan angka.
+    Huruf kembar dari aksara lain (mis. "о" Sirilik) tidak ditangkap; sidik jari [BARU] tetap patokan utamanya."""
+    return "".join(ch for ch in unicodedata.normalize("NFKC", label).casefold() if ch.isalnum())
+
+
 class Galat(Exception):
     """Tidak bisa memeriksa (kode 2)."""
 
@@ -221,30 +227,53 @@ class Jenjang:
                           "periksa media penyimpanan dan bandingkan dengan rekap yang pernah dikirim ke atas.")
         return entri
 
-    def _dasar(self, identitas: str, buku: list[dict]) -> dict | None:
-        """Kiriman terakhir yang SAH dari pengirim ini. Patokannya Buku Saksi (bertanda tangan), bukan berkas arsip:
-        arsip hanya dipakai bila sidik jari berkasnya sama dengan yang tercatat di entri buku terakhir pengirim itu."""
+    @staticmethod
+    def _urutan(mentah: bytes | None) -> tuple[dict, list] | None:
+        """Isi berkas arsip: (kiriman, daftar titik periksa / entri buku), atau None bila bukan kiriman yang utuh."""
+        if mentah is None:
+            return None
+        try:
+            dasar = json.loads(mentah.decode("utf-8"))
+        except (UnicodeDecodeError, ValueError, RecursionError):
+            return None
+        if not isinstance(dasar, dict):
+            return None
+        urutan = dasar.get({JENIS_SAKSI: "titik_periksa", JENIS_REKAP: "buku"}.get(dasar.get("jenis"), ""))
+        return (dasar, urutan) if isinstance(urutan, list) and urutan else None
+
+    def _dasar(self, identitas: str, buku: list[dict]) -> list | None:
+        """Isi kiriman terakhir yang SAH dari pengirim ini (daftar yang wajib dimuat kiriman berikutnya).
+
+        Patokannya Buku Saksi (bertanda tangan), bukan berkas arsip: arsip hanya dipakai bila sidik jari berkasnya sama
+        dengan yang tercatat di entri buku terakhir pengirim itu. Arsip yang lebih BARU (komputer mati sesudah arsip
+        ditulis, sebelum buku dicatat) dipakai bila memuat seluruh kiriman yang tercatat: patokannya jadi lebih ketat."""
         tercatat = next((e for e in reversed(buku) if e.get("pengirim", {}).get("identitas") == identitas), None)
         f = self.arsip / identitas / "terakhir.json"
-        mentah = f.read_bytes() if f.exists() else None
+        mentah = f.read_bytes() if f.is_file() else None
         if tercatat is None:
-            # Arsip tanpa entri buku hanya mungkin bila komputer mati di antara keduanya: arsip lebih baru, jadi lebih ketat.
-            return json.loads(mentah) if mentah is not None else None
-        if mentah is None or hashlib.sha256(mentah).hexdigest() != tercatat["sha256_berkas"]:
-            # Arsip lebih baru karena terhenti di tengah pencatatan juga diterima bila memuat kiriman yang tercatat.
-            simpan = self.arsip / identitas / _nama_arsip(tercatat)
-            cadangan = simpan.read_bytes() if simpan.exists() else None
-            if cadangan is None or hashlib.sha256(cadangan).hexdigest() != tercatat["sha256_berkas"]:
-                raise Galat(f"Arsip kiriman '{tercatat['pengirim']['label']}' tidak cocok dengan Buku Saksi entri "
-                            f"#{tercatat['no']} (hilang atau ditukar). Tidak ada yang dicatat. Pulihkan folder "
-                            f"{self.arsip / identitas} dari cadangan; jangan dihapus, karena tanpa arsip kiriman "
-                            "mundur tidak bisa dibandingkan.")
-            mentah = cadangan
-        dasar = json.loads(mentah)
-        urutan = dasar.get("titik_periksa") if dasar.get("jenis") == JENIS_SAKSI else dasar.get("buku")
-        if not isinstance(urutan, list) or len(urutan) != tercatat["nomor"]:
-            raise Galat(f"Arsip kiriman '{tercatat['pengirim']['label']}' tidak sesuai jumlah yang tercatat di Buku Saksi.")
-        return dasar
+            if mentah is None:
+                return None
+            isi = self._urutan(mentah)
+            if isi is None:
+                raise Galat(f"Arsip {f} rusak atau bukan kiriman Nusantara Shield, padahal Buku Saksi belum mencatat "
+                            "pengirim ini. Tidak ada yang dicatat; periksa atau pulihkan folder itu dari cadangan.")
+            return isi[1]
+        simpan = self.arsip / identitas / _nama_arsip(tercatat)
+        cocok = None
+        for kandidat in (mentah, simpan.read_bytes() if simpan.is_file() else None):
+            if kandidat is not None and hashlib.sha256(kandidat).hexdigest() == tercatat["sha256_berkas"]:
+                cocok = self._urutan(kandidat)
+                break
+        if cocok is None or len(cocok[1]) != tercatat["nomor"]:
+            raise Galat(f"Arsip kiriman '{tercatat['pengirim']['label']}' tidak cocok dengan Buku Saksi entri "
+                        f"#{tercatat['no']} (hilang atau ditukar). Tidak ada yang dicatat. Pulihkan folder "
+                        f"{self.arsip / identitas} dari cadangan; jangan dihapus, karena tanpa arsip kiriman "
+                        "mundur tidak bisa dibandingkan.")
+        lebih_baru = self._urutan(mentah)
+        if (lebih_baru and len(lebih_baru[1]) > len(cocok[1])
+                and all(kanonik(a) == kanonik(b) for a, b in zip(lebih_baru[1], cocok[1]))):
+            return lebih_baru[1]
+        return cocok[1]
 
     # -- menerima kiriman
     def terima(self, mentah: bytes, harap: str | None = None) -> tuple[dict, list[str]]:
@@ -285,7 +314,8 @@ class Jenjang:
             raise Ditolak(f"[RUSAK] Sidik jari pengirim {identitas} tidak sama dengan yang diharapkan ({harap}).")
         lama = self._dasar(identitas, buku)
         if lama is None:
-            kembar = next((e for e in buku if e["pengirim"]["label"] == label), None)
+            kembar = next((e for e in buku if kunci_nama(e["pengirim"]["label"]) == kunci_nama(label)
+                           and e["pengirim"]["identitas"] != identitas), None)
             if kembar and not harap:
                 raise Ditolak(f"[RUSAK] Nama '{label}' sudah tercatat dengan sidik jari lain "
                               f"({kembar['pengirim']['identitas'][:16]}…), kini datang dengan {identitas[:16]}…. Akar atau "
@@ -293,7 +323,7 @@ class Jenjang:
                               "dengan --harap <sidik jari baru> setelah dicocokkan dengan berita acara.")
             pesan.append(f"[BARU]  Pengirim baru '{label}'. Cocokkan sidik jarinya dengan berita acara: {identitas}")
         else:
-            urutan_lama = lama["titik_periksa"] if lama.get("jenis") == JENIS_SAKSI else lama["buku"]
+            urutan_lama = lama
             if len(urutan) < len(urutan_lama):
                 raise Ditolak(f"[RUSAK] Riwayat digulung mundur: kiriman sebelumnya dari '{label}' memuat {satuan} sampai "
                               f"#{len(urutan_lama)}, kiriman ini hanya sampai #{len(urutan)}. Tidak dicatat.")

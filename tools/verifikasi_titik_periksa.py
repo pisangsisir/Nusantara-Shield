@@ -162,6 +162,9 @@ def periksa_rantai(titik: list[dict], akar: str) -> str | None:
                 isinstance(kp, dict) and type(kp.get("jumlah")) is int and kp["jumlah"] >= 0
                 and isinstance(kp.get("sha256_kumulatif"), str) for kp in log.values()):
             return f"[RUSAK] Titik periksa #{i}: kepala buku tidak lengkap atau bukan angka."
+        hilang = set(jumlah_lama) - set(log)
+        if hilang:
+            return f"[RUSAK] Titik periksa #{i}: buku {', '.join(sorted(hilang))} hilang dari kepala buku."
         for nama, kp in log.items():
             if kp["jumlah"] < jumlah_lama.get(nama, 0):
                 return f"[RUSAK] Titik periksa #{i}: jumlah entri {nama} mundur ({jumlah_lama[nama]} → {kp['jumlah']})."
