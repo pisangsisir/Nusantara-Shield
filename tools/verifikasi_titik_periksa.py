@@ -100,11 +100,17 @@ _GY = 4 * pow(5, _P - 2, _P) % _P
 _G = (_pulihkan_x(_GY, 0), _GY, 1, _pulihkan_x(_GY, 0) * _GY % _P)
 
 
+def _orde_kecil(titik) -> bool:
+    """Titik berorde kecil (8·P = titik nol): kunci seperti ini bisa "ditandatangani" siapa pun."""
+    q = _kali(8, titik)
+    return q[0] % _P == 0 and (q[1] - q[2]) % _P == 0
+
+
 def ed25519_sah(publik: bytes, pesan: bytes, ttd: bytes) -> bool:
     if len(publik) != 32 or len(ttd) != 64:
         return False
     A, R = _buka(publik), _buka(ttd[:32])
-    if A is None or R is None:
+    if A is None or R is None or _orde_kecil(A) or _orde_kecil(R):
         return False
     s = int.from_bytes(ttd[32:], "little")
     if s >= _Q:
@@ -124,7 +130,7 @@ def baca_jsonl(berkas: Path) -> list[dict]:
         if baris.strip():
             try:
                 hasil.append(json.loads(baris))
-            except json.JSONDecodeError:
+            except (json.JSONDecodeError, RecursionError):
                 raise ValueError(f"{berkas} baris {nomor} bukan JSON yang sah")
     return hasil
 
@@ -147,9 +153,22 @@ def periksa_rantai(titik: list[dict], akar: str) -> str | None:
     if akar_berkas != akar:
         return ("[RUSAK] Kunci publik titik periksa #1 tidak cocok dengan sidik jari akar dari berita acara: "
                 "rantai titik periksa diganti atau berasal dari sistem lain.")
+    jumlah_lama: dict[str, int] = {}
     for i, c in enumerate(titik, start=1):
         if not isinstance(c, dict) or c.get("no") != i:
             return f"[RUSAK] Nomor titik periksa loncat: tertulis #{c.get('no') if isinstance(c, dict) else '?'}, seharusnya #{i}."
+        log = c.get("log")
+        if not isinstance(log, dict) or not all(
+                isinstance(kp, dict) and type(kp.get("jumlah")) is int and kp["jumlah"] >= 0
+                and isinstance(kp.get("sha256_kumulatif"), str) for kp in log.values()):
+            return f"[RUSAK] Titik periksa #{i}: kepala buku tidak lengkap atau bukan angka."
+        hilang = set(jumlah_lama) - set(log)
+        if hilang:
+            return f"[RUSAK] Titik periksa #{i}: buku {', '.join(sorted(hilang))} hilang dari kepala buku."
+        for nama, kp in log.items():
+            if kp["jumlah"] < jumlah_lama.get(nama, 0):
+                return f"[RUSAK] Titik periksa #{i}: jumlah entri {nama} mundur ({jumlah_lama[nama]} → {kp['jumlah']})."
+            jumlah_lama[nama] = kp["jumlah"]
         if i > 1 and c.get("kunci_publik") != titik[i - 2].get("kunci_publik_berikut"):
             return f"[RUSAK] Kunci titik periksa #{i} bukan kunci yang disahkan titik periksa #{i - 1}."
         try:
@@ -241,6 +260,9 @@ def main(argv: list[str] | None = None, keluar=sys.stdout) -> int:
     except FileNotFoundError as e:
         tulis(f"GAGAL: berkas tidak ditemukan: {e.filename}")
         return 2
+    except OSError as e:
+        tulis(f"GAGAL: berkas tidak bisa dibaca: {e.filename} ({e.strerror})")
+        return 2
     except ValueError as e:
         tulis(f"[RUSAK] {e}")
         return 1
@@ -251,7 +273,10 @@ def main(argv: list[str] | None = None, keluar=sys.stdout) -> int:
         except FileNotFoundError:
             tulis(f"GAGAL: berkas saksi tidak ditemukan: {a.saksi}")
             return 2
-        except (ValueError, UnicodeDecodeError):
+        except OSError as e:
+            tulis(f"GAGAL: berkas saksi tidak bisa dibaca: {a.saksi} ({e.strerror})")
+            return 2
+        except (ValueError, UnicodeDecodeError, RecursionError):
             tulis(f"[RUSAK] Berkas saksi {a.saksi} bukan JSON yang sah.")
             return 1
         if not isinstance(berkas_saksi, dict) or berkas_saksi.get("jenis") != JENIS_SAKSI:

@@ -16,6 +16,16 @@ Tambalan dari tinjauan independen (sudut pandang Dewan Juri), ditambah satu fitu
 - Diuji ujung ke ujung di peramban: dua kali Ekspor Saksi dari _server_ yang menyimpan log ke berkas, diterima satuan atasan, saksi lama ditolak, rekap diterima jenjang atas, Tanda Terima sah, auditor `[COCOK]`; tombol nonaktif untuk Pengamat.
 - Dokumen: Dokumentasi Teknis §2.7.2, README, Proposal §5.4 dan §5.6, catatan pembicara dek, situs, BACA-SAYA pemasang.
 
+### Tinjauan independen Saksi Berjenjang — 11 November 2026 (branch `fix/saksi-tinjauan`)
+Pemeriksa terpisah yang tidak ikut membangun fitur ini menguji dua putaran; sepuluh celah ditemukan dan direproduksi, semuanya ditambal:
+- **Patokan dari Buku Saksi, bukan arsip** (temuan terberat): sebelumnya arsip kiriman yang hilang atau ditukar membuat kiriman mundur diterima. Kini pembanding diambil dari entri buku terakhir pengirim itu; arsip dipakai hanya bila sidik jarinya sama dengan yang tercatat. Arsip yang lebih baru tetapi belum tercatat (komputer mati di tengah pencatatan) tetap jadi patokan. Nama berkas arsip memuat sidik jarinya sehingga tidak saling menimpa; penulisan berbasis bita dengan `fsync` direktori.
+- Label pengirim dibersihkan dari karakter kendali terminal (ESC, CR, LF, arah teks, *surrogate*); nama yang mirip (huruf besar/kecil, tanda baca, lebar huruf) dengan sidik jari lain ditolak kecuali `--harap`.
+- Jumlah entri yang mundur atau buku yang hilang dari kepala titik periksa ditolak; kunci Ed25519 berorde kecil ditolak pemeriksa.
+- Buku Saksi terpotong, JSON bersarang sangat dalam, direktori, arsip rusak, berkas > 64 MB → kode keluar 1/2 dengan pesan, bukan *traceback*.
+- LAPSIT mencetak nomor dan waktu Berkas Saksi terakhir (WIB/WITA/WIT) dan perintah `--saksi`; bila belum pernah ada, LAPSIT mengingatkan untuk mengekspor.
+- Sampul dek: 11 November 2026.
+- **18 uji baru** (`tests/test_saksi.py` kini 34). Total **459** (≈55 detik): Tangkal 135, Manusia 123, Bukti 36, Jejak 62, Luring 32, Pendukung 71.
+
 ### Keamanan dan ketahanan (branch `fix/audit-v541`)
 - **Impor log tahan berkas beracun.** Pola kolom firewall diganti pencarian kolom yang tidak bisa mundur berulang; satu baris 18 KB berisi `SRC=1 DST=1` berulang sebelumnya menahan _server_ 108 detik, kini selesai seketika. Baris lebih dari 4.096 karakter dilewati; JSON bersarang terlalu dalam, sel CSV raksasa, dan tahun di luar jangkauan ditolak 422 atau dilewati, tidak menjadi galat 500.
 - **Penguraian di luar kunci keadaan.** Berkas impor diurai sebelum kunci keadaan diambil, jadi dasbor Operator lain tidak membeku selama impor.

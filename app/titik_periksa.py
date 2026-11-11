@@ -82,6 +82,7 @@ class TitikPeriksa:
         self._kunci = threading.Lock()
         self._sk: Ed25519PrivateKey | None = None
         self._terakhir: dict | None = None
+        self._saksi: dict | None = None                     # titik periksa terakhir yang diekspor sebagai Berkas Saksi
         self._kepala: dict[str, tuple[int, str]] = {}      # nama buku → (jumlah, sha256 kumulatif) tersimpan cache
         self.aktif = False
         self.galat = ""
@@ -142,6 +143,7 @@ class TitikPeriksa:
             return
         self._sk, self.aktif = sk, True
         self._terakhir = catatan[-1] if catatan else None
+        self._saksi = next((c for c in reversed(catatan) if c.get("alasan") == "SAKSI"), None)
         akar_pk = bytes.fromhex(catatan[0]["kunci_publik"]) if catatan else _publik(sk)
         self.sidik_jari_akar = hashlib.sha256(akar_pk).hexdigest()
 
@@ -189,6 +191,8 @@ class TitikPeriksa:
                 os.fsync(f.fileno())
             self._simpan_kunci(sk_berikut, no + 1)              # 2) baru kunci lama ditimpa kunci berikutnya
             self._sk, self._terakhir = sk_berikut, catatan
+            if alasan == "SAKSI":
+                self._saksi = catatan
             return catatan
 
     def berkas_saksi(self, posko: str, versi: str) -> dict | None:
@@ -215,4 +219,6 @@ class TitikPeriksa:
         c = catatan or self._terakhir
         return {"aktif": self.aktif, "demo": self.demo, "galat": self.galat, "sidik_jari_akar": self.sidik_jari_akar,
                 "no": c["no"] if c else None, "waktu": c["waktu"] if c else None,
-                "log": {n: v["jumlah"] for n, v in c["log"].items()} if c else {}}
+                "log": {n: v["jumlah"] for n, v in c["log"].items()} if c else {},
+                "saksi_no": self._saksi["no"] if self._saksi else None,
+                "saksi_waktu": self._saksi["waktu"] if self._saksi else None}

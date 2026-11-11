@@ -505,6 +505,20 @@ def buat_pdf(layanan: list[dict], hasil_audit: dict, pembuat: str, peringatan: l
         isi.append(Paragraph(
             f"Titik periksa #{titik['no']} (Ed25519) dibuat saat laporan ini dicetak. Sidik jari kunci akar: "
             f"<font face='Courier' size='7'>{escape(titik['sidik_jari_akar'])}</font>", gaya["dasar"]))
+        if titik.get("saksi_no"):
+            try:
+                nz, tz_ = zona()
+                kapan = f" ({datetime.fromisoformat(titik['saksi_waktu']).astimezone(tz_):%Y-%m-%d %H:%M} {nz})"
+            except (TypeError, ValueError):
+                kapan = ""
+            isi.append(Paragraph(
+                f"Berkas Saksi terakhir diekspor pada titik periksa #{int(titik['saksi_no'])}{escape(kapan)}. Riwayat sampai titik itu terlindungi selama satuan atasan "
+                "menyimpan berkasnya.", gaya["dasar"]))
+        else:
+            isi.append(Paragraph(
+                "Belum ada Berkas Saksi yang diekspor. Tanpa salinan di luar posko, penggulungan mundur riwayat hanya "
+                "tertangkap lewat nomor titik periksa di LAPSIT ini. Ekspor Saksi di tab Audit &amp; LAPSIT lalu serahkan ke "
+                "satuan atasan.", gaya["catatan"]))
     elif titik and titik.get("galat") and not titik.get("demo"):
         isi.append(Paragraph(escape(titik["galat"]), gaya["catatan"]))
     isi += [Spacer(1, 4), _kotak([Paragraph(
@@ -514,7 +528,8 @@ def buat_pdf(layanan: list[dict], hasil_audit: dict, pembuat: str, peringatan: l
         "<font face='Courier'>python3 tools/verifikasi_audit.py --cocokkan &lt;sidik jari&gt;</font>. "
         + ("Titik periksa diperiksa tanpa kunci rahasia: <font face='Courier'>python3 tools/verifikasi_titik_periksa.py "
            f"--akar &lt;sidik jari akar&gt; --minimal-titik {int(titik.get('no') or 0)}</font> (nomor ini menangkap riwayat yang "
-           "digulung mundur). " if titik and titik.get("aktif") else "")
+           "digulung mundur). Bila satuan atasan memegang Berkas Saksi, ganti opsi terakhir dengan "
+           "<font face='Courier'>--saksi &lt;berkas saksi&gt;</font>. " if titik and titik.get("aktif") else "")
         + f"Telusuri nomor bukti di {escape(ISTILAH['buku_bukti'])}. Sidik jari ini menjamin keutuhan log audit, bukan "
         f"keutuhan berkas PDF; salinan yang diteruskan wajib bertanda tangan di bagian {escape(ISTILAH['ttd_judul'])}.",
         sel)],
