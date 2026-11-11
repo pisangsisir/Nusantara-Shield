@@ -39,6 +39,13 @@ def _muat(nama):
     return m
 
 
+def _muat_uji(nama):
+    spec = importlib.util.spec_from_file_location(f"_{nama}", AKAR / "tests" / f"{nama}.py")
+    m = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(m)
+    return m
+
+
 saksi = _muat("saksi")
 vtp = _muat("verifikasi_titik_periksa")
 
@@ -103,7 +110,7 @@ def test_tanda_tangan_python_murni_sama_dengan_cryptography():
 def test_alat_atasan_hanya_pustaka_bawaan():
     sumber = (AKAR / "tools" / "saksi.py").read_text(encoding="utf-8")
     impor = set(re.findall(r"^(?:from|import)\s+([a-zA-Z_.]+)", sumber, re.M))
-    assert impor <= {"__future__", "argparse", "hashlib", "importlib.util", "json", "os", "sys", "datetime", "pathlib"}, impor
+    assert impor <= {"__future__", "argparse", "hashlib", "importlib.util", "json", "os", "sys", "unicodedata", "datetime", "pathlib"}, impor
 
 
 def test_kunci_jenjang_izin_600_dan_tidak_pernah_ditimpa(tmp_path):
@@ -341,3 +348,146 @@ def test_loket_saksi_mengunduh_berkas_yang_diterima_atasan(klien, posko, tmp_pat
     kode, teks = jalankan(saksi, "terima", f, "--dir", d, "--harap", posko["titik"].sidik_jari_akar)
     assert kode == 0, teks
     assert any(e["aksi"] == "EKSPOR_SAKSI" for e in main.LOG.daftar(20))
+
+
+# ---------------------------------------------------------------- LAPSIT menyebut saksi
+def test_lapsit_menyebut_saksi_terakhir_atau_belum_ada(posko):
+    from app.lapsit import buat_pdf
+    teks_pdf = _muat_uji("test_titik_periksa").teks_pdf     # pembaca teks PDF tanpa pustaka tambahan
+
+    def teks(ringkasan):
+        return re.sub(r"\s+", " ", teks_pdf(buat_pdf([], posko["log"].verifikasi(), "operator", [], None, titik=ringkasan)))
+
+    isi(posko)
+    t = teks(posko["titik"].ringkasan(posko["titik"].buat("EKSPOR_LAPSIT")))
+    assert "Belum ada Berkas Saksi" in t and "--saksi" in t
+    no = json.loads(ekspor(posko).read_text())["titik_terakhir"]
+    t = teks(posko["titik"].ringkasan(posko["titik"].buat("EKSPOR_LAPSIT")))
+    assert f"Berkas Saksi terakhir diekspor pada titik periksa #{no}" in t
+    # Nomor saksi bertahan saat server dinyalakan ulang (dibaca dari berkas titik periksa).
+    baru = TitikPeriksa({"audit_log": posko["log"], "rantai_bukti": posko["bukti"]}, setiap=5)
+    assert baru.ringkasan()["saksi_no"] == no
+
+
+# ---------------------------------------------------------------- tinjauan independen 11 Nov 2026
+def _dua_saksi(posko, tmp_path):
+    """Saksi lama (pendek) dan baru (panjang) dari posko yang sama; yang baru sudah diterima atasan."""
+    d, _ = jenjang(tmp_path, "atasan", "Sansidam Uji")
+    isi(posko)
+    lama = ekspor(posko, "lama.json")
+    isi(posko, 12)
+    baru = ekspor(posko, "baru.json")
+    assert jalankan(saksi, "terima", baru, "--dir", d)[0] == 0
+    return d, lama, baru
+
+
+def test_patokan_dari_buku_saksi_bukan_arsip_hilang(posko, tmp_path):
+    import shutil
+    d, lama, _ = _dua_saksi(posko, tmp_path)
+    shutil.rmtree(d / "arsip")
+    kode, teks = jalankan(saksi, "terima", lama, "--dir", d)
+    assert kode == 2 and "tidak cocok dengan Buku Saksi" in teks, teks
+    assert len(saksi.Jenjang(d).buku()) == 1
+
+
+def test_patokan_dari_buku_saksi_bukan_arsip_ditukar(posko, tmp_path):
+    d, lama, _ = _dua_saksi(posko, tmp_path)
+    akar = posko["titik"].sidik_jari_akar
+    for f in (d / "arsip" / akar).iterdir():            # orang dalam menukar SEMUA arsip dengan berkas lama
+        f.write_bytes(lama.read_bytes())
+    kode, teks = jalankan(saksi, "terima", lama, "--dir", d)
+    assert kode == 2 and "ditukar" in teks, teks
+
+
+def test_terhenti_di_antara_arsip_dan_buku_tetap_ketat(posko, tmp_path):
+    d, lama, baru = _dua_saksi(posko, tmp_path)
+    isi(posko, 6)
+    lebih_baru = ekspor(posko, "lebih-baru.json")
+    akar = posko["titik"].sidik_jari_akar
+    (d / "arsip" / akar / "terakhir.json").write_bytes(lebih_baru.read_bytes())   # arsip ditulis, buku belum
+    assert jalankan(saksi, "terima", lama, "--dir", d)[0] == 1
+    kode, teks = jalankan(saksi, "terima", lebih_baru, "--dir", d)
+    assert kode == 0 and "[MAJU]" in teks, teks
+
+
+def test_label_dibersihkan_dari_karakter_kendali_terminal(posko, tmp_path):
+    d, _ = jenjang(tmp_path, "atasan", "Sansidam Uji")
+    isi(posko)
+    f = ekspor(posko)
+    j = json.loads(f.read_text())
+    j["posko"] = "\r\x1b[2K[MAJU] palsu‮\ud800\x1b[8m"
+    f.write_text(json.dumps(j))
+    kode, teks = jalankan(saksi, "terima", f, "--dir", d)
+    assert kode == 0 and "[BARU]" in teks
+    assert not any(c in teks for c in "\r\x1b‮\ud800"), repr(teks)
+    assert "\x1b" not in (d / "buku_saksi.jsonl").read_text()
+
+
+def test_nama_sama_dengan_sidik_jari_lain_butuh_harap(posko, tmp_path, monkeypatch):
+    d, _ = jenjang(tmp_path, "atasan", "Sansidam Uji")
+    kunci = [Ed25519PrivateKey.generate() for _ in range(3)]
+    asli, _ = _berkas(tmp_path, "a.json", _rantai(kunci, [5, 10]))
+    assert jalankan(saksi, "terima", asli, "--dir", d)[0] == 0
+    lain, akar_lain = _berkas(tmp_path, "b.json", _rantai([Ed25519PrivateKey.generate() for _ in range(2)], [1]))
+    kode, teks = jalankan(saksi, "terima", lain, "--dir", d)
+    assert kode == 1 and "sudah tercatat dengan sidik jari lain" in teks, teks
+    assert jalankan(saksi, "terima", lain, "--dir", d, "--harap", akar_lain)[0] == 0
+
+
+def test_buku_saksi_terpotong_ditolak_tanpa_traceback(posko, tmp_path):
+    d, _ = jenjang(tmp_path, "atasan", "Sansidam Uji")
+    isi(posko)
+    jalankan(saksi, "terima", ekspor(posko), "--dir", d)
+    with (d / "buku_saksi.jsonl").open("a") as f:
+        f.write('{"no": 2, "wak')
+    for arg in (("terima", ekspor(posko, "s2.json")), ("status",)):
+        kode, teks = jalankan(saksi, *arg, "--dir", d)
+        assert kode == 1 and "terpotong" in teks, teks
+
+
+def test_jumlah_entri_mundur_di_dalam_saksi_ditolak(tmp_path):
+    kunci = [Ed25519PrivateKey.generate() for _ in range(4)]
+    rantai = _rantai(kunci, [5, 15, 3])
+    f, akar = _berkas(tmp_path, "mundur.json", rantai)
+    assert "mundur" in vtp.periksa_rantai(rantai, akar)
+    d, _ = jenjang(tmp_path, "atasan", "Sansidam Uji")
+    kode, teks = jalankan(saksi, "terima", f, "--dir", d)
+    assert kode == 1 and "mundur" in teks
+    rantai = _rantai(kunci, [5, 6])
+    rantai[1]["log"] = []                               # kepala buku bukan objek, bertanda tangan sah
+    rantai[1]["tanda_tangan"] = kunci[1].sign(kanonik_tanda_tangan(rantai[1])).hex()
+    assert "tidak lengkap" in vtp.periksa_rantai(rantai, akar)
+
+
+def test_berkas_aneh_ditolak_dengan_kode_bukan_traceback(posko, tmp_path, monkeypatch):
+    d, _ = jenjang(tmp_path, "atasan", "Sansidam Uji")
+    f = tmp_path / "dalam.json"
+    f.write_text("[" * 200_000 + "]" * 200_000)
+    assert jalankan(saksi, "terima", f, "--dir", d)[0] == 1
+    isi(posko)
+    assert auditor(posko, f, monkeypatch)[0] == 1
+    assert auditor(posko, tmp_path, monkeypatch)[0] == 2        # direktori, bukan berkas
+    assert jalankan(saksi, "terima", tmp_path, "--dir", d)[0] == 2
+
+
+def test_kunci_berorde_kecil_ditolak_pemeriksa():
+    nol = (1).to_bytes(32, "little")                    # titik identitas: tanda tangan "sah" untuk pesan apa pun
+    assert not vtp.ed25519_sah(nol, b"pesan apa saja", nol + bytes(32))
+
+
+def test_rekap_ditandatangani_ulang_dengan_panjang_sama_bercabang(posko, tmp_path):
+    bawah, _ = jenjang(tmp_path, "sansidam", "Sansidam Uji")
+    atas, _ = jenjang(tmp_path, "atas", "Atas Uji")
+    isi(posko)
+    jalankan(saksi, "terima", ekspor(posko, "s1.json"), "--dir", bawah)
+    r = tmp_path / "rekap.json"
+    jalankan(saksi, "rekap", "--dir", bawah, "--keluar", r)
+    assert jalankan(saksi, "terima", r, "--dir", atas)[0] == 0
+    benih, _, _ = saksi.Jenjang(bawah).kunci()
+    buku = saksi.Jenjang(bawah).buku()
+    buku[0]["pengirim"]["label"] = "Posko Lain"        # panjang sama, isi beda, tanda tangan baru yang sah
+    buku[0]["tanda_tangan"] = saksi.tandatangani(benih, saksi.pesan_entri(buku[0])).hex()
+    (bawah / "buku_saksi.jsonl").write_text(json.dumps(buku[0]) + "\n")
+    jalankan(saksi, "rekap", "--dir", bawah, "--keluar", r)
+    kode, teks = jalankan(saksi, "terima", r, "--dir", atas)
+    assert kode == 1 and "bercabang" in teks, teks

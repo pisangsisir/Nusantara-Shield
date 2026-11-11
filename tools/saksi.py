@@ -47,6 +47,7 @@ import importlib.util
 import json
 import os
 import sys
+import unicodedata
 from datetime import datetime, timezone
 from pathlib import Path
 
@@ -61,6 +62,14 @@ JENIS_SAKSI = vtp.JENIS_SAKSI
 JENIS_REKAP = "nusantara-shield/rekap-saksi/1"
 JENIS_TANDA_TERIMA = "nusantara-shield/tanda-terima-saksi/1"
 NOL = "0" * 64
+MAKS_BERKAS = 64 * 1024 * 1024          # ±90.000 titik periksa; berkas lebih besar ditolak sebelum dibaca
+
+
+def bersihkan_label(nilai) -> str:
+    """Label dari pengirim tidak dipercaya: buang karakter kendali dan format (ESC, CR, LF, arah teks, surrogate)
+    agar tidak bisa menimpa atau menyembunyikan baris [BARU]/[RUSAK] di terminal."""
+    teks = "".join(ch for ch in str(nilai) if unicodedata.category(ch) not in ("Cc", "Cf", "Cs", "Co", "Cn"))
+    return " ".join(teks.split())[:80] or "(tanpa nama)"
 
 
 class Galat(Exception):
@@ -136,14 +145,35 @@ def periksa_buku(entri: list, publik_hex: str | None = None) -> str | None:
     return None
 
 
-def _tulis_atomik(berkas: Path, isi: str, izin: int = 0o644) -> None:
+def _fsync_dir(d: Path) -> None:
+    try:
+        fd = os.open(d, os.O_RDONLY)
+    except OSError:
+        return                                   # Windows: direktori tidak bisa dibuka; os.replace sudah atomik
+    try:
+        os.fsync(fd)
+    except OSError:
+        pass
+    finally:
+        os.close(fd)
+
+
+def _tulis_atomik(berkas: Path, isi: bytes | str, izin: int = 0o644) -> None:
+    """Bita ditulis apa adanya (tanpa terjemahan baris baru), lalu diganti secara atomik dan direktorinya di-fsync."""
+    data = isi.encode("utf-8") if isinstance(isi, str) else isi
     sementara = berkas.with_name(berkas.name + ".baru")
-    fd = os.open(sementara, os.O_WRONLY | os.O_CREAT | os.O_TRUNC, izin)
-    with os.fdopen(fd, "w", encoding="utf-8") as f:
-        f.write(isi)
+    fd = os.open(sementara, os.O_WRONLY | os.O_CREAT | os.O_TRUNC | getattr(os, "O_BINARY", 0), izin)
+    with os.fdopen(fd, "wb") as f:
+        f.write(data)
         f.flush()
         os.fsync(f.fileno())
     os.replace(sementara, berkas)
+    _fsync_dir(berkas.parent)
+
+
+def _nama_arsip(entri: dict) -> str:
+    """Satu berkas per kiriman yang tercatat; nama memuat sidik jari berkas, jadi tidak pernah saling menimpa."""
+    return f"{entri['jenis']}-{entri['nomor']:06d}-{entri['sha256_berkas'][:16]}.json"
 
 
 class Jenjang:
@@ -161,7 +191,7 @@ class Jenjang:
             raise Galat(f"{self.berkas_kunci} sudah ada; kunci jenjang tidak pernah ditimpa.")
         self.dir.mkdir(parents=True, exist_ok=True)
         benih = os.urandom(32)
-        _tulis_atomik(self.berkas_kunci, json.dumps({"versi_format": 1, "label": label, "benih": benih.hex()}), 0o600)
+        _tulis_atomik(self.berkas_kunci, json.dumps({"versi_format": 1, "label": bersihkan_label(label), "benih": benih.hex()}), 0o600)
         os.chmod(self.berkas_kunci, 0o600)
         return hashlib.sha256(publik_dari_benih(benih)).hexdigest()
 
@@ -176,16 +206,45 @@ class Jenjang:
     def buku(self) -> list[dict]:
         if not self.berkas_buku.exists():
             return []
-        entri = [json.loads(b) for b in self.berkas_buku.read_text(encoding="utf-8").splitlines() if b.strip()]
+        entri = []
+        for no, baris in enumerate(self.berkas_buku.read_text(encoding="utf-8").splitlines(), start=1):
+            if baris.strip():
+                try:
+                    entri.append(json.loads(baris))
+                except (ValueError, RecursionError):
+                    raise Ditolak(f"[RUSAK] Buku Saksi baris {no} bukan JSON yang sah (mungkin terpotong saat komputer "
+                                  "mati di tengah pencatatan). Tidak ada yang dicatat. Bila itu baris TERAKHIR dan "
+                                  "terpotong, salin bukunya sebagai cadangan, hapus baris itu saja, lalu ulangi.")
         _, pk, _ = self.kunci()
         if rusak := periksa_buku(entri, pk):
             raise Ditolak(f"[RUSAK] Buku Saksi jenjang ini sendiri rusak: {rusak}. Tidak ada yang dicatat; "
                           "periksa media penyimpanan dan bandingkan dengan rekap yang pernah dikirim ke atas.")
         return entri
 
-    def _arsip_terakhir(self, identitas: str) -> dict | None:
+    def _dasar(self, identitas: str, buku: list[dict]) -> dict | None:
+        """Kiriman terakhir yang SAH dari pengirim ini. Patokannya Buku Saksi (bertanda tangan), bukan berkas arsip:
+        arsip hanya dipakai bila sidik jari berkasnya sama dengan yang tercatat di entri buku terakhir pengirim itu."""
+        tercatat = next((e for e in reversed(buku) if e.get("pengirim", {}).get("identitas") == identitas), None)
         f = self.arsip / identitas / "terakhir.json"
-        return json.loads(f.read_text(encoding="utf-8")) if f.exists() else None
+        mentah = f.read_bytes() if f.exists() else None
+        if tercatat is None:
+            # Arsip tanpa entri buku hanya mungkin bila komputer mati di antara keduanya: arsip lebih baru, jadi lebih ketat.
+            return json.loads(mentah) if mentah is not None else None
+        if mentah is None or hashlib.sha256(mentah).hexdigest() != tercatat["sha256_berkas"]:
+            # Arsip lebih baru karena terhenti di tengah pencatatan juga diterima bila memuat kiriman yang tercatat.
+            simpan = self.arsip / identitas / _nama_arsip(tercatat)
+            cadangan = simpan.read_bytes() if simpan.exists() else None
+            if cadangan is None or hashlib.sha256(cadangan).hexdigest() != tercatat["sha256_berkas"]:
+                raise Galat(f"Arsip kiriman '{tercatat['pengirim']['label']}' tidak cocok dengan Buku Saksi entri "
+                            f"#{tercatat['no']} (hilang atau ditukar). Tidak ada yang dicatat. Pulihkan folder "
+                            f"{self.arsip / identitas} dari cadangan; jangan dihapus, karena tanpa arsip kiriman "
+                            "mundur tidak bisa dibandingkan.")
+            mentah = cadangan
+        dasar = json.loads(mentah)
+        urutan = dasar.get("titik_periksa") if dasar.get("jenis") == JENIS_SAKSI else dasar.get("buku")
+        if not isinstance(urutan, list) or len(urutan) != tercatat["nomor"]:
+            raise Galat(f"Arsip kiriman '{tercatat['pengirim']['label']}' tidak sesuai jumlah yang tercatat di Buku Saksi.")
+        return dasar
 
     # -- menerima kiriman
     def terima(self, mentah: bytes, harap: str | None = None) -> tuple[dict, list[str]]:
@@ -193,7 +252,7 @@ class Jenjang:
         buku = self.buku()
         try:
             kiriman = json.loads(mentah.decode("utf-8"))
-        except (UnicodeDecodeError, ValueError):
+        except (UnicodeDecodeError, ValueError, RecursionError):
             raise Ditolak("[RUSAK] Berkas bukan JSON yang sah.")
         if not isinstance(kiriman, dict):
             raise Ditolak("[RUSAK] Berkas bukan Berkas Saksi atau Rekap Saksi Nusantara Shield.")
@@ -205,7 +264,7 @@ class Jenjang:
                 raise Ditolak("[RUSAK] Berkas Saksi tidak memuat daftar titik periksa.")
             if rusak := vtp.periksa_rantai(urutan, identitas):
                 raise Ditolak(rusak)
-            label, satuan = str(kiriman.get("posko", "posko"))[:80], "titik periksa"
+            label, satuan = bersihkan_label(kiriman.get("posko", "posko")), "titik periksa"
         elif jenis == JENIS_REKAP:
             urutan, pk_bawah = kiriman.get("buku"), str(kiriman.get("kunci_publik", ""))
             try:
@@ -216,7 +275,7 @@ class Jenjang:
                 raise Ditolak(f"[RUSAK] Rekap Saksi tidak sah: {rusak}.")
             if identitas == sidik_jari_kunci(pk):
                 raise Ditolak("[RUSAK] Rekap ini milik jenjang ini sendiri; rekap dikirim ke jenjang di atasnya.")
-            label, satuan = str(kiriman.get("label", "satuan"))[:80], "entri Buku Saksi"
+            label, satuan = bersihkan_label(kiriman.get("label", "satuan")), "entri Buku Saksi"
         else:
             raise Ditolak("[RUSAK] Berkas bukan Berkas Saksi atau Rekap Saksi Nusantara Shield.")
         if not urutan:
@@ -224,8 +283,14 @@ class Jenjang:
 
         if harap and harap.strip().lower() != identitas:
             raise Ditolak(f"[RUSAK] Sidik jari pengirim {identitas} tidak sama dengan yang diharapkan ({harap}).")
-        lama = self._arsip_terakhir(identitas)
+        lama = self._dasar(identitas, buku)
         if lama is None:
+            kembar = next((e for e in buku if e["pengirim"]["label"] == label), None)
+            if kembar and not harap:
+                raise Ditolak(f"[RUSAK] Nama '{label}' sudah tercatat dengan sidik jari lain "
+                              f"({kembar['pengirim']['identitas'][:16]}…), kini datang dengan {identitas[:16]}…. Akar atau "
+                              "kunci yang berganti bisa berarti riwayat dibuat ulang dari nol. Tidak dicatat; terima hanya "
+                              "dengan --harap <sidik jari baru> setelah dicocokkan dengan berita acara.")
             pesan.append(f"[BARU]  Pengirim baru '{label}'. Cocokkan sidik jarinya dengan berita acara: {identitas}")
         else:
             urutan_lama = lama["titik_periksa"] if lama.get("jenis") == JENIS_SAKSI else lama["buku"]
@@ -255,12 +320,13 @@ class Jenjang:
         # Urutan tulis: arsip kiriman dulu, baru Buku Saksi (buku tidak pernah merujuk kiriman yang tidak tersimpan).
         d = self.arsip / identitas
         d.mkdir(parents=True, exist_ok=True)
-        (d / f"{entri['jenis']}-{len(urutan):06d}.json").write_bytes(mentah)
-        _tulis_atomik(d / "terakhir.json", mentah.decode("utf-8"))
+        _tulis_atomik(d / _nama_arsip(entri), mentah)
+        _tulis_atomik(d / "terakhir.json", mentah)
         with self.berkas_buku.open("a", encoding="utf-8") as f:
             f.write(json.dumps(entri, ensure_ascii=False) + "\n")
             f.flush()
             os.fsync(f.fileno())
+        _fsync_dir(self.dir)
         tanda_terima = {"jenis": JENIS_TANDA_TERIMA, "penerima": label_saya, "entri": entri}
         pesan.append(f"[TERCATAT] Buku Saksi entri #{entri['no']} · {entri['waktu_terima']} · {satuan} #{len(urutan)}")
         return tanda_terima, pesan
@@ -322,8 +388,10 @@ def main(argv: list[str] | None = None, keluar=sys.stdout) -> int:
             tulis(f"        Sidik jari kunci (catat di berita acara, serahkan ke posko dan jenjang di atas): {sj}")
         elif a.perintah == "terima":
             sumber = Path(a.berkas)
-            if not sumber.exists():
+            if not sumber.is_file():
                 raise Galat(f"berkas tidak ditemukan: {sumber}")
+            if sumber.stat().st_size > MAKS_BERKAS:
+                raise Ditolak(f"[RUSAK] Berkas lebih dari {MAKS_BERKAS // 2**20} MB; bukan kiriman yang wajar.")
             tt, pesan = Jenjang(a.dir).terima(sumber.read_bytes(), a.harap)
             tujuan = Path(a.tanda_terima) if a.tanda_terima else sumber.with_name(
                 f"TANDA-TERIMA-{sumber.stem}.json")
@@ -338,7 +406,7 @@ def main(argv: list[str] | None = None, keluar=sys.stdout) -> int:
             sekarang = datetime.now(timezone.utc)
             for e in daftar:
                 umur = (sekarang - datetime.fromisoformat(e["waktu_terima"])).days
-                tulis(f"{e['pengirim']['label'][:32]:<32} {e['jenis']:<13} #{e['nomor']:<6} {e['waktu_terima']} "
+                tulis(f"{bersihkan_label(e['pengirim']['label'])[:32]:<32} {e['jenis']:<13} #{e['nomor']:<6} {e['waktu_terima']} "
                       f"({umur} hari lalu) · {e['pengirim']['identitas'][:16]}…")
         elif a.perintah == "rekap":
             rekap = Jenjang(a.dir).rekap()
@@ -347,17 +415,17 @@ def main(argv: list[str] | None = None, keluar=sys.stdout) -> int:
             tulis(f"        Sidik jari kunci jenjang ini: {sidik_jari_kunci(rekap['kunci_publik'])}")
         else:
             sumber = Path(a.berkas)
-            if not sumber.exists():
+            if not sumber.is_file():
                 raise Galat(f"berkas tidak ditemukan: {sumber}")
             try:
                 tt = json.loads(sumber.read_text(encoding="utf-8"))
-            except ValueError:
+            except (ValueError, RecursionError):
                 tt = None
             if rusak := periksa_tanda_terima(tt, a.kunci):
                 raise Ditolak(f"[RUSAK] {rusak}.")
             e = tt["entri"]
-            tulis(f"[SAH]   Tanda Terima dari '{tt.get('penerima')}': Buku Saksi entri #{e['no']} · {e['waktu_terima']} · "
-                  f"{e['pengirim']['label']} #{e['nomor']}")
+            tulis(f"[SAH]   Tanda Terima dari '{bersihkan_label(tt.get('penerima'))}': Buku Saksi entri #{e['no']} · "
+                  f"{bersihkan_label(e['waktu_terima'])} · {bersihkan_label(e['pengirim']['label'])} #{e['nomor']}")
     except Galat as e:
         tulis(f"GAGAL: {e}")
         return 2
