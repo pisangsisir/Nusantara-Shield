@@ -61,6 +61,16 @@ ARTEFAK: dict[str, list[tuple[str, str, str]]] = {
     ],
 }
 
+# v5.4.2: insiden dari temuan log asli tidak memakai barang templat yang menyebut perangkat lain (mis. workstation
+# teknisi); hanya barang umum aset terdampak, ditambah rekaman Modbus untuk temuan OT.
+ARTEFAK_TEMUAN: dict[str, list[tuple[str, str, str]]] = {
+    "intrusi_log": ARTEFAK["intrusi_log"],
+    "sabotase_ot": [
+        ("lalu_lintas_modbus.pcap", "Rekaman lalu lintas Modbus/TCP ke pengendali genset", "64 MB"),
+        ("konfigurasi_pengendali_genset.bin", "Salinan konfigurasi & jadwal pengendali genset", "2 MB"),
+    ],
+}
+
 # Aksi di buku rantai bukti (juga dicerminkan ke log audit)
 BUKTI_DIAMANKAN = "BUKTI_DIAMANKAN"
 BUKTI_GAGAL = "PENGAMBILAN_BUKTI_GAGAL"
@@ -102,7 +112,8 @@ class RantaiBukti:
         nomor, uid = self._pencacah.berikutnya("BB")
         isi: dict[str, bytes] = {}
         barang = []
-        for nama, ket, ukuran in ARTEFAK[skenario]:
+        for nama, ket, ukuran in (ARTEFAK_TEMUAN.get(skenario, ARTEFAK["intrusi_log"]) if sumber_temuan
+                                  else ARTEFAK[skenario]):
             data = f"SIMULASI|{nomor}|{layanan_id}|{nama}|".encode() + secrets.token_bytes(512)
             isi[nama] = data
             barang.append({"nama": nama, "ket": ket, "ukuran": ukuran, "sha256": _sha256(data)})

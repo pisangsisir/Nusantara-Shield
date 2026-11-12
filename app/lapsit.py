@@ -88,7 +88,12 @@ def dampak_operasional(l: dict, ins_rinci: dict | None) -> str:
             if prof.get("saat_diisolasi"):
                 return f"Diisolasi: {prof['saat_diisolasi']}. Kontinjensi: {kontinjensi}."
             return f"Diisolasi: {misi} dihentikan sementara dengan sengaja. Kontinjensi: {kontinjensi}."
-        gangguan = GANGGUAN_SKENARIO.get(l["insiden"]["skenario"], "{misi} terganggu").format(misi=misi)
+        tm = l["insiden"].get("temuan")
+        if tm:      # v5.4.2: dari temuan log asli → yang terbukti hanya isi temuannya, bukan gangguan khas templat
+            gangguan = (f"temuan {tm['nama'].lower()} pada {', '.join(tm.get('aset_nama') or tm['aset'])}; "
+                        f"{misi} berisiko terganggu bila tidak ditangani")
+        else:
+            gangguan = GANGGUAN_SKENARIO.get(l["insiden"]["skenario"], "{misi} terganggu").format(misi=misi)
         return f"{gangguan[:1].upper()}{gangguan[1:]}. Kontinjensi siap: {kontinjensi}."
     if l.get("status") == "kuning":
         alasan = l.get("alasan", "")
@@ -319,15 +324,19 @@ def ringkasan_eksekutif(layanan: list[dict], rincian: dict, peringatan: list[dic
             continue
         r = rincian["insiden"].get(l["id"], {})
         log = ins.get("log_peringatan", [])
-        kal = [f"Pada {waktu_lokal(ins['mulai'])} terjadi insiden <b>{escape(ins['judul'].lower())}</b> di "
-               f"<b>{escape(l['nama'])}</b> ({escape(l.get('cabang', ''))})."]
-        if ins.get("temuan"):
-            tm = ins["temuan"]
-            kal.append(f"Insiden ini <b>dibuka Operator dari temuan log asli</b> {escape(tm['id'])} "
-                       f"({escape(tm['nama'])}) di berkas impor {escape(tm['berkas'])}, bukan dari latihan.")
-        if log:
+        tm = ins.get("temuan")
+        if tm:
+            kal = [f"Pada {waktu_lokal(ins['mulai'])} Operator <b>membuka insiden dari temuan log asli</b> "
+                   f"{escape(tm['id'])} ({escape(tm['nama'])}, berkas impor {escape(tm['berkas'])}) di "
+                   f"<b>{escape(l['nama'])}</b> ({escape(l.get('cabang', ''))}), bukan dari latihan."]
+        else:
+            kal = [f"Pada {waktu_lokal(ins['mulai'])} terjadi insiden <b>{escape(ins['judul'].lower())}</b> di "
+                   f"<b>{escape(l['nama'])}</b> ({escape(l.get('cabang', ''))})."]
+        if len(log) > 1:
             kal.append(f"Gejala paling awal tercatat {waktu_lokal(log[0]['waktu'])}: {escape(_kecil(log[0]['pesan']))}, "
                        f"lalu berkembang hingga {escape(_kecil(log[-1]['pesan']))}.")
+        elif log:
+            kal.append(f"Kejadian tercatat {waktu_lokal(log[0]['waktu'])}: {escape(_kecil(log[0]['pesan']))}.")
         b, ir, dar = r.get("bukti"), r.get("ir"), r.get("darurat")
         pelaku = next((x.get("oleh") for x in r.get("langkah", []) if x.get("selesai") and x.get("oleh")), None)
         if dar:

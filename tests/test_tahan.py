@@ -97,8 +97,8 @@ def test_token_kedaluwarsa_ditolak(k, monkeypatch):
     h = masuk(k)
     insiden(k, h)
     t = token(k, h)["token"]
-    akun, lid, tujuan, mulai = main._TAHAN[t]
-    main._TAHAN[t] = (akun, lid, tujuan, mulai - main.UMUR_TAHAN - 1)
+    akun, lid, tujuan, mulai, insiden_id = main._TAHAN[t]
+    main._TAHAN[t] = (akun, lid, tujuan, mulai - main.UMUR_TAHAN - 1, insiden_id)
     r = isolasi(k, h, t)
     assert r.status_code == 428 and "kedaluwarsa" in r.json()["detail"]
 
@@ -147,3 +147,42 @@ def test_satu_token_aktif_per_tombol_dan_jumlah_dibatasi(k):
     for lid in ("imigrasi", "perizinan", "kesehatan", "listrik", "logistik"):
         token(k, h, lid)
     assert len(main._TAHAN) <= 200
+
+
+def test_centang_manual_langkah_pemutus_juga_wajib_ditahan(k, monkeypatch):
+    h = masuk(k)
+    insiden(k, h)
+    assert isolasi(k, h, None, aksi="amankan_bukti").status_code == 200
+    centang = lambda i, tahan: k.post("/api/playbook/langkah", headers=h,
+                                      json={"layanan_id": "pajak", "indeks": i, "selesai": True, "tahan": tahan})
+    r = centang(1, None)                                                   # langkah 2 ransomware = ISOLASI
+    assert r.status_code == 428 and main.LAYANAN["pajak"]["insiden"]["langkah_selesai"][1] is False
+    monkeypatch.setattr(main, "MIN_TAHAN", {"isolasi": 0.0, "darurat": 0.0})
+    assert centang(1, token(k, h)["token"]).status_code == 200
+    e = next(e for e in LOG.daftar(10) if e["aksi"] == "LANGKAH_PLAYBOOK")
+    assert "tahan_ms" in e["detail"]
+    # Langkah non-pemutus (LAPOR, indeks 3) tidak perlu ditahan: ditolak atau diterima karena urutan, bukan 428
+    r = k.post("/api/playbook/langkah", headers=h, json={"layanan_id": "pajak", "indeks": 3, "selesai": True})
+    assert r.status_code != 428
+
+
+def test_token_terikat_pada_insiden_dan_dibuang_saat_reset(k, monkeypatch):
+    monkeypatch.setattr(main, "MIN_TAHAN", {"isolasi": 0.0, "darurat": 0.0})
+    h = masuk(k)
+    t = token(k, h)["token"]                                               # diminta sebelum insiden ada
+    insiden(k, h)
+    r = isolasi(k, h, t)
+    assert r.status_code == 428 and "insiden lain" in r.json()["detail"]
+    t = token(k, h)["token"]
+    assert k.post("/api/reset-demo", headers=h).status_code == 200
+    assert main._TAHAN == {}
+    insiden(k, h)
+    assert isolasi(k, h, t).status_code == 428
+
+
+def test_batas_200_token_benar_benar_membuang_yang_tertua(k):
+    h = masuk(k)
+    for i in range(300):
+        main._TAHAN[f"palsu-{i}"] = ("akun-lain", "pajak", "isolasi", time.monotonic(), None)
+    token(k, h)
+    assert len(main._TAHAN) <= 200 and "palsu-0" not in main._TAHAN

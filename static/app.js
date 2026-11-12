@@ -900,8 +900,12 @@ function gambarPlaybook() {
       // Langkah playbook sebagai lencana: klik untuk mencentang langkah manusia
       el("ol", { kelas: "lencana-langkah", "aria-label": `Langkah playbook (${selesai}/${jml})` }, ...ins.langkah.map((teks, i) => {
         const beres = ins.langkah_selesai[i];
+        // Langkah PEMUTUS tidak dicentang langsung: memutus jaringan hanya lewat Eksekusi Isolasi yang ditahan
+        const putus = !beres && pemutus.some((a) => a.langkah === i);
         return el("li", {}, el("button", { type: "button", kelas: `badge-langkah${beres ? " beres" : ""}${otomatis.has(i) ? " oto" : ""}`,
-          "aria-pressed": String(Boolean(beres)), title: teks, "data-ubah": "", "data-kunci": `pb-${l.id}-${i}`,
+          "aria-pressed": String(Boolean(beres)), "data-ubah": "", "data-kunci": `pb-${l.id}-${i}`,
+          "data-terkunci": putus ? true : null,
+          title: putus ? `${teks} — jalankan lewat tombol Eksekusi Isolasi (ditahan)` : teks,
           onclick: (e) => tandaiLangkah(l.id, i, !beres, e.currentTarget) },
           el("i", { teks: beres ? "✓" : String(i + 1) }), label[i] || `Langkah ${i + 1}`));
       })),
@@ -931,7 +935,7 @@ function pasangTahan(tombol, kerja, ms = LAMA_TAHAN_MS, minta = null) {
     e.preventDefault();
     S.menahan = true;
     tombol.classList.add("menahan");                                  // CSS mengisi bilah selama ms
-    token = minta ? minta().catch(() => null) : null;
+    token = minta ? minta() : null;
     timer = setTimeout(() => { timer = null; selesai(); kerja(token); }, ms);
   };
   const selesai = () => {
@@ -955,14 +959,28 @@ function pasangTahan(tombol, kerja, ms = LAMA_TAHAN_MS, minta = null) {
 /** ⚡ ISOLASI — hanya dipanggil setelah tombol ditahan penuh. Server menjalankan tindakan PEMUTUS saja;
     laporan ke manajemen menyusul lewat siaran begitu semuanya selesai (lihat umumkanLaporanBaru). */
 async function mintaTahan(lid, tujuan) {
-  return (await api("/api/tahan", { metode: "POST", data: { layanan_id: lid, tujuan } })).token;
+  try {
+    const j = await api("/api/tahan", { metode: "POST", data: { layanan_id: lid, tujuan } });
+    return { token: j.token, tiba: performance.now(), minimal: j.minimal_ms };
+  } catch (e) { return { galat: e.message || "Token tahan tidak bisa diminta" }; }
 }
-async function eksekusiIsolasi(lid, tombol, token) {
+/** Token tahan siap dipakai: tampilkan galat permintaannya bila ada, dan pastikan umurnya di server sudah cukup
+    (server mengukur sejak token terbit; permintaan token yang lambat tidak boleh membuat tahan penuh ditolak). */
+async function siapkanTahan(janji) {
+  const t = await janji;
+  if (!t || t.galat) { toast(t?.galat || "Token tahan tidak bisa diminta. Tahan ulang tombolnya.", "galat"); return null; }
+  const sisa = t.tiba + (t.minimal - 80) - performance.now();
+  if (sisa > 0) await new Promise((r) => setTimeout(r, sisa));
+  return t.token;
+}
+async function eksekusiIsolasi(lid, tombol, janji) {
+  const token = await siapkanTahan(janji);
+  if (!token) return;
   if (S.mode !== "mikro") aturMode("mikro");                   // tampilkan topologi agar pemutusan terlihat
   let j = null;
   try {
-    j = await sibuk(tombol, async () => api("/api/soar/jalankan",
-      { metode: "POST", data: { layanan_id: lid, aksi: "isolasi", tahan: await token } }));
+    j = await sibuk(tombol, () => api("/api/soar/jalankan",
+      { metode: "POST", data: { layanan_id: lid, aksi: "isolasi", tahan: token } }));
   }
   catch (e) {
     if (e.status !== 401) toast(e.message, "galat");
@@ -982,11 +1000,13 @@ async function eksekusiIsolasi(lid, tombol, token) {
 
 /** Isolasi darurat (emergency override) — dipanggil setelah tombol ditahan 1,5 detik. Server menolak bila alasan kurang
     atau bukti sebenarnya sudah aman; alasan dicatat di buku rantai bukti, log audit, dan laporan. */
-async function eksekusiDarurat(lid, tombol, token) {
+async function eksekusiDarurat(lid, tombol, janji) {
+  const token = await siapkanTahan(janji);
+  if (!token) return;
   const alasan = (S.alasanDarurat[lid] || "").trim();
   if (S.mode !== "mikro") aturMode("mikro");
-  const j = await coba(() => sibuk(tombol, async () => api("/api/soar/darurat",
-    { metode: "POST", data: { layanan_id: lid, alasan, tahan: await token } })));
+  const j = await coba(() => sibuk(tombol, () => api("/api/soar/darurat",
+    { metode: "POST", data: { layanan_id: lid, alasan, tahan: token } })));
   if (!j) return;
   delete S.alasanDarurat[lid];
   S.daruratTerbuka.delete(lid);

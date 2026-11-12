@@ -124,6 +124,11 @@ def _token_tahan_otomatis(monkeypatch, request):
                 tujuan = "isolasi"
             elif url == "/api/soar/darurat":
                 tujuan = "darurat"
+            elif url == "/api/playbook/langkah" and data.get("selesai") and data.get("layanan_id") in main.LAYANAN:
+                from app.telemetri import langkah_pemutus
+                ins = main.LAYANAN[data["layanan_id"]]["insiden"]
+                if ins and data.get("indeks") in langkah_pemutus(ins["skenario"]):
+                    tujuan = "isolasi"
         if tujuan and data.get("layanan_id"):
             r = asli(self, "/api/tahan", headers=kw.get("headers"),
                      json={"layanan_id": data["layanan_id"], "tujuan": tujuan})

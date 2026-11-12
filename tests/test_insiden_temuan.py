@@ -197,6 +197,49 @@ def test_lapsit_menyebut_asal_temuan_dan_sha256_berkas(k):
     m = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(m)
     teks = re.sub(r"\s+", "", m.teks_pdf(r.content))
-    assert "dibukaOperatordaritemuanlogasli" in teks and tm["id"] in teks and "auth.log" in teks
+    assert "membukainsidendaritemuanlogasli" in teks and "Asal:temuanlogasli" in teks and tm["id"] in teks and "auth.log" in teks
     sidik = hashlib.sha256((CONTOH / "auth.log").read_bytes()).hexdigest()
     assert sidik in teks
+
+
+def test_temuan_drill_bukan_log_asli_dan_tidak_bisa_dibuka(k):
+    h = masuk(k)
+    r = k.post("/api/drill/mulai", headers=h, json={"kode": "cadangan_dilepas"})
+    assert r.status_code == 200, r.text
+    drill = [t for t in main.MENARA.deteksi.temuan if t.drill]
+    assert drill and all(peringatan(k, h, t.id)["usul_insiden"] is None for t in drill
+                         if any(x["id"] == t.id for x in potret(k, h)["peringatan"]))
+    r = buka(k, h, drill[0].id)
+    assert r.status_code == 409 and "Drill" in r.json()["detail"]
+
+
+def test_satu_temuan_paling_banyak_satu_insiden(k):
+    h = masuk(k)
+    tm = impor(k, h, "auth.log")["login_tembus"]
+    assert buka(k, h, tm["id"]).status_code == 200
+    main.LAYANAN["logistik"]["insiden"] = None                            # seolah sudah dipulihkan dan ditutup
+    r = buka(k, h, tm["id"])
+    assert r.status_code == 409 and "sudah pernah dibuka" in r.json()["detail"]
+
+
+def test_judul_waktu_dan_teks_insiden_ot_tidak_memakai_templat(k):
+    h = masuk(k)
+    tm = impor(k, h, "suricata-eve.json")["ot_tanpa_izin"]
+    ins = buka(k, h, tm["id"]).json()["insiden"]
+    assert "Modbus asing" not in ins["judul"] and tm["nama"] in ins["judul"]
+    waktu_temuan = peringatan(k, h, tm["id"])["waktu"]
+    assert ins["log_peringatan"][0]["waktu"] == waktu_temuan               # waktu kejadian, bukan saat dibuka
+    from app.lapsit import dampak_operasional
+    teks = dampak_operasional(main.LAYANAN["listrik"], None)
+    assert "jadwal start genset" not in teks and tm["nama"].lower() in teks
+    k.post("/api/soar/jalankan", headers=h, json={"layanan_id": "listrik", "aksi": "amankan_bukti"})
+    bukti = next(e for e in main.MENARA.rantai.daftar(10) if e["aksi"] == "BUKTI_DIAMANKAN")
+    assert "log_workstation_teknisi.evtx" not in {b["nama"] for b in bukti["detail"]["barang"]}
+
+
+def test_isolasi_insiden_dari_temuan_tanpa_tahan_ditolak(k):
+    h = masuk(k)
+    tm = impor(k, h, "auth.log")["login_tembus"]
+    buka(k, h, tm["id"])
+    r = k.post("/api/soar/jalankan", headers=h, json={"layanan_id": "logistik", "aksi": "isolasi", "tahan": None})
+    assert r.status_code == 428

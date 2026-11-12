@@ -64,7 +64,7 @@ from .siaran import HUB
 from .lapsit import buat_pdf
 from .istilah import ISTILAH
 from .telemetri import (AKSI_GABUNGAN, ASET_BERPORT, MENARA, MIN_ALASAN_DARURAT, MIN_ALASAN_TUTUP, SEMUA_AKSI_SOAR,
-                        SOAR, STATUS_TUTUP, dampak_dari_temuan)
+                        SOAR, STATUS_TUTUP, dampak_dari_temuan, langkah_pemutus)
 from .ai_anomali import POLA
 from .deteksi import JENIS_LATIHAN
 from .impor_log import GalatImpor
@@ -219,6 +219,7 @@ class LangkahMasuk(Formulir):
     layanan_id: IdLayanan
     indeks: int = Field(ge=0, le=20)
     selesai: bool
+    tahan: str | None = Field(default=None, max_length=64)   # v5.4.2: wajib bila mencentang langkah PEMUTUS
 
 
 class LayananMasuk(Formulir):
@@ -390,13 +391,16 @@ def _mulai_insiden(layanan_id: str, skenario: str, gangguan_bukti: bool, temuan=
     mulai = datetime.now(timezone.utc)
     if temuan is None:
         kronologi = LOG_PERINGATAN[skenario]
+        # Log peringatan latihan: waktu tiap kejadian dihitung mundur dari awal insiden.
+        log = [{"waktu": (mulai + timedelta(minutes=m)).isoformat(timespec="seconds"),
+                "tingkat": t, "pesan": p} for m, t, p in kronologi]
+        judul = SKENARIO[skenario]
     else:
-        kronologi = [(0, temuan.keparahan, f"{temuan.nama} ({temuan.id}) dari {temuan.sumber}: {temuan.alasan()} "
-                                           f"— log impor {temuan.berkas}")]
-    # Log peringatan: waktu tiap kejadian dihitung mundur dari awal insiden.
-    log = [{"waktu": (mulai + timedelta(minutes=m)).isoformat(timespec="seconds"),
-            "tingkat": t, "pesan": p} for m, t, p in kronologi]
-    l["insiden"] = {"id": uuid.uuid4().hex[:12], "skenario": skenario, "judul": SKENARIO[skenario],
+        pesan = f"{temuan.nama} ({temuan.id}) dari {temuan.sumber}: {temuan.alasan()} — log impor {temuan.berkas}"
+        kronologi = [(0, temuan.keparahan, pesan)]
+        log = [{"waktu": MENARA.waktu_temuan(temuan), "tingkat": temuan.keparahan, "pesan": pesan}]   # waktu kejadian
+        judul = f"Temuan log asli: {temuan.nama}"            # bukan judul templat skenario
+    l["insiden"] = {"id": uuid.uuid4().hex[:12], "skenario": skenario, "judul": judul,
                     "gangguan_bukti": gangguan_bukti,
                     "mulai": mulai.isoformat(timespec="seconds"), "log_peringatan": log,
                     "langkah": langkah, "langkah_selesai": [False] * len(langkah)}
@@ -404,11 +408,12 @@ def _mulai_insiden(layanan_id: str, skenario: str, gangguan_bukti: bool, temuan=
     if temuan is not None:
         info = {"id": temuan.id, "aturan": temuan.aturan, "nama": temuan.nama, "berkas": temuan.berkas,
                 "sumber": temuan.sumber, "aset": list(aset or temuan.aset),
+                "aset_nama": [n for n in (MENARA.nama_aset(a) for a in (aset or temuan.aset)) if n],
                 "sha256_berkas": getattr(temuan, "sha256_berkas", None), "baris": getattr(temuan, "baris_berkas", None)}
         l["insiden"]["temuan"] = info
         l["insiden"]["dampak"] = dampak_dari_temuan(skenario, info["aset"], f"{temuan.nama}: {temuan.alasan()}")
     # Beri tahu dapur: peta, radar, gauge, dan log semua browser ikut berubah.
-    MENARA.insiden_dimulai(LAYANAN, layanan_id, skenario, SKENARIO[skenario], kronologi, temuan=info)
+    MENARA.insiden_dimulai(LAYANAN, layanan_id, skenario, judul, kronologi, temuan=info)
     return _tampilan(l)
 
 
@@ -420,7 +425,7 @@ def _mulai_insiden(layanan_id: str, skenario: str, gangguan_bukti: bool, temuan=
 # --------------------------------------------------------------------------
 MIN_TAHAN = {"isolasi": 0.5, "darurat": 1.4}      # detik; tombol 0,6 / 1,5 detik, toleransi jaringan 0,1 detik
 UMUR_TAHAN = 15.0                                 # detik; token lebih tua dari ini ditolak
-_TAHAN: dict[str, tuple[str, str, str, float]] = {}   # token → (akun, layanan, tujuan, waktu mulai monotonic)
+_TAHAN: dict[str, tuple[str, str, str, float, str | None]] = {}   # token → (akun, layanan, tujuan, mulai, id insiden)
 AKSI_PEMUTUS = {a["id"] for daftar in SOAR.values() for a in daftar if a["jenis"] == "pemutus"} | {"isolasi"}
 
 
@@ -431,9 +436,10 @@ def _pakai_tahan(token: str | None, akun: str, layanan_id: str, tujuan: str) -> 
     syarat = f"tombol harus ditahan {str(MIN_TAHAN[tujuan] + 0.1).replace('.', ',')} detik sampai bilahnya penuh"
     if data is None:
         raise HTTPException(428, f"Pemutusan ditolak: {syarat} (token tahan tidak ada atau sudah dipakai)")
-    milik, lid, maksud, mulai = data
-    if (milik, lid, maksud) != (akun, layanan_id, tujuan):
-        raise HTTPException(428, f"Pemutusan ditolak: token tahan milik tombol lain; {syarat}")
+    milik, lid, maksud, mulai, insiden_id = data
+    ins = LAYANAN[layanan_id]["insiden"]
+    if (milik, lid, maksud) != (akun, layanan_id, tujuan) or insiden_id != (ins["id"] if ins else None):
+        raise HTTPException(428, f"Pemutusan ditolak: token tahan milik tombol atau insiden lain; {syarat}")
     lama = sekarang - mulai
     if lama > UMUR_TAHAN:
         raise HTTPException(428, f"Pemutusan ditolak: token tahan kedaluwarsa; {syarat}")
@@ -458,7 +464,8 @@ def mulai_tahan(f: TahanMasuk, akun: Akun = Depends(butuh_izin("ubah"))) -> dict
         while len(_TAHAN) >= 200:
             _TAHAN.pop(next(iter(_TAHAN)))
         token = secrets.token_urlsafe(18)
-        _TAHAN[token] = (akun.nama, f.layanan_id, f.tujuan, sekarang)
+        ins = LAYANAN[f.layanan_id]["insiden"]
+        _TAHAN[token] = (akun.nama, f.layanan_id, f.tujuan, sekarang, ins["id"] if ins else None)
     return {"token": token, "minimal_ms": round((MIN_TAHAN[f.tujuan] + 0.1) * 1000), "berlaku_detik": UMUR_TAHAN}
 
 
@@ -497,6 +504,11 @@ def tandai_langkah(f: LangkahMasuk, akun: Akun = Depends(butuh_izin("ubah"))) ->
     with _kunci_state:
         # F-04 + Fase 4: centang manual tunduk pada kunci urutan yang SAMA dengan tombol SOAR:
         # bukti → pemutusan → (cocokkan hash) → pemulihan. Efek di peta, beban, dan MTTC ikut dihitung.
+        # v5.4.2: mencentang langkah PEMUTUS = memutus jaringan, jadi wajib membawa token tahan seperti tombol isolasi.
+        ins = LAYANAN[f.layanan_id]["insiden"]
+        tahan_ms = None
+        if f.selesai and ins and f.indeks in langkah_pemutus(ins["skenario"]) and not ins["langkah_selesai"][f.indeks]:
+            tahan_ms = _pakai_tahan(f.tahan, akun.nama, f.layanan_id, "isolasi")
         try:
             MENARA.tandai_manual(LAYANAN, f.layanan_id, f.indeks, f.selesai, akun.nama)
         except IndexError as e:
@@ -505,7 +517,8 @@ def tandai_langkah(f: LangkahMasuk, akun: Akun = Depends(butuh_izin("ubah"))) ->
             raise HTTPException(409, str(e)) from None
         hasil = _tampilan(LAYANAN[f.layanan_id])
     LOG.catat(akun.nama, "LANGKAH_PLAYBOOK",
-              {"layanan": f.layanan_id, "langkah": f.indeks + 1, "selesai": f.selesai})
+              {"layanan": f.layanan_id, "langkah": f.indeks + 1, "selesai": f.selesai}
+              | ({"tahan_ms": tahan_ms} if tahan_ms is not None else {}))
     return hasil
 
 
@@ -526,7 +539,8 @@ def pulihkan_layanan(f: LayananMasuk, akun: Akun = Depends(butuh_izin("ubah"))) 
         l["insiden"] = None
         l["jam_sejak_backup"], l["backup_teruji"] = 0, True  # dipulihkan dari cadangan teruji
         MENARA.insiden_ditutup(f.layanan_id)
-        MENARA.catat("info", f"{l['nama']} dipulihkan dari cadangan teruji. Insiden latihan ditutup.",
+        jenis_insiden = "Insiden dari temuan log asli" if l["insiden"] and l["insiden"].get("temuan") else "Insiden latihan"
+        MENARA.catat("info", f"{l['nama']} dipulihkan dari cadangan teruji. {jenis_insiden} ditutup.",
                      layanan=f.layanan_id)
         MENARA.ubah()
         hasil = _tampilan(l)
@@ -585,6 +599,7 @@ def reset_demo(akun: Akun = Depends(butuh_izin("ubah"))) -> dict:
     with _kunci_state:
         LAYANAN = salin_layanan_awal()
         MENARA.reset()
+        _TAHAN.clear()
         MENARA.catat("sedang", "Demo direset ke kondisi awal")
         drill_batal = DRILL.batal()                 # riwayat hasil drill tetap disimpan
     LOG.catat(akun.nama, "RESET_DEMO", {})  # log audit sengaja TIDAK ikut dihapus
@@ -907,7 +922,7 @@ def mulai_drill(f: DrillMulaiMasuk, akun: Akun = Depends(butuh_izin("ubah"))) ->
         awal = awal_cerita(f.kode, time.time())     # ≈4 menit sebelum drill, atau jam tetap skenario OT
         teks = log_cerita(f.kode, awal)
         nama = f"drill-{f.kode}.log"
-        impor = MENARA.impor_log(LAYANAN, nama, teks, k["aset_ssh"])
+        impor = MENARA.impor_log(LAYANAN, nama, teks, k["aset_ssh"], drill=True)
         _mulai_insiden(k["layanan_id"], k["skenario"], False)
         aktif = DRILL.mulai(f.kode, akun.nama, teks, awal, impor)
     LOG.catat(akun.nama, "IMPOR_LOG", {"berkas": nama, "baris": impor["baris"], "dikenali": impor["dikenali"],

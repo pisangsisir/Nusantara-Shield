@@ -516,6 +516,7 @@ class Menara:
         self._ember_ai: dict[str, str] = {}             # linimasa: aset yang dinilai AI tidak wajar pada menit berjalan
         self._posko_sejak = _iso()                      # KPI: posko aktif sejak (reset terakhir)
         self._jumlah_insiden = 0                        # KPI: insiden sejak posko aktif
+        self._temuan_dibuka: set[str] = set()           # v5.4.2: satu temuan log asli = paling banyak satu insiden
         self._mttc_semua: list[int] = []                # KPI: semua waktu penahanan sejak posko aktif (detik)
         self._peristiwa: deque[dict] = deque(maxlen=80)
         self._antre: list[tuple[float, dict]] = []
@@ -756,8 +757,9 @@ class Menara:
         kunci_mitre = temuan["aturan"] if temuan else skenario
         attck = ringkas_mitre(kunci_mitre)
         if temuan:
+            self._temuan_dibuka.add(temuan["id"])
             self.catat("tinggi", f"Insiden dibuka dari temuan {temuan['id']} ({temuan['nama']}, log impor "
-                                 f"{temuan['berkas']}) di {nama}: playbook {judul}"
+                                 f"{temuan['berkas']}) di {nama}: playbook {SKENARIO[skenario]}"
                                  + (f" [ATT&CK {attck}]" if attck else ""), layanan=layanan_id)
         else:
             self.catat("sedang", f"Latihan dimulai: {judul} di {nama}. Memutar ulang kronologi gejala…"
@@ -1289,7 +1291,8 @@ class Menara:
         return {"jenis": jenis, "aset_id": aset_id, "peristiwa": len(rangkaian),
                 "durasi_detik": round(rangkaian[-1][0], 1)}
 
-    def impor_log(self, layanan: dict, nama: str, isi: str, aset_ssh: str = "ssh", terurai: tuple | None = None) -> dict:
+    def impor_log(self, layanan: dict, nama: str, isi: str, aset_ssh: str = "ssh", terurai: tuple | None = None,
+                  drill: bool = False) -> dict:
         """Log ASLI dari Operator → peristiwa mentah → aturan yang sama dengan latihan. Waktu diputar ulang relatif:
         peristiwa terakhir di log = saat ini, jarak antarperistiwa tetap. Temuan hanya menaikkan WASPADA.
         terurai = hasil urai_log() yang sudah dikerjakan pemanggil DI LUAR kunci keadaan (berkas besar tidak boleh
@@ -1303,7 +1306,7 @@ class Menara:
         for t, ev in peristiwa:
             for tm in self.deteksi.proses(ev, sekarang - (akhir - t)):
                 tm.asal, tm.berkas = "impor", nama
-                tm.sha256_berkas, tm.baris_berkas = sidik, ringkasan["baris"]
+                tm.sha256_berkas, tm.baris_berkas, tm.drill = sidik, ringkasan["baris"], drill
                 baru.append(tm)
                 aset = ", ".join(INDEKS_SIMPUL[a]["nama"] for a in tm.aset) or "tanpa port terbuka"
                 attck = ringkas_mitre(tm.aturan)
@@ -1491,15 +1494,25 @@ class Menara:
     # ======================================================================
     # TRIASE PERINGATAN dan NILAI KESIAPAN SIBER
     # ======================================================================
+    @staticmethod
+    def nama_aset(aset_id: str) -> str | None:
+        return INDEKS_SIMPUL.get(aset_id, {}).get("nama")
+
+    def waktu_temuan(self, tm) -> str:
+        """Waktu kejadian temuan (diputar ulang relatif dari log), bukan saat insiden dibuka."""
+        return self._iso_mono(tm.mulai)
+
     def cari_temuan(self, temuan_id: str):
         return next((tm for tm in self.deteksi.temuan if tm.id == temuan_id), None)
 
     def usul_insiden(self, layanan: dict, tm) -> tuple[dict | None, str | None]:
         """v5.4.2 — apakah temuan ini bisa dibuka menjadi insiden, di layanan mana, dengan playbook apa.
         Hanya usulan; membuka insiden tetap keputusan Operator. (usulan, None) atau (None, alasan tidak bisa)."""
-        if tm.asal != "impor":
+        if tm.asal != "impor" or tm.drill:
             return None, ("Hanya temuan dari log asli (impor berkas) yang dibuka menjadi insiden; "
-                          "latihan memakai tombol simulasi")
+                          "latihan dan Drill memakai jalurnya sendiri")
+        if tm.id in self._temuan_dibuka:
+            return None, "Temuan ini sudah pernah dibuka menjadi insiden"
         if not tm.aktif(self._jam()):
             return None, "Temuan sudah berakhir"
         if tm.id in {x for t in self._ditutup.values() for x in t.get("deteksi", ())}:

@@ -68,6 +68,7 @@ class Temuan:
     berkas: str | None = None    # nama berkas log bila asal = "impor"
     sha256_berkas: str | None = None   # v5.4.2: SHA-256 berkas log seperti diterima saat impor
     baris_berkas: int | None = None
+    drill: bool = False          # v5.4.2: log cerita sintetis latihan drill (lewat jalur impor, tetapi BUKAN log asli)
 
     @property
     def nama(self) -> str:
