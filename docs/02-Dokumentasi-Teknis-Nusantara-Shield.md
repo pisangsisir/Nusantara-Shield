@@ -815,6 +815,52 @@ Layanan `nusantara-shield.service` berjalan sebagai `nshield` dengan `ProtectSys
 
 ---
 
+### 4.5 Penempatan di Jaringan Satuan (Rancangan)
+
+**Status: rancangan, belum diuji di jaringan satuan.** "Luring" berarti tidak bergantung pada internet untuk dipasang maupun dijalankan; bukan berarti terputus dari jaringan lokal satuan. Di satuan, Nusantara Shield berperan seperti **ruang pemantau**: sensor yang sudah ada (Wazuh, Suricata, log _firewall_) adalah kameranya, dan sakelar terkelola adalah panel kuncinya. _Server_ tidak menarik kabel ke setiap perangkat.
+
+```
+ RUANG POSKO                                   (tidak ada kabel ke internet)
+ ┌───────────────────────────────┐
+ │ Server khusus Nusantara Shield│◀── paket intelijen & pembaruan: media fisik bertanda tangan
+ └──┬─────────────────────────┬──┘
+    │ LAN 1 (antarmuka 1)     │ LAN 2 (antarmuka 2)      tanpa routing di antaranya
+    ▼                         ▼
+ ┌─────────────────────┐   ┌──────────────────────────────┐
+ │ Jaringan kantor     │   │ Jaringan manajemen           │
+ │ • PC Operator dan   │   │ (pengatur sakelar & firewall)│
+ │   Pengamat: peramban│   │ • perintah "putus jalur"     │
+ │ • Wazuh, syslog     │   │   (purwarupa: simulasi)      │
+ │   mengirim log      │   └──────────────┬───────────────┘
+ └─────────────────────┘                  │ satu port di sakelar = jalur kantor → zona kendali
+ ┌────────────────────────────────────────┴──────────────────────────┐
+ │ ZONA KENDALI OT: pengendali genset ── sakelar OT ── port cermin   │
+ │                                                  └──▶ Suricata    │
+ │ Nusantara Shield tidak pernah mengirim perintah ke genset.        │
+ │ Hanya HASIL deteksi Suricata yang naik ke server (satu arah).     │
+ └───────────────────────────────────────────────────────────────────┘
+```
+
+| Sambungan | Arah | Isi | Aturan |
+| --- | --- | --- | --- |
+| Jaringan kantor (LAN 1) | masuk | Dasbor dibuka dari peramban PC Operator dan Pengamat; log dari Wazuh, _syslog_, auth.log | _Server_ hanya menerima. Tidak ada perintah ke komputer kantor |
+| Jaringan manajemen (LAN 2) | keluar | Perintah ke sakelar terkelola dan _firewall_ | Hanya setelah bukti diamankan dan tombol ditahan (§3.1, §3.7). Di purwarupa masih simulasi |
+| Zona kendali OT | masuk, satu arah | Hasil deteksi Suricata dari port cermin (salinan lalu lintas) | Baca-saja. Tidak ada kabel atau perintah dari _server_ ke pengendali genset |
+| Internet | — | — | Tidak ada. Kabar ancaman dan pembaruan lewat media fisik bertanda tangan, atau arus satu arah (_data diode_) dari jaringan satuan atasan |
+
+**Memutus jalur, bukan mematikan genset.** Antara jaringan kantor dan zona kendali ada satu jalur (satu port di sakelar) agar teknisi bisa memantau genset dari kantor. Bila penyerang masuk lewat komputer kantor, yang ditutup adalah jalur itu. Genset tetap menyala dan dikendalikan teknisi dari panel lokal di gedung genset; setelah konfigurasi pengendali dicocokkan, jalur dibuka kembali (playbook Sabotase OT, NIST SP 800-82). Mematikan genset justru tujuan penyerang.
+
+**_Server_ tidak menjadi jembatan.** Dua antarmuka jaringan dipisah tanpa _routing_ (`net.ipv4.ip_forward=0`) dan dibatasi _firewall_ lokal: dari jaringan kantor hanya port dasbor dan penerimaan log yang dibuka; ke jaringan manajemen hanya alamat sakelar dan _firewall_ yang dituju. Bila _server_ dibobol, penyerang tidak otomatis bisa menyeberang lewat _server_ itu.
+
+**Wujud "_server_ khusus".** Satu komputer yang tugasnya hanya menjalankan Nusantara Shield: _mini-PC_, komputer _desktop_, _server_ rak, atau laptop yang dikhususkan untuk itu. Kebutuhannya §1.1 (Ubuntu 24.04, 2 inti, 512 MB memori bebas, 1 GB penyimpanan). Yang membuatnya khusus adalah cara pakainya: tetap di ruang posko yang terkunci, menyala terus (idealnya dengan UPS), tidak dipakai untuk surel atau berselancar, dan menjadi tanggung jawab satuan. Operator dan Pengamat bekerja dari komputer masing-masing lewat peramban. Data, log audit, dan bukti tersimpan di _server_, jadi tidak hilang bila komputer Operator dimatikan atau diganti. Pada demo lomba, keduanya kebetulan dijalankan di satu laptop yang sama.
+
+**Urutan peta jalan konektor.** Semuanya baca-saja dan berjalan di jaringan lokal:
+
+1. **Sudah berjalan:** impor berkas luring (auth.log, UFW, CSV, Wazuh `alerts.json`, Suricata `eve.json`), lalu Buka Insiden dari temuannya (§3.6).
+2. **Berikutnya:** konektor lokal yang membaca terus-menerus: API Wazuh, Suricata `eve.json` yang terus bertambah, dan penerima _syslog_. Pengurainya sama dengan jalur impor (sudah tahan berkas beracun). Akun API baca-saja, sertifikat TLS dipatok, tanpa _active response_.
+3. **Paket Intelijen Bertanda Tangan:** pembaruan indikator dan ambang aturan lewat media fisik, diverifikasi Ed25519 seperti paket rilis.
+4. **Perintah sungguhan ke sakelar terkelola** lewat jaringan manajemen, tetap dengan Dua Kunci, bukti lebih dulu, dan tombol ditahan.
+
 ## 5. Cara Penggunaan Singkat
 
 1. **Masuk.** Buka alamat _server_ di peramban, lalu masuk sebagai `operator` (boleh bertindak) atau `pengamat` (melihat dan mencetak LAPSIT). Sandi diambil dari pengaturan `NS_OPERATOR_PASSWORD` dan `NS_VIEWER_PASSWORD`, atau dicetak di terminal saat _server_ menyala.

@@ -407,9 +407,9 @@ Seluruh keunggulan berikut **sudah berjalan** di purwarupa dan dapat didemonstra
 ### 5.2 Kesiapan Penerapan
 
 - **Ringan:** satu laptop atau _server_ kecil; satu proses Python. Untuk 300 layar serentak, CPU _server_ ≈1,5% saat siaga dan ≈1,7% saat serangan, dengan memori ≈207 MB termasuk pustaka AI (scikit-learn dan numpy), jauh di bawah 512 MB; diukur ulang 26 Okt 2026 dengan `tools/ukur_beban.py` (Linux 2 inti, 300 siaran SSE sungguhan). AI menambah kerja _server_ hanya ≈0,05 milidetik per detik karena model baru dijalankan saat keadaan lalu lintas berubah.
-- **Teruji:** 485 uji otomatis mengunci setiap aturan, termasuk ambang deteksi yang tertulis di dokumen ini, dan dapat dijalankan ulang oleh siapa pun dalam kurang dari satu menit (≈30 detik di Mac, ≈50 detik di Linux ruang kerja awan).
+- **Teruji:** 485 uji otomatis mengunci setiap aturan, termasuk ambang deteksi yang tertulis di dokumen ini, dan dapat dijalankan ulang oleh siapa pun dalam kurang dari satu menit (≈30 detik di Mac, ≈60 detik di Linux ruang kerja awan).
 - **Cakupan OT saat ini:** purwarupa memantau **pengendali genset rumah sakit** (Modbus/TCP, _port_ 502) di **zona kendali** topologi. Kabar ancaman Modbus menaikkannya ke **WASPADA (≈66%)** sebelum ada serangan. Pada skenario **Sabotase OT**, bukti diamankan, lalu jalur kantor → zona kendali diputus lewat _webhook_ (simulasi) ke sakelar terkelola ≈1,2 detik kemudian; genset tetap menyala dengan kendali lokal. Pemulihan jalur kendali terkunci sampai sidik jari bukti cocok.
-- **Langkah lanjutan** (semuanya sumber terbuka dan dapat berjalan _air-gapped_ atau _on-premise_):
+- **Langkah lanjutan** (semuanya sumber terbuka dan dapat berjalan _air-gapped_ atau _on-premise_). Urutan terdekat: konektor lokal baca-saja (API Wazuh, Suricata `eve.json` terus-menerus, _syslog_), lalu Paket Intelijen Bertanda Tangan, lalu perintah sungguhan ke sakelar terkelola (Dokumentasi Teknis §4.5):
     - telemetri nyata dari sensor dan SIEM satuan (Wazuh, Suricata, Zeek) serta sensor protokol industri Modbus/DNP3;
     - sambungan _webhook_ terautentikasi ke sakelar terkelola sungguhan;
     - pertukaran CTI dengan Badan Siber dan Sandi Negara (BSSN) dan Kartika Computer Security Incident Response Team (CSIRT) lewat Malware Information Sharing Platform (MISP) atau OpenCTI (STIX/TAXII), menggantikan rancangan Mode Hybrid;
@@ -431,7 +431,8 @@ Nusantara Shield dirancang dipasang **di posko siber atau _Security Operations C
 | **Pusat** (lapis operasional) | Satuan pelaksana penangkalan Pussiberad dan Kartika CSIRT | Menerima LAPSIT dan berita acara bukti; menganalisis bukti; menyebarkan kabar ancaman ke satuan. |
 
 - **SOC dan ruang komando:** SOC memakai seluruh dasbor setiap hari. Saat krisis, ruang komando cukup menampilkan Executive Overview, Peta Global, dan LAPSIT dengan akun Pengamat.
-- **Kebutuhan minimum per satuan:** satu laptop atau PC (2 inti, 512 MB memori bebas), jaringan internal, minimal dua akun Operator dan satu akun Pengamat.
+- **Kebutuhan minimum per satuan:** satu _server_ khusus (_mini-PC_, _desktop_, atau laptop yang dikhususkan; 2 inti, 512 MB memori bebas), jaringan internal, minimal dua akun Operator dan satu akun Pengamat. Operator dan Pengamat membuka dasbor dari komputer masing-masing lewat peramban.
+- **Penempatan di jaringan (rancangan, Dokumentasi Teknis §4.5):** _server_ di ruang posko tersambung ke **jaringan kantor** (menerima log dan melayani dasbor) dan **jaringan manajemen** (perintah ke sakelar terkelola), tanpa _routing_ di antaranya dan tanpa kabel ke internet. Zona kendali genset hanya **dibaca**: Suricata pada port cermin mengirim hasil deteksinya satu arah, dan _server_ tidak pernah mengirim perintah ke pengendali genset. Saat terjadi serangan, yang diputus adalah **jalur** kantor → zona kendali di sakelar; genset tetap menyala dengan kendali lokal.
 - **Batas peran:** Nusantara Shield hanya untuk jaringan dan aset milik TNI AD. Insiden pada instansi sipil, BUMN, atau pemerintah daerah ditangani BSSN, Komdigi, dan Polri; TNI baru turun bila yang diserang aset militer atau ancamannya sudah setingkat pertahanan negara. Kasus PDNS 2024 dipakai sebagai **pelajaran** tentang tanda bahaya yang terlambat ditindak, bukan sebagai wilayah tugas sistem ini.
 ### 5.4 Status Fitur: Sudah Berjalan dan Peta Jalan
 
