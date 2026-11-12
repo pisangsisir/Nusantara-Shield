@@ -35,6 +35,7 @@ import logging
 import os
 import re
 import threading
+import secrets
 import time
 import uuid
 from datetime import datetime, timedelta, timezone
@@ -63,7 +64,7 @@ from .siaran import HUB
 from .lapsit import buat_pdf
 from .istilah import ISTILAH
 from .telemetri import (AKSI_GABUNGAN, ASET_BERPORT, MENARA, MIN_ALASAN_DARURAT, MIN_ALASAN_TUTUP, SEMUA_AKSI_SOAR,
-                        STATUS_TUTUP)
+                        SOAR, STATUS_TUTUP, dampak_dari_temuan)
 from .ai_anomali import POLA
 from .deteksi import JENIS_LATIHAN
 from .impor_log import GalatImpor
@@ -211,6 +212,7 @@ class SimulasiMasuk(Formulir):
 class DaruratMasuk(Formulir):
     layanan_id: IdLayanan
     alasan: str = Field(min_length=MIN_ALASAN_DARURAT, max_length=500)
+    tahan: str | None = Field(default=None, max_length=64)
 
 
 class LangkahMasuk(Formulir):
@@ -376,23 +378,109 @@ def cari_indikator(f: CariMasuk, akun: Akun = Depends(butuh_izin("lihat"))) -> d
     return {"jenis": jenis, "cocok": bool(temuan), "indikator": temuan}
 
 
-def _mulai_insiden(layanan_id: str, skenario: str, gangguan_bukti: bool) -> dict:
-    """Memulai insiden latihan di satu layanan. Pemanggil WAJIB memegang _kunci_state."""
+def _mulai_insiden(layanan_id: str, skenario: str, gangguan_bukti: bool, temuan=None,
+                   aset: list[str] | None = None) -> dict:
+    """Memulai insiden di satu layanan. Pemanggil WAJIB memegang _kunci_state.
+    temuan = None → insiden LATIHAN dengan kronologi sintetis; temuan = objek temuan log ASLI (v5.4.2) → kronologi
+    dan aset terdampak diambil dari temuan itu sendiri, tanpa perangkat atau alamat rekaan dari templat."""
     l = LAYANAN[layanan_id]
     if l["insiden"]:
         raise HTTPException(409, "Layanan ini sudah dalam insiden aktif")
     langkah = PLAYBOOK[skenario]
     mulai = datetime.now(timezone.utc)
-    # Log peringatan sintetis: waktu tiap kejadian dihitung mundur dari awal insiden.
+    if temuan is None:
+        kronologi = LOG_PERINGATAN[skenario]
+    else:
+        kronologi = [(0, temuan.keparahan, f"{temuan.nama} ({temuan.id}) dari {temuan.sumber}: {temuan.alasan()} "
+                                           f"— log impor {temuan.berkas}")]
+    # Log peringatan: waktu tiap kejadian dihitung mundur dari awal insiden.
     log = [{"waktu": (mulai + timedelta(minutes=m)).isoformat(timespec="seconds"),
-            "tingkat": t, "pesan": p} for m, t, p in LOG_PERINGATAN[skenario]]
+            "tingkat": t, "pesan": p} for m, t, p in kronologi]
     l["insiden"] = {"id": uuid.uuid4().hex[:12], "skenario": skenario, "judul": SKENARIO[skenario],
                     "gangguan_bukti": gangguan_bukti,
                     "mulai": mulai.isoformat(timespec="seconds"), "log_peringatan": log,
                     "langkah": langkah, "langkah_selesai": [False] * len(langkah)}
+    info = None
+    if temuan is not None:
+        info = {"id": temuan.id, "aturan": temuan.aturan, "nama": temuan.nama, "berkas": temuan.berkas,
+                "sumber": temuan.sumber, "aset": list(aset or temuan.aset),
+                "sha256_berkas": getattr(temuan, "sha256_berkas", None), "baris": getattr(temuan, "baris_berkas", None)}
+        l["insiden"]["temuan"] = info
+        l["insiden"]["dampak"] = dampak_dari_temuan(skenario, info["aset"], f"{temuan.nama}: {temuan.alasan()}")
     # Beri tahu dapur: peta, radar, gauge, dan log semua browser ikut berubah.
-    MENARA.insiden_dimulai(LAYANAN, layanan_id, skenario, SKENARIO[skenario], LOG_PERINGATAN[skenario])
+    MENARA.insiden_dimulai(LAYANAN, layanan_id, skenario, SKENARIO[skenario], kronologi, temuan=info)
     return _tampilan(l)
+
+
+# --------------------------------------------------------------------------
+# v5.4.2 — TAHAN DIJAGA SERVER. Tombol pemutus wajib ditahan (0,6 detik; isolasi darurat 1,5 detik). Saat tombol mulai
+# ditahan, peramban meminta token sekali pakai; eksekusi ditolak (428) bila token tidak ada, milik akun/layanan lain,
+# kedaluwarsa, atau datang lebih cepat dari batas minimum. Ini menjaga DOKTRIN (setiap pemutusan didahului niat yang
+# disengaja dan tercatat, juga dari klien lain), BUKAN pengaman terhadap skrip yang sengaja menunggu.
+# --------------------------------------------------------------------------
+MIN_TAHAN = {"isolasi": 0.5, "darurat": 1.4}      # detik; tombol 0,6 / 1,5 detik, toleransi jaringan 0,1 detik
+UMUR_TAHAN = 15.0                                 # detik; token lebih tua dari ini ditolak
+_TAHAN: dict[str, tuple[str, str, str, float]] = {}   # token → (akun, layanan, tujuan, waktu mulai monotonic)
+AKSI_PEMUTUS = {a["id"] for daftar in SOAR.values() for a in daftar if a["jenis"] == "pemutus"} | {"isolasi"}
+
+
+def _pakai_tahan(token: str | None, akun: str, layanan_id: str, tujuan: str) -> int:
+    """Habiskan token tahan; kembalikan lama tahan (ms). 428 bila tidak sah. Pemanggil WAJIB memegang _kunci_state."""
+    sekarang = time.monotonic()
+    data = _TAHAN.pop(token, None) if token else None
+    syarat = f"tombol harus ditahan {str(MIN_TAHAN[tujuan] + 0.1).replace('.', ',')} detik sampai bilahnya penuh"
+    if data is None:
+        raise HTTPException(428, f"Pemutusan ditolak: {syarat} (token tahan tidak ada atau sudah dipakai)")
+    milik, lid, maksud, mulai = data
+    if (milik, lid, maksud) != (akun, layanan_id, tujuan):
+        raise HTTPException(428, f"Pemutusan ditolak: token tahan milik tombol lain; {syarat}")
+    lama = sekarang - mulai
+    if lama > UMUR_TAHAN:
+        raise HTTPException(428, f"Pemutusan ditolak: token tahan kedaluwarsa; {syarat}")
+    if lama < MIN_TAHAN[tujuan]:
+        raise HTTPException(428, f"Pemutusan ditolak: tombol dilepas setelah {lama:.2f} detik; {syarat}".replace(".", ",", 1))
+    return round(lama * 1000)
+
+
+class TahanMasuk(Formulir):
+    layanan_id: IdLayanan
+    tujuan: Literal["isolasi", "darurat"]
+
+
+@app.post("/api/tahan", dependencies=[Depends(batasi("umum"))])
+def mulai_tahan(f: TahanMasuk, akun: Akun = Depends(butuh_izin("ubah"))) -> dict:
+    """Dipanggil peramban saat tombol pemutus MULAI ditahan. Token sekali pakai, berlaku UMUR_TAHAN detik."""
+    sekarang = time.monotonic()
+    with _kunci_state:
+        for t in [t for t, v in _TAHAN.items() if sekarang - v[3] > UMUR_TAHAN or v[0] == akun.nama and v[1:3] == (
+                f.layanan_id, f.tujuan)]:
+            _TAHAN.pop(t, None)                  # satu token aktif per akun·layanan·tujuan; yang lama dibuang
+        while len(_TAHAN) >= 200:
+            _TAHAN.pop(next(iter(_TAHAN)))
+        token = secrets.token_urlsafe(18)
+        _TAHAN[token] = (akun.nama, f.layanan_id, f.tujuan, sekarang)
+    return {"token": token, "minimal_ms": round((MIN_TAHAN[f.tujuan] + 0.1) * 1000), "berlaku_detik": UMUR_TAHAN}
+
+
+class InsidenTemuanMasuk(Formulir):
+    temuan_id: str = Field(min_length=1, max_length=40, pattern=r"^[A-Za-z0-9._-]+$")
+
+
+@app.post("/api/insiden/dari-temuan", dependencies=[Depends(batasi("ubah"))])
+def buka_insiden_dari_temuan(f: InsidenTemuanMasuk, akun: Akun = Depends(butuh_izin("ubah"))) -> dict:
+    """v5.4.2 — Operator membuka insiden dari temuan log ASLI (impor berkas). Playbook dan layanan diusulkan dari
+    aturan dan aset temuan; setelah itu doktrin sama persis: bukti dulu, baru putus, tombol ditahan."""
+    with _kunci_state:
+        tm = MENARA.cari_temuan(f.temuan_id)
+        if tm is None:
+            raise HTTPException(404, "Temuan tidak ditemukan")
+        usul, alasan = MENARA.usul_insiden(LAYANAN, tm)
+        if usul is None:
+            raise HTTPException(409, alasan)
+        hasil = _mulai_insiden(usul["layanan_id"], usul["skenario"], False, temuan=tm, aset=usul["aset"])
+    LOG.catat(akun.nama, "INSIDEN_DARI_TEMUAN", {"temuan": tm.id, "aturan": tm.aturan, "berkas": tm.berkas,
+                                                 "layanan": usul["layanan_id"], "skenario": usul["skenario"]})
+    return hasil
 
 
 @app.post("/api/simulasi", dependencies=[Depends(batasi("ubah"))])
@@ -635,6 +723,7 @@ class CtiMasuk(Formulir):
 class SoarMasuk(Formulir):
     layanan_id: IdLayanan
     aksi: IdAksiSoar
+    tahan: str | None = Field(default=None, max_length=64)   # v5.4.2: wajib untuk tindakan pemutus (/api/tahan)
 
 
 class PerketatMasuk(Formulir):
@@ -661,6 +750,8 @@ class LatihanDeteksiMasuk(Formulir):
 
 
 class ImporLogMasuk(Formulir):
+    # v5.4.2: isi TIDAK dipangkas, supaya SHA-256 berkas di berita acara bukti sama dengan `sha256sum` berkas aslinya
+    model_config = ConfigDict(extra="forbid", str_strip_whitespace=False)
     nama: str = Field(min_length=1, max_length=120)
     isi: str = Field(min_length=1, max_length=MAKS_ISI_IMPOR)
     aset_id: IdAset | None = None            # sasaran baris auth.log (bawaan: Akses admin SSH)
@@ -686,12 +777,14 @@ def jalankan_soar(f: SoarMasuk, akun: Akun = Depends(butuh_izin("ubah"))) -> dic
     aksi="pulihkan" → hanya bila syarat_pemulihan() terpenuhi (409 + alasan bila belum).
     Pencatatan laporan ke log audit dilakukan kait MENARA.saat_ir, bukan di sini."""
     with _kunci_state:
+        tahan_ms = _pakai_tahan(f.tahan, akun.nama, f.layanan_id, "isolasi") if f.aksi in AKSI_PEMUTUS else None
         try:
             hasil = MENARA.jalankan_soar(LAYANAN, f.layanan_id, f.aksi, akun.nama)
         except ValueError as e:
             raise HTTPException(409, str(e)) from None
         hasil["layanan"] = _tampilan(LAYANAN[f.layanan_id])
-    LOG.catat(akun.nama, "SOAR_JALANKAN", {"layanan": f.layanan_id, "aksi": f.aksi})
+    LOG.catat(akun.nama, "SOAR_JALANKAN", {"layanan": f.layanan_id, "aksi": f.aksi}
+              | ({"tahan_ms": tahan_ms} if tahan_ms is not None else {}))
     return hasil
 
 
@@ -700,11 +793,13 @@ def isolasi_darurat(f: DaruratMasuk, akun: Akun = Depends(butuh_izin("ubah"))) -
     """Fase 4 — EMERGENCY OVERRIDE: putus jaringan tanpa menunggu bukti. Alasan wajib; tercatat di
     buku rantai bukti, log audit (kait saat_bukti), dan laporan ke manajemen."""
     with _kunci_state:
+        hasil_tahan = _pakai_tahan(f.tahan, akun.nama, f.layanan_id, "darurat")
         try:
             hasil = MENARA.isolasi_darurat(LAYANAN, f.layanan_id, f.alasan, akun.nama)
         except ValueError as e:
             raise HTTPException(409, str(e)) from None
         hasil["layanan"] = _tampilan(LAYANAN[f.layanan_id])
+        hasil["tahan_ms"] = hasil_tahan
     return hasil
 
 

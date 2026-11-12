@@ -776,7 +776,8 @@ async function picuLatihan(skenario, tombol) {
 // v5.1: ACTION CENTER — satu titik keputusan per insiden.
 // Teks panjang playbook diringkas jadi lencana 1–2 kata (teks lengkap di tooltip).
 // ==========================================================================
-const SKENARIO_PENDEK = { ransomware: "RANSOMWARE", ddos: "DDoS", backup_dimatikan: "CADANGAN MATI", sabotase_ot: "SABOTASE OT" };
+const SKENARIO_PENDEK = { ransomware: "RANSOMWARE", ddos: "DDoS", backup_dimatikan: "CADANGAN MATI", sabotase_ot: "SABOTASE OT",
+  intrusi_log: "LOG ASLI" };
 
 function gambarPlaybook() {
   const wadah = $("#daftar-playbook");
@@ -814,7 +815,8 @@ function gambarPlaybook() {
       el("span", { kelas: "teks-eksekusi", teks: sisaPemutus.length ? T("tombol_isolasi") : antrePemutus.length ? "⏳ ISOLASI BERJALAN" : T("status_terisolasi") }),
       el("small", { teks: sisaPemutus.length ? `${perluBukti ? `${T("langkah_bukti")} → ` : ""}${sisaPemutus.length} tindakan pemutus · ${T("tombol_isolasi_tahan")}`
         : antrePemutus.length ? `${antrePemutus.length} tindakan lagi · ${T("laporan")} menyusul` : "semua tindakan pemutus selesai" }));
-    if (sisaPemutus.length) pasangTahan(tombolIsolasi, () => eksekusiIsolasi(l.id, tombolIsolasi));
+    if (sisaPemutus.length) pasangTahan(tombolIsolasi, (token) => eksekusiIsolasi(l.id, tombolIsolasi, token),
+      LAMA_TAHAN_MS, () => mintaTahan(l.id, "isolasi"));
 
     // 🔒 Fase 4 — baris status bukti: nomor berita acara + sidik jari SHA-256 (lengkap di tooltip)
     const barisBukti = bukti
@@ -854,7 +856,8 @@ function gambarPlaybook() {
       };
       area.addEventListener("input", () => { S.alasanDarurat[l.id] = area.value; segarkan(); });
       segarkan();
-      pasangTahan(tombolDarurat, () => eksekusiDarurat(l.id, tombolDarurat), LAMA_TAHAN_DARURAT_MS);
+      pasangTahan(tombolDarurat, (token) => eksekusiDarurat(l.id, tombolDarurat, token), LAMA_TAHAN_DARURAT_MS,
+        () => mintaTahan(l.id, "darurat"));
       panelDarurat = el("details", { kelas: "panel-darurat", open: S.daruratTerbuka.has(l.id) ? true : null },
         el("summary", { teks: "Bukti tidak bisa diamankan? Isolasi darurat" }), area, hitung, tombolDarurat);
       panelDarurat.addEventListener("toggle", () => {
@@ -917,8 +920,10 @@ function gambarPlaybook() {
 // ==========================================================================
 const LAMA_TAHAN_MS = 600;
 const LAMA_TAHAN_DARURAT_MS = 1500;   // Fase 4: pengecualian doktrin ditahan lebih lama dari jalur standar
-function pasangTahan(tombol, kerja, ms = LAMA_TAHAN_MS) {
-  let timer = null;
+// Saat tombol MULAI ditahan, peramban meminta token sekali pakai ke server (POST /api/tahan). Eksekusi
+// membawa token itu; server menolak (428) bila token tidak ada atau eksekusi datang lebih cepat dari batasnya.
+function pasangTahan(tombol, kerja, ms = LAMA_TAHAN_MS, minta = null) {
+  let timer = null, token = null;
   tombol.style.setProperty("--lama-tahan", `${ms}ms`);
   const mulai = (e) => {
     if (tombol.disabled || timer) return;
@@ -926,7 +931,8 @@ function pasangTahan(tombol, kerja, ms = LAMA_TAHAN_MS) {
     e.preventDefault();
     S.menahan = true;
     tombol.classList.add("menahan");                                  // CSS mengisi bilah selama ms
-    timer = setTimeout(() => { timer = null; selesai(); kerja(); }, ms);
+    token = minta ? minta().catch(() => null) : null;
+    timer = setTimeout(() => { timer = null; selesai(); kerja(token); }, ms);
   };
   const selesai = () => {
     tombol.classList.remove("menahan");
@@ -948,10 +954,16 @@ function pasangTahan(tombol, kerja, ms = LAMA_TAHAN_MS) {
 
 /** ⚡ ISOLASI — hanya dipanggil setelah tombol ditahan penuh. Server menjalankan tindakan PEMUTUS saja;
     laporan ke manajemen menyusul lewat siaran begitu semuanya selesai (lihat umumkanLaporanBaru). */
-async function eksekusiIsolasi(lid, tombol) {
+async function mintaTahan(lid, tujuan) {
+  return (await api("/api/tahan", { metode: "POST", data: { layanan_id: lid, tujuan } })).token;
+}
+async function eksekusiIsolasi(lid, tombol, token) {
   if (S.mode !== "mikro") aturMode("mikro");                   // tampilkan topologi agar pemutusan terlihat
   let j = null;
-  try { j = await sibuk(tombol, () => api("/api/soar/jalankan", { metode: "POST", data: { layanan_id: lid, aksi: "isolasi" } })); }
+  try {
+    j = await sibuk(tombol, async () => api("/api/soar/jalankan",
+      { metode: "POST", data: { layanan_id: lid, aksi: "isolasi", tahan: await token } }));
+  }
   catch (e) {
     if (e.status !== 401) toast(e.message, "galat");
     // Fase 4: bukti gagal diamankan → buka panel isolasi darurat agar operator tidak mencari-cari
@@ -970,10 +982,11 @@ async function eksekusiIsolasi(lid, tombol) {
 
 /** Isolasi darurat (emergency override) — dipanggil setelah tombol ditahan 1,5 detik. Server menolak bila alasan kurang
     atau bukti sebenarnya sudah aman; alasan dicatat di buku rantai bukti, log audit, dan laporan. */
-async function eksekusiDarurat(lid, tombol) {
+async function eksekusiDarurat(lid, tombol, token) {
   const alasan = (S.alasanDarurat[lid] || "").trim();
   if (S.mode !== "mikro") aturMode("mikro");
-  const j = await coba(() => sibuk(tombol, () => api("/api/soar/darurat", { metode: "POST", data: { layanan_id: lid, alasan } })));
+  const j = await coba(() => sibuk(tombol, async () => api("/api/soar/darurat",
+    { metode: "POST", data: { layanan_id: lid, alasan, tahan: await token } })));
   if (!j) return;
   delete S.alasanDarurat[lid];
   S.daruratTerbuka.delete(lid);
@@ -1162,9 +1175,29 @@ function gambarPeringatan(daftar) {
               title: `MITRE ATT&CK ${m.matriks === "ICS" ? "for ICS" : "Enterprise"}: ${m.id} ${m.nama}` }))) : null,
           x.sumber_data ? el("small", { kelas: "sumber-data", teks: x.sumber_data, title: x.sumber_data }) : null)),
       el("td", { kelas: "kol-aset", "data-label": "Aset", teks: aset }),
-      el("td", { kelas: "kol-status status-peringatan", "data-label": "Status", teks: x.status }),
+      el("td", { kelas: "kol-status status-peringatan", "data-label": "Status" }, el("span", { teks: x.status }),
+        // Temuan dari log ASLI → Operator bisa membuka insiden langsung (usulan server; keputusan manusia)
+        x.usul_insiden ? el("button", { type: "button", kelas: "tombol kecil tombol-buka-insiden", "data-ubah": "",
+          "data-kunci": `buka-insiden-${x.id}`, disabled: !bolehUbah(),
+          title: `Buka insiden di ${x.usul_insiden.layanan} dengan playbook ${x.usul_insiden.judul}`,
+          onclick: (e) => bukaInsidenDariTemuan(x, e.currentTarget) }, ikon("kuning"), "Buka Insiden") : null),
       el("td", { kelas: "kol-waktu", "data-label": "Waktu" }, el("time", { datetime: x.waktu, teks: jamLokal(x.waktu) })));
   }));
+}
+
+/** Buka insiden dari temuan log asli. Server mengusulkan layanan & playbook dari aset dan aturan temuan;
+    Operator memutuskan. Sesudahnya doktrin sama: bukti dulu, baru putus, tombol ditahan. */
+async function bukaInsidenDariTemuan(x, tombol) {
+  const u = x.usul_insiden;
+  const ya = await konfirmasi("Buka insiden dari temuan log asli?",
+    `${x.id} · ${x.judul}. Insiden dibuka di ${u.layanan} dengan playbook "${u.judul}". `
+    + `Aset terdampak: ${u.aset_nama.join(", ")}. Belum ada yang diputus: ${T("langkah_bukti")} dulu, lalu tahan tombol `
+    + "Eksekusi Isolasi di Action Center.", "Buka Insiden");
+  if (!ya) return;
+  const j = await coba(() => sibuk(tombol, () => api("/api/insiden/dari-temuan", { metode: "POST", data: { temuan_id: x.id } })));
+  if (!j) return;
+  toast(`Insiden dibuka di ${j.nama} dari temuan ${x.id}. Lanjutkan di Action Center.`, "peringatan");
+  setelahAksi();
 }
 
 async function siarkanBerita(tombol, beritaId) {

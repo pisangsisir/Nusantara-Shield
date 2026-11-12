@@ -321,6 +321,10 @@ def ringkasan_eksekutif(layanan: list[dict], rincian: dict, peringatan: list[dic
         log = ins.get("log_peringatan", [])
         kal = [f"Pada {waktu_lokal(ins['mulai'])} terjadi insiden <b>{escape(ins['judul'].lower())}</b> di "
                f"<b>{escape(l['nama'])}</b> ({escape(l.get('cabang', ''))})."]
+        if ins.get("temuan"):
+            tm = ins["temuan"]
+            kal.append(f"Insiden ini <b>dibuka Operator dari temuan log asli</b> {escape(tm['id'])} "
+                       f"({escape(tm['nama'])}) di berkas impor {escape(tm['berkas'])}, bukan dari latihan.")
         if log:
             kal.append(f"Gejala paling awal tercatat {waktu_lokal(log[0]['waktu'])}: {escape(_kecil(log[0]['pesan']))}, "
                        f"lalu berkembang hingga {escape(_kecil(log[-1]['pesan']))}.")
@@ -421,10 +425,18 @@ def buat_pdf(layanan: list[dict], hasil_audit: dict, pembuat: str, peringatan: l
         isi.append(Paragraph("Tidak ada insiden aktif.", gaya["dasar"]))
     for l in insiden:
         ins, r = l["insiden"], rincian["insiden"].get(l.get("id"), {})
-        attck = ringkas_mitre(ins.get("skenario"))
+        tm = ins.get("temuan")
+        attck = ringkas_mitre(tm["aturan"] if tm else ins.get("skenario"))
         isi.append(Paragraph(f"{escape(l['nama'])} — {escape(ins['judul'])}", gaya["sub"]))
         isi.append(Paragraph(f"Dimulai {waktu_lokal(ins['mulai'])}"
                              + (f" · Teknik MITRE ATT&amp;CK: {escape(attck)}" if attck else ""), gaya["kecil"]))
+        if tm:
+            isi.append(Paragraph(
+                f"Asal: temuan log asli {escape(tm['id'])} · aturan {escape(tm['nama'])} · sumber {escape(tm['sumber'])} · "
+                f"berkas {escape(tm['berkas'])}" + (f" ({int(tm['baris'])} baris)" if tm.get("baris") else "")
+                + (f" · SHA-256 berkas <font face='Courier'>{escape(tm['sha256_berkas'])}</font>"
+                   if tm.get("sha256_berkas") else "") + ". Aset terdampak diambil dari temuan, bukan templat latihan.",
+                gaya["kecil"]))
         if ins.get("log_peringatan"):
             baris = [["Waktu", "Tingkat", "Kronologi gejala"]]
             for g in ins["log_peringatan"]:

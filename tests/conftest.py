@@ -32,6 +32,8 @@ KELOMPOK = {
     "test_versi.py": "Satu sumber versi: dasbor, LAPSIT, dan paket memakai app/versi.py; nama peran berhuruf kapital",
     "test_titik_periksa.py": "Titik periksa Ed25519: kunci berevolusi, auditor memeriksa dengan kunci publik saja",
     "test_saksi.py": "Saksi Berjenjang Luring: posko → satuan atasan → jenjang di atasnya; mundur atau bercabang ditolak",
+    "test_tahan.py": "Tahan dijaga server: token sekali pakai, batas 0,6 / 1,5 detik, semua jalur pemutus",
+    "test_insiden_temuan.py": "Insiden dari temuan log asli: keputusan Operator, aset dan kronologi dari temuan, doktrin sama",
     "test_drill.py": "Drill kesiapan: log cerita sintetis lewat aturan yang sama, nilai dari jejak tercatat",
 }
 _berkas_terakhir = {"nama": None}
@@ -40,6 +42,7 @@ _CONFIG = {"config": None}
 
 def pytest_configure(config):
     _CONFIG["config"] = config
+    config.addinivalue_line("markers", "tahan_asli: uji yang memakai batas tahan asli tanpa token otomatis")
 
 
 @pytest.hookimpl(tryfirst=True)
@@ -63,7 +66,8 @@ DOKTRIN = [
     ("Tangkal lebih dulu: peringatan dini beralasan", ["test_ai.py", "test_deteksi.py", "test_ot.py", "test_cti_soar.py",
                                                        "test_triase_kesiapan.py", "test_impor_log.py", "test_ot_mitre_lapsit.py"]),
     ("Manusia memutuskan: peran, tombol ditahan, mesin tidak mengeksekusi", ["test_keamanan.py", "test_akun.py", "test_komando.py",
-                                                                              "test_drill.py"]),
+                                                                              "test_drill.py", "test_tahan.py",
+                                                                              "test_insiden_temuan.py"]),
     ("Bukti dulu, baru putus: tanpa bukti ditolak sistem", ["test_rantai_bukti.py"]),
     ("Jejak tidak bisa ditulis ulang: HMAC + titik periksa Ed25519", ["test_verifikasi_audit.py", "test_titik_periksa.py",
                                                                    "test_saksi.py"]),
@@ -89,3 +93,43 @@ def pytest_terminal_summary(terminalreporter, exitstatus, config):
     lain = sum(n for b, n in lulus.items() if b not in terpetakan)
     if lain:
         terminalreporter.write_line(f"  {lain:>4}  BELUM DIPETAKAN ke aturan doktrin (perbarui DOKTRIN di tests/conftest.py)")
+
+
+# --------------------------------------------------------------------------------------------------------------
+# v5.4.2 — tahan dijaga server. Uji lama memanggil loket pemutus langsung; fixture ini mengambil token tahan
+# SUNGGUHAN lewat POST /api/tahan (akun, layanan, tujuan sama) sebelum setiap panggilan pemutus yang tidak membawa
+# kolom "tahan", dan menolkan jeda minimum agar uji tidak menunggu 0,6 detik. Uji yang menguji tahan itu sendiri
+# (tests/test_tahan.py) mengirim kolom "tahan" sendiri dan memakai batas asli.
+# --------------------------------------------------------------------------------------------------------------
+import pytest  # noqa: E402
+
+
+@pytest.fixture(autouse=True)
+def _token_tahan_otomatis(monkeypatch, request):
+    if request.node.get_closest_marker("tahan_asli"):
+        return
+    try:
+        from fastapi.testclient import TestClient
+        from app import main
+    except Exception:        # uji yang tidak memuat aplikasi
+        return
+    monkeypatch.setattr(main, "MIN_TAHAN", {"isolasi": 0.0, "darurat": 0.0})
+    asli = TestClient.post
+
+    def post(self, url, *a, **kw):
+        data = kw.get("json")
+        tujuan = None
+        if isinstance(data, dict) and "tahan" not in data:
+            if url == "/api/soar/jalankan" and data.get("aksi") in main.AKSI_PEMUTUS:
+                tujuan = "isolasi"
+            elif url == "/api/soar/darurat":
+                tujuan = "darurat"
+        if tujuan and data.get("layanan_id"):
+            r = asli(self, "/api/tahan", headers=kw.get("headers"),
+                     json={"layanan_id": data["layanan_id"], "tujuan": tujuan})
+            if r.status_code == 200:
+                kw["json"] = {**data, "tahan": r.json()["token"]}
+        return asli(self, url, *a, **kw)
+
+    monkeypatch.setattr(TestClient, "post", post)
+

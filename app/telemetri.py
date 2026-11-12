@@ -55,6 +55,7 @@ Semua data sintetis. IP memakai blok dokumentasi RFC 5737.
 
 from __future__ import annotations
 
+import copy
 import hashlib
 import math
 import os
@@ -65,7 +66,7 @@ from datetime import datetime, timedelta, timezone
 from typing import Callable
 
 from .data_contoh import (BATAS_JAM_BACKUP, BERITA_ANCAMAN, INDEKS_BERITA, KEBIJAKAN, KEPARAHAN_IR, LANGKAH_IR,
-                          MANAJEMEN, PLAYBOOK, PLAYBOOK_RINGKAS, PROFIL_LAYANAN)
+                          MANAJEMEN, PLAYBOOK, PLAYBOOK_RINGKAS, PROFIL_LAYANAN, SKENARIO)
 from .istilah import ISTILAH, nama_manajemen, pesan_jangan_restart
 from .bukti import (BUKTI_DIAMANKAN, BUKTI_DIVERIFIKASI, BUKTI_GAGAL, ISOLASI_DARURAT, PERINGATAN_DITUTUP, RANTAI,
                     VERIFIKASI_GAGAL, RantaiBukti)
@@ -236,6 +237,14 @@ DAMPAK: dict[str, dict] = {
                 "perangkat": {"genset": ("normal", "Normal")}},
         },
     },
+    # v5.4.2: templat KOSONG. Perangkat terdampak dan efek langkahnya diisi per insiden dari aset temuan log asli
+    # (dampak_dari_temuan); tidak ada perangkat, alamat, atau kronologi rekaan.
+    "intrusi_log": {
+        "perangkat": {}, "ancaman": [], "kerumunan": 0, "target": 44.0, "goyang": 5.0, "lonjakan": 0.0,
+        "langkah": {1: {"ket": "Aset yang terdeteksi diputus dari jaringan; alamat sumber diblokir di gerbang (simulasi)",
+                        "perangkat": {}, "ancaman": "isolasi", "target": 36.0},
+                    4: {"ket": "Aset disambung kembali setelah akses dicabut", "perangkat": {}}},
+    },
     "backup_dimatikan": {
         "perangkat": {"ssh": ("waspada", "Login admin dari 203.0.113.45"),
                       "backup": ("kritis", "Direktori cadangan dilepas")},
@@ -296,6 +305,15 @@ SOAR: dict[str, list[dict]] = {
         {"id": "pulihkan_jalur_ot", "label": "Pulihkan jalur kendali", "ikon": "pulih", "langkah": 5, "jenis": "pemulihan",
          "ket": "Sambungkan kembali setelah konfigurasi pengendali diperiksa"},
     ],
+    "intrusi_log": [
+        _aksi_bukti("Salin berkas log yang diimpor & log aset terdampak, hitung SHA-256, catat berita acara"),
+        {"id": "isolasi_aset_temuan", "label": "Isolasi aset", "ikon": "potong", "langkah": 1, "jenis": "pemutus",
+         "ket": "Putus aset yang terdeteksi & blokir alamat sumber di gerbang (simulasi)"},
+        {"id": "cabut_akses_temuan", "label": "Cabut akses", "ikon": "blokir", "langkah": 2, "jenis": "pendukung",
+         "ket": "Ganti sandi & kunci akun yang dipakai; periksa akun baru"},
+        {"id": "pulihkan_aset_temuan", "label": "Pulihkan aset", "ikon": "pulih", "langkah": 4, "jenis": "pemulihan",
+         "ket": "Sambungkan kembali aset setelah akses dicabut"},
+    ],
     "backup_dimatikan": [
         _aksi_bukti("Salin riwayat konfigurasi & jejak login, hitung SHA-256, catat berita acara"),
         {"id": "audit_konfigurasi", "label": "Audit konfigurasi", "ikon": "periksa", "langkah": 1, "jenis": "pendukung",
@@ -331,7 +349,32 @@ def langkah_pemulihan(skenario: str) -> set[int]:
 AKSI_GABUNGAN = ["isolasi", "pulihkan"]
 SEMUA_AKSI_SOAR = [a["id"] for daftar in SOAR.values() for a in daftar]
 # Langkah yang dihitung sebagai "penahanan" untuk metrik MTTC
-TAHAP_PENAHANAN = {"ransomware": 1, "ddos": 1, "backup_dimatikan": 3, "sabotase_ot": 1}
+TAHAP_PENAHANAN = {"ransomware": 1, "ddos": 1, "backup_dimatikan": 3, "sabotase_ot": 1, "intrusi_log": 1}
+
+# v5.4.2 — insiden dari temuan log asli. Aturan OT memakai playbook Sabotase OT (putus jalur IT–OT, genset tetap
+# menyala); aturan IT memakai playbook Intrusi dari log asli. Usulan saja: Operator yang memutuskan membuka insiden.
+SKENARIO_TEMUAN = {"login_gagal": "intrusi_log", "login_tembus": "intrusi_log", "pindai_port": "intrusi_log",
+                   "ot_tanpa_izin": "sabotase_ot", "tulis_ot_luar_jadwal": "sabotase_ot", "rantai_it_ot": "sabotase_ot"}
+
+
+def dampak_insiden(ins: dict) -> dict:
+    """Dampak satu insiden: milik insiden itu sendiri (dibuka dari temuan) atau templat skenario latihan."""
+    return ins.get("dampak") or DAMPAK[ins["skenario"]]
+
+
+def dampak_dari_temuan(skenario: str, aset: list[str], alasan: str) -> dict:
+    """Peta dampak insiden dari temuan: HANYA aset yang tercatat di temuan menjadi kritis. Templat skenario
+    dipakai untuk parameter beban dan langkah; perangkat dan ancaman rekaan dari templat dibuang."""
+    d = copy.deepcopy(DAMPAK[skenario])
+    d["perangkat"] = {a: ("kritis", alasan[:120]) for a in aset}
+    d["ancaman"] = []
+    if skenario == "intrusi_log":
+        d["langkah"][1]["perangkat"] = {a: ("isolasi", "Diisolasi dari jaringan") for a in aset}
+        d["langkah"][4]["perangkat"] = {a: ("normal", "Disambung kembali · akses dicabut") for a in aset}
+    else:
+        for e in d["langkah"].values():
+            e["perangkat"] = {k: v for k, v in e.get("perangkat", {}).items() if k in aset}
+    return d
 JEDA_RUNBOOK = 1.2  # detik antar-tindakan pemutus saat isolasi berurutan (juga: bukti → pemutus pertama)
 MIN_ALASAN_DARURAT = 15   # karakter; alasan isolasi darurat tidak boleh asal "ok"
 
@@ -549,7 +592,7 @@ class Menara:
             ins = l["insiden"]
             if not ins:
                 continue
-            d = DAMPAK[ins["skenario"]]
+            d = dampak_insiden(ins)
             peta = dict(d["perangkat"])
             for i, beres in enumerate(ins["langkah_selesai"]):
                 if beres:
@@ -563,6 +606,9 @@ class Menara:
         """Ciri lalu lintas tiap aset → skor anomali. Aset terisolasi tidak dinilai (lalu lintasnya diputus)."""
         sekarang = self._jam()
         insiden = self._status_insiden(layanan)
+        # v5.4.2: aset dalam insiden dari temuan log ASLI tidak diberi pola lalu lintas latihan; AI menilai pola normalnya
+        dari_temuan = {a for l in layanan.values() if l["insiden"] and l["insiden"].get("temuan")
+                       for a in l["insiden"]["temuan"]["aset"]}
         ciri: dict[str, tuple[float, ...]] = {}
         for aid in ASET_BERPORT:
             inj = self._injeksi_ai.get(aid)
@@ -571,7 +617,7 @@ class Menara:
                 continue
             if inj and inj[1] > sekarang:
                 ciri[aid] = ciri_pola(inj[0])
-            elif st in ("kritis", "waspada") and sken:
+            elif st in ("kritis", "waspada") and sken in POLA_SKENARIO and aid not in dari_temuan:
                 pola = POLA_SKENARIO[sken]
                 if sken == "sabotase_ot" and INDEKS_SIMPUL[aid]["port"] != 502:
                     pola = "akses_jarak_jauh"
@@ -704,15 +750,23 @@ class Menara:
     # INSIDEN, LANGKAH PLAYBOOK, SOAR
     # ======================================================================
     def insiden_dimulai(self, layanan: dict, layanan_id: str, skenario: str, judul: str,
-                        log: list[tuple[int, str, str]]) -> None:
+                        log: list[tuple[int, str, str]], temuan: dict | None = None) -> None:
+        """temuan (v5.4.2) = insiden yang dibuka Operator dari temuan log ASLI: {"id", "aturan", "berkas", ...}."""
         nama = layanan[layanan_id]["nama"]
-        attck = ringkas_mitre(skenario)
-        self.catat("sedang", f"Latihan dimulai: {judul} di {nama}. Memutar ulang kronologi gejala…"
-                             + (f" [ATT&CK {attck}]" if attck else ""), layanan=layanan_id)
+        kunci_mitre = temuan["aturan"] if temuan else skenario
+        attck = ringkas_mitre(kunci_mitre)
+        if temuan:
+            self.catat("tinggi", f"Insiden dibuka dari temuan {temuan['id']} ({temuan['nama']}, log impor "
+                                 f"{temuan['berkas']}) di {nama}: playbook {judul}"
+                                 + (f" [ATT&CK {attck}]" if attck else ""), layanan=layanan_id)
+        else:
+            self.catat("sedang", f"Latihan dimulai: {judul} di {nama}. Memutar ulang kronologi gejala…"
+                                 + (f" [ATT&CK {attck}]" if attck else ""), layanan=layanan_id)
         mulai = self._jam()
         self._mulai_insiden[layanan_id] = mulai
         self._jumlah_insiden += 1
-        self._meta_insiden[layanan_id] = {"judul": judul, "nama": nama, "skenario": skenario, "mulai": _iso()}
+        self._meta_insiden[layanan_id] = {"judul": judul, "nama": nama, "skenario": skenario, "mulai": _iso(),
+                                          "mitre": kunci_mitre, "temuan": temuan}
         self._mttc.pop(layanan_id, None)
         self._respons[layanan_id] = {"bukti_detik": None, "bukti_nomor": None, "darurat_detik": None,
                                      "mttc_detik": None, "mttc_metode": None, "bukti_cocok": None, "pulih_detik": None}
@@ -726,7 +780,8 @@ class Menara:
                                                   "rel_menit": menit, "layanan": layanan_id}))
         # Apakah intelijen sudah memperingatkan aset yang kini diserang?
         prediksi = self._prediksi(layanan)
-        sasaran = [pid for pid, (st, _) in DAMPAK[skenario]["perangkat"].items() if st == "kritis"]
+        sasaran = [pid for pid, (st, _) in dampak_insiden(layanan[layanan_id]["insiden"])["perangkat"].items()
+                   if st == "kritis"]
         for pid in sasaran:
             pr = prediksi.get(pid)
             if pr and pr["proaktif"]:
@@ -746,7 +801,7 @@ class Menara:
             ins = l["insiden"]
             if not ins:
                 continue
-            d = DAMPAK[ins["skenario"]]
+            d = dampak_insiden(ins)
             p = {"target": d["target"], "goyang": d["goyang"], "lonjakan": d["lonjakan"]}
             for i, beres in enumerate(ins["langkah_selesai"]):
                 if beres:
@@ -770,7 +825,7 @@ class Menara:
         else:
             jejak.pop(indeks, None)
         judul = ins["langkah"][indeks].split(":")[0]
-        efek = DAMPAK[ins["skenario"]]["langkah"].get(indeks, {})
+        efek = dampak_insiden(ins)["langkah"].get(indeks, {})
         if metode == "soar":
             self.catat("info", f"SOAR ▶ {label} selesai otomatis di {l['nama']}"
                                + (f" — {efek['ket']}" if efek.get("ket") else ""),
@@ -1022,8 +1077,11 @@ class Menara:
             raise ValueError(f"Pengambilan bukti GAGAL: agen forensik tidak merespons. Gunakan "
                              f"{ISTILAH['tombol_darurat']} dengan alasan tertulis, lalu amankan bukti sesudahnya")
         susulan = layanan_id in self._darurat
+        tm = ins.get("temuan")
         e = self.rantai.amankan(layanan_id=layanan_id, insiden_id=ins.get("id", layanan_id), skenario=sk,
-                                petugas=oleh, metode=metode, susulan=susulan)
+                                petugas=oleh, metode=metode, susulan=susulan,
+                                sumber_temuan={k: tm[k] for k in ("id", "aturan", "berkas", "sha256_berkas", "baris")
+                                               if tm.get(k) is not None} if tm else None)
         d = e["detail"]
         rekam = {"nomor": d["nomor"], "sha256": d["sha256"], "hash_buku": e["hash"], "urutan_buku": e["urutan"],
                  "petugas": oleh, "metode": metode, "waktu": e["waktu"], "lokasi": d["lokasi"],
@@ -1240,10 +1298,12 @@ class Menara:
             raise ValueError("Aset tidak dikenal")
         peristiwa, ringkasan = terurai or baca_log(isi, SIMPUL, aset_ssh)
         sekarang, akhir = self._jam(), peristiwa[-1][0]
+        sidik = hashlib.sha256(isi.encode("utf-8", "surrogatepass")).hexdigest()   # bukti: berkas persis seperti diterima
         baru = []
         for t, ev in peristiwa:
             for tm in self.deteksi.proses(ev, sekarang - (akhir - t)):
                 tm.asal, tm.berkas = "impor", nama
+                tm.sha256_berkas, tm.baris_berkas = sidik, ringkasan["baris"]
                 baru.append(tm)
                 aset = ", ".join(INDEKS_SIMPUL[a]["nama"] for a in tm.aset) or "tanpa port terbuka"
                 attck = ringkas_mitre(tm.aturan)
@@ -1315,7 +1375,9 @@ class Menara:
             else:
                 status, kelas = "Dipantau", "pantau"
             sasaran = ", ".join(INDEKS_SIMPUL[a]["nama"] for a in tm.aset) or "tanpa port terbuka"
+            usul = self.usul_insiden(layanan, tm)[0] if tm.asal == "impor" and kelas in ("terbuka", "pantau") else None
             hasil.append({"id": tm.id, "jenis": "deteksi", "aturan": tm.aturan, "judul": f"{tm.nama} · {sasaran}",
+                          "usul_insiden": usul,
                           "rincian": tm.alasan(), "keparahan": tm.keparahan, "waktu": self._iso_mono(tm.mulai),
                           "status": status, "kelas": kelas, "mitre": teknik_mitre(tm.aturan),
                           "sumber_data": (SUMBER_DATA["impor"].format(berkas=tm.berkas) if tm.asal == "impor"
@@ -1346,7 +1408,7 @@ class Menara:
                 status, kelas = "Menunggu keputusan Operator", "terbuka"
             hasil.append({"id": f"ins-{lid}", "jenis": "insiden", "judul": f"{meta['judul']} · {meta['nama']}",
                           "rincian": None, "keparahan": "kritis", "waktu": meta["mulai"], "status": status,
-                          "kelas": kelas, "layanan_id": lid, "mitre": teknik_mitre(meta["skenario"]),
+                          "kelas": kelas, "layanan_id": lid, "mitre": teknik_mitre(meta.get("mitre", meta["skenario"])),
                           "sumber_data": SUMBER_DATA["insiden"]})
         for r in self._riwayat_insiden:
             status = (f"Diisolasi oleh {r['petugas']} · bukti {r['bukti']} · dipulihkan" if r["bukti"]
@@ -1394,10 +1456,10 @@ class Menara:
             ins = l.get("insiden")
             if not ins:
                 continue
-            langkah = DAMPAK[ins["skenario"]].get("langkah", {})
+            langkah = dampak_insiden(ins).get("langkah", {})
             putus = next((i for i, e in langkah.items() if e.get("ancaman") == "isolasi"), None)
             diblokir = putus is not None and ins["langkah_selesai"][putus]
-            for a in DAMPAK[ins["skenario"]].get("ancaman", []):
+            for a in dampak_insiden(ins).get("ancaman", []):
                 tambah(f"Alamat IP · {a['nama']}", f"{a['ip']}:{a['port']}", a["ioc"], l["nama"],
                        "Diblokir di firewall (simulasi)" if diblokir else "Aktif · belum diblokir")
         status_det = {x["id"]: x["status"] for x in self._peringatan(layanan, self._prediksi(layanan))
@@ -1429,6 +1491,30 @@ class Menara:
     # ======================================================================
     # TRIASE PERINGATAN dan NILAI KESIAPAN SIBER
     # ======================================================================
+    def cari_temuan(self, temuan_id: str):
+        return next((tm for tm in self.deteksi.temuan if tm.id == temuan_id), None)
+
+    def usul_insiden(self, layanan: dict, tm) -> tuple[dict | None, str | None]:
+        """v5.4.2 — apakah temuan ini bisa dibuka menjadi insiden, di layanan mana, dengan playbook apa.
+        Hanya usulan; membuka insiden tetap keputusan Operator. (usulan, None) atau (None, alasan tidak bisa)."""
+        if tm.asal != "impor":
+            return None, ("Hanya temuan dari log asli (impor berkas) yang dibuka menjadi insiden; "
+                          "latihan memakai tombol simulasi")
+        if not tm.aktif(self._jam()):
+            return None, "Temuan sudah berakhir"
+        if tm.id in {x for t in self._ditutup.values() for x in t.get("deteksi", ())}:
+            return None, "Temuan sudah ditutup lewat triase"
+        skenario = SKENARIO_TEMUAN.get(tm.aturan)
+        pemilik = [PEMILIK_SIMPUL[a] for a in tm.aset if a in PEMILIK_SIMPUL]
+        if skenario is None or not pemilik:
+            return None, "Aset temuan tidak punya layanan pemilik di inventaris; tangani lewat triase"
+        lid = pemilik[0]
+        if layanan[lid]["insiden"]:
+            return None, f"{layanan[lid]['nama']} sudah dalam insiden aktif"
+        aset = [a for a in tm.aset if PEMILIK_SIMPUL.get(a) == lid]
+        return {"layanan_id": lid, "layanan": layanan[lid]["nama"], "skenario": skenario, "judul": SKENARIO[skenario],
+                "aset": aset, "aset_nama": [INDEKS_SIMPUL[a]["nama"] for a in aset]}, None
+
     def tutup_peringatan(self, layanan: dict, aset_id: str, status: str, alasan: str, oleh: str) -> dict:
         """Operator menutup peringatan WASPADA beralasan. Tidak ada yang dihapus: penutupan menjadi halaman
         baru di buku rantai bukti, dan bukti baru membuka peringatan lagi."""
@@ -1568,7 +1654,7 @@ class Menara:
             ins = l["insiden"]
             if not ins:
                 continue
-            d = DAMPAK[ins["skenario"]]
+            d = dampak_insiden(ins)
             peta = dict(d["perangkat"])
             status_ancaman, jml_kerumunan = "kritis", d["kerumunan"]
             for i, beres in enumerate(ins["langkah_selesai"]):

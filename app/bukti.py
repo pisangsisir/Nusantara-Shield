@@ -47,6 +47,13 @@ ARTEFAK: dict[str, list[tuple[str, str, str]]] = {
         ("log_workstation_teknisi.evtx", "Log login & proses workstation teknisi fasilitas", "120 MB"),
         ("konfigurasi_pengendali_genset.bin", "Salinan konfigurasi & jadwal pengendali genset", "2 MB"),
     ],
+    # v5.4.2: insiden dari temuan log asli. Barang di bawah tetap simulasi; berkas log yang diimpor dicatat terpisah
+    # ("sumber_temuan") dengan SHA-256 ASLI yang dihitung saat impor.
+    "intrusi_log": [
+        ("salinan_log_aset_terdampak.log", "Salinan log sistem aset terdampak saat diisolasi", "48 MB"),
+        ("daftar_akun_dan_kunci.json", "Daftar akun, kunci SSH, dan hak akses saat kejadian", "1 MB"),
+        ("koneksi_aktif_aset.csv", "Koneksi jaringan aktif aset terdampak", "3 MB"),
+    ],
     "backup_dimatikan": [
         ("riwayat_konfigurasi_backup.json", "Riwayat perubahan jadwal pencadangan", "1 MB"),
         ("jejak_login_admin.log", "Jejak login admin (SSH)", "34 MB"),
@@ -90,7 +97,7 @@ class RantaiBukti:
 
     # -- pengambilan ---------------------------------------------------------------
     def amankan(self, *, layanan_id: str, insiden_id: str, skenario: str, petugas: str,
-                metode: str, susulan: bool = False) -> dict:
+                metode: str, susulan: bool = False, sumber_temuan: dict | None = None) -> dict:
         """Salin barang bukti ke brankas, hitung SHA-256, catat berita acara. Mengembalikan entri buku."""
         nomor, uid = self._pencacah.berikutnya("BB")
         isi: dict[str, bytes] = {}
@@ -105,7 +112,7 @@ class RantaiBukti:
             "metode": metode, "susulan": susulan, "barang": barang, "sha256": _manifest(barang),
             "lokasi": f"brankas-bukti/{nomor} (simulasi, hanya-baca)",
             "diambil": datetime.now(timezone.utc).isoformat(timespec="seconds"),
-        })
+        } | ({"sumber_temuan": sumber_temuan} if sumber_temuan else {}))
 
     def catat(self, petugas: str, aksi: str, detail: dict) -> dict:
         """Halaman berita acara lain: kegagalan pengambilan, isolasi darurat, hasil verifikasi."""

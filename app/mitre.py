@@ -43,6 +43,8 @@ PEMETAAN: dict[str, tuple[str, ...]] = {
     "backup_dimatikan": ("T1490",),
     "ddos": ("T1498",),
     "sabotase_ot": ("T0886", "T0855"),
+    # v5.4.2: insiden dari temuan log asli memakai label ATURAN temuannya; ini hanya cadangan bila tidak ada
+    "intrusi_log": ("T1078",),
 }
 
 

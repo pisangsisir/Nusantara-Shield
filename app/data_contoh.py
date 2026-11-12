@@ -73,6 +73,7 @@ GANGGUAN_SKENARIO: dict[str, str] = {
     "backup_dimatikan": "layanan masih berjalan, tetapi cadangan dilepas sehingga {misi} berisiko tidak bisa dipulihkan",
     "ddos": "{misi} melambat hingga tidak dapat diakses dari luar",
     "sabotase_ot": "ada upaya mengubah jadwal start genset; {misi} berisiko terganggu",
+    "intrusi_log": "ada akses tidak sah ke aset; {misi} berisiko terganggu bila penyerang bergerak lebih jauh",
 }
 
 
@@ -149,6 +150,9 @@ SKENARIO = {
     # Fase 6 (IT/OT): penyerang yang sama dengan skenario ransomware berpindah dari jaringan kantor
     # ke zona kendali dan mengirim perintah Modbus asing ke pengendali genset rumah sakit.
     "sabotase_ot": "Perintah Modbus asing ke pengendali genset rumah sakit (OT)",
+    # v5.4.2: BUKAN latihan. Insiden yang dibuka Operator dari temuan log ASLI (impor berkas). Aset terdampak
+    # diambil dari temuan itu sendiri, bukan dari templat; tidak bisa dipicu lewat tombol simulasi.
+    "intrusi_log": "Intrusi terdeteksi dari log asli",
 }
 
 # Log peringatan sintetis yang muncul di pop-up peta saat insiden dipicu.
@@ -182,6 +186,7 @@ LOG_PERINGATAN = {
         (-5, "tinggi", "Permintaan dari 198.51.100.23 mendominasi (cocok IOC-002)"),
         (0, "kritis", "Waktu respons layanan melewati ambang batas"),
     ],
+    "intrusi_log": [],      # kronologi diambil dari temuan log asli itu sendiri (main.buka_insiden_dari_temuan)
 }
 
 # Teks langkah LAPOR dirakit dari kamus istilah (F-10): ganti istilah, playbook ikut berubah.
@@ -215,6 +220,14 @@ PLAYBOOK = {
         "PULIHKAN jalur kendali setelah konfigurasi pengendali diperiksa dan cocok",
         "EVALUASI: perketat pemisahan zona kendali (NIST SP 800-82)",
     ],
+    "intrusi_log": [
+        "AMANKAN BUKTI: salin berkas log asli yang diimpor & log aset terdampak, hitung sidik jari SHA-256, catat di buku rantai bukti",
+        "ISOLASI: putus aset yang terdeteksi dari jaringan dan blokir alamat sumber di gerbang",
+        "CABUT AKSES: ganti sandi dan kunci akun yang dipakai, periksa akun baru dan jadwal tugas",
+        _LANGKAH_LAPOR,
+        "PULIHKAN: sambungkan kembali aset setelah akses dicabut dan konfigurasinya dicocokkan",
+        "EVALUASI: tinjau aturan deteksi dan ambangnya; catat pelajaran",
+    ],
     "ddos": [
         "AMANKAN BUKTI: rekam sampel trafik & log firewall, hitung sidik jari SHA-256, catat di buku rantai bukti",
         "AKTIFKAN perlindungan trafik dari penyedia jaringan",
@@ -236,6 +249,8 @@ PLAYBOOK_RINGKAS = {
                     "Pulihkan jalur", "Evaluasi"],
     "ddos": [ISTILAH["langkah_bukti"], "Saring trafik", "Prioritas inti", ISTILAH["laporan_singkat"], "Info pengguna",
              "Normalkan"],
+    "intrusi_log": [ISTILAH["langkah_bukti"], "Isolasi aset", "Cabut akses", ISTILAH["laporan_singkat"], "Pulihkan",
+                    "Evaluasi"],
 }
 LANGKAH_IR = {s: next(i for i, t in enumerate(PLAYBOOK[s]) if t.startswith("LAPOR")) for s in PLAYBOOK}
 
@@ -321,7 +336,8 @@ KEBIJAKAN = {
 MANAJEMEN: list[dict] = ISTILAH["manajemen"]
 
 # Tingkat keparahan laporan per jenis insiden
-KEPARAHAN_IR = {"ransomware": "SEV-1", "ddos": "SEV-1", "backup_dimatikan": "SEV-2", "sabotase_ot": "SEV-1"}
+KEPARAHAN_IR = {"ransomware": "SEV-1", "ddos": "SEV-1", "backup_dimatikan": "SEV-2", "sabotase_ot": "SEV-1",
+                "intrusi_log": "SEV-2"}
 
 # PROFIL ASET: hanya yang dibutuhkan operator saat genting.
 #   pic = PIC TEKNIS cabang → ditelepon HANYA untuk koordinasi ("sistem Anda sedang

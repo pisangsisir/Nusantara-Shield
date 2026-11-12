@@ -1104,6 +1104,8 @@ body.edu-on .edu-sebaris { display: inline; }
 .tag-mitre.ics { color: var(--kuning); background: var(--kuning-lembut); border-color: rgba(242, 193, 78, .4); }
 .isi-peringatan small.sumber-data { color: var(--teks-samar); font-size: .7rem; font-style: italic; -webkit-line-clamp: 1; }
 .status-peringatan { font: 600 .74rem var(--huruf-mono); color: var(--teks-redup); }
+.status-peringatan > span { display: block; }
+.status-peringatan .tombol-buka-insiden { margin-top: 6px; font-family: var(--huruf, inherit); }
 .peringatan.ditahan .status-peringatan { color: var(--biru); }
 .peringatan.terbuka .status-peringatan { color: var(--kuning); }
 
