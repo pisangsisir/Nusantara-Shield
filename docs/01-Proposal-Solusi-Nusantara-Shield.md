@@ -1,4 +1,4 @@
-# Proposal Solusi — Nusantara Shield v5.4.1
+# Proposal Solusi — Nusantara Shield v5.4.2
 
 **Posko Pertahanan Siber Luring: Peringatan Dini, Isolasi Cepat, dan Rantai Bukti Forensik**
 
@@ -391,7 +391,7 @@ Seluruh keunggulan berikut **sudah berjalan** di purwarupa dan dapat didemonstra
 
 ### 5.1 Kedaulatan Sistem dan Mode Hybrid/Luring
 
-> **"Berjalan luring penuh" merujuk pada Aplikasi Inti (Nusantara Shield Core v5.4.1)**, yaitu purwarupa yang diserahkan dan didemonstrasikan dalam lomba ini.
+> **"Berjalan luring penuh" merujuk pada Aplikasi Inti (Nusantara Shield Core v5.4.2)**, yaitu purwarupa yang diserahkan dan didemonstrasikan dalam lomba ini.
 
 - **Tidak membutuhkan awan atau _server_ luar untuk beroperasi.** Seluruh pemrosesan berjalan di _server_ atau laptop milik satuan (*on-premise*): layanan web, penyimpanan akun dan data (berkas lokal), sidik jari SHA-256 barang bukti, log audit HMAC, tombol isolasi, LAPSIT, dan AI deteksi anomali. Kode _server_ tidak memuat satu pun pemanggilan ke alamat luar.
 - **Tanpa ketergantungan eksternal di layar.** Antarmuka tidak memanggil skrip CDN, Google Fonts, atau sumber daring apa pun. Bila internet diputus, dasbor dan _playbook_ respons insiden tetap berjalan penuh. Bahkan bila kabel LAN dicabut, _server_ dan dasbor di laptop yang sama tetap bekerja.
@@ -437,11 +437,11 @@ Nusantara Shield dirancang dipasang **di posko siber atau _Security Operations C
 
 Pembedaan ini sengaja dibuat tegas agar juri dapat menilai apa yang benar-benar didemonstrasikan.
 
-| Sudah berjalan di purwarupa v5.4.1 | Belum dibangun (peta jalan: Mode Hybrid dan eskalasi) |
+| Sudah berjalan di purwarupa v5.4.2 | Belum dibangun (peta jalan: Mode Hybrid dan eskalasi) |
 | --- | --- |
 | Operasi luring penuh di satu satuan/rumah sakit (*on-premise*) | **(1) Pengiriman LAPSIT otomatis berjenjang** ke Sandi dan Siber Kodam (Sansidam) dan Kartika CSIRT (Pussiberad) |
 | Dua peran: Pengamat dan Operator | **(2) Akses dan tampilan lintas satuan** untuk pemantauan serentak di Mabes |
-| Isolasi dengan tombol yang ditahan 0,6 detik | Mesin Asisten Narasi: LLM lokal Llama 3 8B lewat Ollama untuk draf LAPSIT |
+| Isolasi dengan tombol yang ditahan 0,6 detik, dijaga _server_ | Mesin Asisten Narasi: LLM lokal Llama 3 8B lewat Ollama untuk draf LAPSIT |
 | Rantai bukti HMAC-SHA256 | Umpan indikator resmi (BSSN/MISP) lewat gerbang satu arah |
 | Korelasi CTI dan Mesin Deteksi Anomali (_Isolation Forest_, luring) | Aliran langsung dari sensor (Wazuh, Suricata, Zeek; kini lewat impor berkas keluarannya) dan sakelar terkelola sungguhan |
 | Simulasi OT genset (Modbus, _port_ 502) | Peristiwa identitas nyata dari Active Directory (perubahan hak akses, akun baru) |
@@ -450,7 +450,9 @@ Pembedaan ini sengaja dibuat tegas agar juri dapat menilai apa yang benar-benar 
 | Mesin Deteksi Aturan: _login_ gagal berulang, _login_ tembus, pemindaian _port_, koneksi IT ke zona kendali OT tanpa izin, dan perintah tulis Modbus di luar jendela pemeliharaan (ambang terbuka; atas peristiwa sintetis) | |
 | **Impor log luring** (auth.log OpenSSH, log firewall UFW/iptables, CSV, serta keluaran sensor **Wazuh `alerts.json`** dan **Suricata `eve.json`**; maks. ≈2 MB) dinilai Mesin Deteksi Aturan yang sama; temuan berlabel sumber berkasnya | |
 | Label teknik MITRE ATT&CK (termasuk ATT&CK for ICS) di peringatan, log, dan LAPSIT; label sumber data di setiap peringatan; pengesahan dua tanda tangan di LAPSIT PDF | |
-| **Saksi Berjenjang Luring**: rantai titik periksa diserahkan ke satuan atasan, dicatat di Buku Saksi bertanda tangan, dan direkap berjenjang; riwayat mundur atau bercabang ditolak (`tools/saksi.py`, v5.4.1) | |
+| **Saksi Berjenjang Luring**: rantai titik periksa diserahkan ke satuan atasan, dicatat di Buku Saksi bertanda tangan, dan direkap berjenjang; riwayat mundur atau bercabang ditolak (`tools/saksi.py`, v5.4.2) | |
+| **Buka Insiden dari temuan log asli**: aset, kronologi, label ATT&CK, dan SHA-256 berkas diambil dari temuan; doktrin bukti → putus sama (v5.4.2) | |
+| **Tahan tombol dijaga _server_**: token sekali pakai, semua jalur pemutus ditolak tanpa tahan 0,6 / 1,5 detik (v5.4.2) | |
 | Linimasa 60 menit (data latihan), pita anomali AI per aset, KPI Waktu respons (MTTC) dan Insiden sejak posko aktif | |
 | Nilai Kesiapan Siber A–E (dua sub-skor: Kerawanan dan Insiden) dan triase peringatan: Selesai ditangani atau Positif Palsu (_False Positive_), beralasan dan tercatat di Buku Rantai Bukti | |
 | **Drill Kesiapan** untuk Operator: log sintetis lewat aturan deteksi yang sama, pertanyaan per fase penanganan insiden, nilai 0–100 dari jejak tercatat (dua skenario: cadangan dilepas lewat auth.log; perintah asing ke genset lewat Suricata `eve.json`) | **_Tabletop exercise_ untuk pimpinan** (Dansat, Kepala RS): *inject* bertahap, doktrin sebagai rubrik; skenario drill lain (*phishing*, perubahan halaman situs satuan) |
@@ -471,13 +473,12 @@ Semua gagasan di atas ditulis dari nol; yang diambil dari proyek rujukan hanya k
 
 ### 5.6 Peta Jalan dari Tinjauan Independen (10 November 2026)
 
-Pada 10 November 2026, purwarupa ditinjau ulang dari sudut pandang Dewan Juri. Celah yang bisa ditambal langsung ditambal di v5.4.1 (Dokumentasi Teknis §2.7, "Batas yang perlu diketahui"). Satu gagasan langsung dibangun di v5.4.1: **Saksi Berjenjang Luring** (Dokumentasi Teknis §2.7.2). Posko menyerahkan rantai titik periksanya ke satuan atasan lewat media fisik; satuan atasan mencatatnya di Buku Saksi bertanda tangan dan merekapnya ke jenjang di atas. Riwayat posko yang digulung mundur atau dicabangkan diam-diam tertangkap di setiap jenjang, walau penyerang menguasai _server_ posko. Gagasan berikut **belum dibangun** dan dicatat sebagai langkah berikutnya, semuanya defensif dan luring:
+Pada 10 November 2026, purwarupa ditinjau ulang dari sudut pandang Dewan Juri. Celah yang bisa ditambal langsung ditambal di v5.4.1 (Dokumentasi Teknis §2.7, "Batas yang perlu diketahui"). Satu gagasan langsung dibangun di v5.4.1: **Saksi Berjenjang Luring** (Dokumentasi Teknis §2.7.2). Posko menyerahkan rantai titik periksanya ke satuan atasan lewat media fisik; satuan atasan mencatatnya di Buku Saksi bertanda tangan dan merekapnya ke jenjang di atas. Riwayat posko yang digulung mundur atau dicabangkan diam-diam tertangkap di setiap jenjang, walau penyerang menguasai _server_ posko. Dua celah lain ditutup di v5.4.2: **Buka Insiden dari temuan** (Operator membuka insiden langsung dari temuan log asli; aset, kronologi, dan sidik jari berkasnya diambil dari temuan itu) dan **tahan tombol dijaga _server_** (Dokumentasi Teknis §3.6–§3.7). Gagasan berikut **belum dibangun** dan dicatat sebagai langkah berikutnya, semuanya defensif dan luring:
 
 | Gagasan | Masalah yang dijawab |
 | --- | --- |
-| **Buka insiden dari temuan** | Temuan dari log asli (Wazuh, Suricata, auth.log) kini menaikkan WASPADA, tetapi insiden, bukti, dan isolasi masih lewat jalur latihan. Satu tombol akan membuka insiden langsung dari temuan itu, dengan doktrin Dua Kunci yang sama. |
 | **Akun umpan** | Akun yang tidak pernah dipakai siapa pun. Setiap upaya _login_ ke akun itu adalah tanda pasti ada yang menjelajah, dengan alarm keliru mendekati nol. |
-| **Aturan dua orang di _server_** | Tindakan pemutus aset vital disetujui dua Operator berbeda dan dijaga _server_, bukan hanya tahan tombol di peramban (lihat juga §5.5). |
+| **Aturan dua orang di _server_** | Tindakan pemutus aset vital disetujui dua Operator berbeda. Tahan tombolnya sudah dijaga _server_ sejak v5.4.2; yang belum adalah persetujuan orang kedua (lihat juga §5.5). |
 | **Paket intelijen bertanda tangan** | Pembaruan indikator dan ambang aturan lewat media fisik yang diverifikasi Ed25519 (lihat §5.5). |
 | **Peta kesiapan lintas satuan** | Nilai Kesiapan Siber dan hasil Drill tiap satuan dihimpun berkala lewat berkas bertanda tangan, sehingga pimpinan melihat satuan mana yang perlu latihan ulang. |
 | **Pengelolaan akun** | Menonaktifkan akun dan mencabut sesi akun lain dari dasbor; kini akun hanya bisa dibuat dan diganti sandinya. |

@@ -1,10 +1,10 @@
-# Dokumentasi Teknis — Nusantara Shield v5.4.1
+# Dokumentasi Teknis — Nusantara Shield v5.4.2
 
 **Posko Pertahanan Siber Luring: Peringatan Dini, Isolasi Cepat, dan Rantai Bukti Forensik**
 
 | | |
 | --- | --- |
-| **Versi** | 5.4.1 · tambalan hasil tinjauan independen: impor log tahan berkas beracun dan diurai di luar kunci, body impor baru dibaca bila token sah, pendaftaran Pengamat tertutup di pemasang produksi, auditor menangkap penggulungan mundur (`--minimal-titik`), **Saksi Berjenjang Luring** (§2.7.2) · 11 November 2026. Sebelumnya 5.4.0 (9 November 2026): Drill Kesiapan, impor keluaran Wazuh dan Suricata, situs untuk Dewan Juri. Sebelumnya 5.3.0 (1 November 2026): titik periksa log audit bertanda tangan Ed25519 dengan kunci berevolusi |
+| **Versi** | 5.4.2 · **Buka Insiden dari temuan log asli** (§3.6) dan **tahan tombol dijaga _server_** (§3.7) · 12 November 2026. Sebelumnya 5.4.1 · tambalan hasil tinjauan independen: impor log tahan berkas beracun dan diurai di luar kunci, body impor baru dibaca bila token sah, pendaftaran Pengamat tertutup di pemasang produksi, auditor menangkap penggulungan mundur (`--minimal-titik`), **Saksi Berjenjang Luring** (§2.7.2) · 11 November 2026. Sebelumnya 5.4.0 (9 November 2026): Drill Kesiapan, impor keluaran Wazuh dan Suricata, situs untuk Dewan Juri. Sebelumnya 5.3.0 (1 November 2026): titik periksa log audit bertanda tangan Ed25519 dengan kunci berevolusi |
 | **Status uji** | **459 / 459 uji otomatis lulus** · diverifikasi dari paket rilis bersih |
 | **AI** | **Mesin Deteksi Anomali (_anomaly detection engine_) berjalan lokal**: _Isolation Forest_ (scikit-learn), dilatih dan dijalankan di _server_ satuan, tanpa Application Programming Interface (API) luar |
 | **Arsitektur** | _Server_ FastAPI (Python) · peramban Vanilla JS + Canvas · siaran langsung Server-Sent Events (SSE) · buku berantai HMAC-SHA256 |
@@ -15,11 +15,11 @@ Nusantara Shield adalah perisai pertahanan siber (kategori **Penangkalan, _Defen
 
 **Status fitur.** Tabel ini membedakan dengan tegas apa yang sudah didemonstrasikan dan apa yang masih rencana.
 
-| Sudah berjalan di purwarupa v5.4.1 | Belum dibangun (peta jalan: Mode Hybrid dan eskalasi) |
+| Sudah berjalan di purwarupa v5.4.2 | Belum dibangun (peta jalan: Mode Hybrid dan eskalasi) |
 | --- | --- |
 | Operasi luring penuh di satu satuan/rumah sakit (*on-premise*) | **(1) Pengiriman LAPSIT otomatis berjenjang** ke Sandi dan Siber Kodam (Sansidam) dan Kartika CSIRT (Pussiberad) |
 | Dua peran: Pengamat dan Operator | **(2) Akses dan tampilan lintas satuan** untuk pemantauan serentak di Mabes |
-| Isolasi dengan tombol yang ditahan 0,6 detik | Mesin Asisten Narasi: LLM lokal Llama 3 8B lewat Ollama untuk draf LAPSIT |
+| Isolasi dengan tombol yang ditahan 0,6 detik, dijaga _server_ | Mesin Asisten Narasi: LLM lokal Llama 3 8B lewat Ollama untuk draf LAPSIT |
 | Rantai bukti HMAC-SHA256 | Umpan indikator resmi (BSSN/MISP) lewat gerbang satu arah |
 | Korelasi CTI dan Mesin Deteksi Anomali (_Isolation Forest_, luring) | Aliran langsung dari sensor (Wazuh, Suricata, Zeek; kini lewat impor berkas keluarannya) dan sakelar terkelola sungguhan |
 | Simulasi OT genset (Modbus, _port_ 502) | Peristiwa identitas nyata dari Active Directory (perubahan hak akses, akun baru) |
@@ -255,8 +255,8 @@ Kategori yang **sengaja tidak diklaim**, antara lain GV.SC (rantai pasok; baru s
 - Belum ada verifikasi dua langkah; rencananya lewat SSO instansi (Proposal §5.2).
 - Kunci `NS_AUDIT_KEY` disimpan sebagai variabel lingkungan, belum di modul keamanan perangkat keras (_Hardware Security Module_, HSM). Tanpa kunci ini, kedua buku hanya tersimpan di memori.
 - HMAC memakai satu kunci untuk membuat sekaligus memeriksa: siapa pun yang memegang `NS_AUDIT_KEY` (termasuk penyerang yang membobol _server_) dapat membuat entri yang lolos pemeriksaan HMAC. Sejak v5.4.0, entri sampai titik periksa terakhir dilindungi tanda tangan Ed25519 yang kuncinya sudah dihapus (lihat §2.7.1). Entri sesudah titik periksa terakhir masih hanya dilindungi HMAC, dan kunci HMAC sendiri belum berevolusi.
-- Temuan dari log asli (impor berkas) menaikkan WASPADA, tetapi belum bisa langsung dibuka menjadi insiden; insiden, bukti, dan isolasi masih lewat jalur latihan dan Drill. Tombol "buka insiden dari temuan" ada di peta jalan.
-- Tahan 0,6 detik dijaga di peramban. _Server_ menjaga peran Operator, adanya insiden, dan urutan bukti → putus → pulihkan.
+- Insiden dari temuan log asli (§3.6) memakai playbook umum per jenis aturan; dampaknya terbatas pada aset yang tercatat di temuan, sehingga aset lain yang ikut tersentuh penyerang tetapi tidak terekam di log tidak ikut tampil.
+- Tahan dijaga _server_ (§3.7) untuk menegakkan doktrin, bukan untuk menghalangi skrip yang sengaja menunggu: pemegang akun Operator yang menulis skrip sendiri tetap bisa meminta token, menunggu, lalu mengeksekusi. Yang dijamin: tidak ada pemutusan tanpa niat yang disengaja dan tercatat, dari klien mana pun.
 - Angka ≈1,2 detik adalah jeda alur purwarupa (`JEDA_RUNBOOK`), bukan hasil ukur pemutusan sungguhan; pengambilan bukti disimulasikan.
 - Akun belum bisa dinonaktifkan atau dihapus dari dasbor, dan Operator belum bisa mencabut sesi akun lain.
 - Log **dan** berkas titik periksa yang digulung mundur bersama tetap sah secara kriptografi; yang menangkapnya salinan di luar posko: Saksi Berjenjang Luring (§2.7.2, `--saksi`) atau nomor titik periksa dari LAPSIT terakhir (`--minimal-titik N`). Entri sesudah saksi terakhir belum tercakup.
@@ -545,13 +545,37 @@ Loket: `GET /api/drill` (semua peran; katalog, drill aktif, riwayat), `POST /api
 
 ---
 
+### 3.6 Insiden dari Temuan Log Asli (v5.4.2)
+
+Sebelum v5.4.2, temuan dari log asli hanya menaikkan WASPADA; insiden, bukti, dan isolasi hanya ada di jalur latihan. Kini Operator bisa membuka insiden **langsung dari temuan itu**, tanpa menyalin data apa pun:
+
+1. Operator mengimpor log (auth.log, UFW, CSV, Wazuh `alerts.json`, Suricata `eve.json`). Seperti sebelumnya, impor saja **tidak** membuka insiden.
+2. Baris temuan di tabel Peringatan menampilkan tombol **Buka Insiden** bila temuan berasal dari impor, masih aktif, belum ditutup lewat triase, asetnya punya layanan pemilik di inventaris, dan layanan itu belum dalam insiden.
+3. _Server_ mengusulkan layanan (pemilik aset) dan playbook dari jenis aturan. Aturan IT (*login* gagal berulang, *login* tembus, pemindaian port) memakai playbook **Intrusi dari log asli**; aturan OT memakai playbook **Sabotase OT** (putus jalur IT–OT, genset tetap menyala). Operator membaca usulan itu di dialog lalu memutuskan.
+4. Insiden tidak memuat data rekaan: aset terdampak = aset di temuan, kronologi = temuan itu sendiri, label ATT&CK = aturan temuan. Lapisan AI tidak memberi pola lalu lintas latihan ke aset itu, dan peta global tidak menggambar asal serangan.
+5. Doktrin sesudahnya sama persis: **AMANKAN BUKTI** lebih dulu, lalu **Eksekusi Isolasi** yang ditahan, laporan setelah semua pemutus selesai, pemulihan lewat pintu terpisah.
+6. Berita acara bukti mencatat **SHA-256 asli** berkas log yang diimpor (dihitung saat impor, sama dengan hasil `sha256sum` berkas aslinya), terpisah dari barang bukti lain yang masih simulasi. LAPSIT menyebut asal insiden, nomor temuan, nama berkas, dan sidik jarinya. Log audit mencatat `INSIDEN_DARI_TEMUAN`.
+
+Loket: `POST /api/insiden/dari-temuan {"temuan_id"}` (hanya Operator). Skenario `intrusi_log` tidak bisa dipicu lewat tombol simulasi. Dikunci `tests/test_insiden_temuan.py`.
+
+### 3.7 Tahan Dijaga _Server_ (v5.4.2)
+
+Tombol pemutus wajib ditahan: **Eksekusi Isolasi** 0,6 detik, **Isolasi Darurat** 1,5 detik. Sebelum v5.4.2 aturan ini hanya dijaga peramban. Kini:
+
+1. Saat tombol **mulai** ditahan, peramban meminta token sekali pakai: `POST /api/tahan {"layanan_id", "tujuan": "isolasi" | "darurat"}` (hanya Operator). Token terikat pada akun, layanan, dan tombol, berlaku 15 detik; menekan ulang membuang token lama.
+2. Eksekusi membawa token itu. _Server_ menolak dengan kode 428 bila token tidak ada, sudah dipakai, milik akun/layanan/tombol lain, kedaluwarsa, atau eksekusi datang lebih cepat dari 0,5 detik (isolasi darurat 1,4 detik; toleransi jaringan 0,1 detik dari lama tombol).
+3. Aturan ini berlaku untuk **semua** jalur pemutus: aksi gabungan `isolasi`, setiap tindakan pemutus satuan di `POST /api/soar/jalankan`, dan `POST /api/soar/darurat`. Tindakan non-pemutus (amankan bukti, pemulihan) tidak perlu ditahan.
+4. Lama tahan dicatat di log audit (`tahan_ms`).
+
+Batasnya ditulis di §2.7: ini menegakkan doktrin, bukan pengaman terhadap skrip yang sengaja menunggu. Dikunci `tests/test_tahan.py` dengan batas waktu asli.
+
 ## 4. Instruksi Pemasangan (*Deployment*)
 
 ### 4.1 Menjalankan _Server_
 
 ```bash
 # 1. Masuk ke folder proyek
-cd nusantara-shield-v5.4.1
+cd nusantara-shield-v5.4.2
 
 # 2. Buat lingkungan Python lokal (sekali saja)
 python3 -m venv .venv
@@ -580,14 +604,14 @@ Cuplikan **keluaran asli** `./run_tests.sh` (tiga uji pertama tiap kelompok dita
     <span style="width:11px;height:11px;border-radius:50%;background:#ef4444;display:inline-block"></span>
     <span style="width:11px;height:11px;border-radius:50%;background:#f59e0b;display:inline-block"></span>
     <span style="width:11px;height:11px;border-radius:50%;background:#22c55e;display:inline-block"></span>
-    <span style="flex:1;text-align:center;color:#94a3b8;font-size:7.6pt;margin-right:40px">operator@posko-siber: ~/nusantara-shield-v5.4.1 — ./run_tests.sh</span>
+    <span style="flex:1;text-align:center;color:#94a3b8;font-size:7.6pt;margin-right:40px">operator@posko-siber: ~/nusantara-shield-v5.4.2 — ./run_tests.sh</span>
   </div>
   <div style="padding:10px 14px 12px;color:#e2e8f0">
-    <div style="white-space:pre-wrap;word-break:break-all;margin:0"><span style="color:#4ade80">operator@posko-siber</span><span style="color:#94a3b8">:~/nusantara-shield-v5.4.1$</span> ./run_tests.sh</div>
-    <div style="color:#fbbf24;white-space:pre-wrap;word-break:break-all;margin:0">▶ Menjalankan uji otomatis Nusantara Shield v5.4.1 — setiap uji tampil satu baris beserta hasilnya</div>
+    <div style="white-space:pre-wrap;word-break:break-all;margin:0"><span style="color:#4ade80">operator@posko-siber</span><span style="color:#94a3b8">:~/nusantara-shield-v5.4.2$</span> ./run_tests.sh</div>
+    <div style="color:#fbbf24;white-space:pre-wrap;word-break:break-all;margin:0">▶ Menjalankan uji otomatis Nusantara Shield v5.4.2 — setiap uji tampil satu baris beserta hasilnya</div>
     <div style="color:#94a3b8;white-space:pre-wrap;word-break:break-all;margin:0">============================= test session starts ==============================</div>
     <div style="color:#94a3b8;white-space:pre-wrap;word-break:break-all;margin:0">platform linux -- Python 3.13.16, pytest-9.1.1, pluggy-1.7.0 -- /usr/bin/python3</div>
-    <div style="color:#94a3b8;white-space:pre-wrap;word-break:break-all;margin:0">rootdir: …/nusantara-shield-v5.4.1</div>
+    <div style="color:#94a3b8;white-space:pre-wrap;word-break:break-all;margin:0">rootdir: …/nusantara-shield-v5.4.2</div>
     <div style="color:#94a3b8;white-space:pre-wrap;word-break:break-all;margin:0">configfile: pytest.ini</div>
     <div style="color:#94a3b8;white-space:pre-wrap;word-break:break-all;margin:0">testpaths: tests</div>
     <div style="color:#94a3b8;white-space:pre-wrap;word-break:break-all;margin:0">plugins: anyio-4.15.1</div>
@@ -731,7 +755,7 @@ Setiap uji tampil satu baris beserta hasilnya. Target: `459 passed`.
 ### 4.3 Mengemas untuk Distribusi
 
 ```bash
-python tools/kemas_rilis.py      # → dist/nusantara-shield-v5.4.1.zip (≈ 17 MB, termasuk dokumen PDF)
+python tools/kemas_rilis.py      # → dist/nusantara-shield-v5.4.2.zip (≈ 17 MB, termasuk dokumen PDF)
 ```
 
 Paket dibuat **tanpa** `.venv`, `.env`, data operasional, dan *cache*. Penerima cukup mengulang langkah 4.1.
@@ -745,7 +769,7 @@ Untuk posko tanpa internet, kode dan seluruh pustaka dikemas menjadi satu zip be
 python tools/kemas_luring.py --platform win_amd64 --python 3.12           # posko Windows 64-bit
 python tools/kemas_luring.py --platform macosx_14_0_arm64 --python 3.12   # posko Mac Apple Silicon
 python tools/kemas_luring.py                                              # posko sama dengan komputer ini
-#    → dist/nusantara-shield-v5.4.1-luring-<platform>.zip + dua sidik jari untuk berita acara
+#    → dist/nusantara-shield-v5.4.2-luring-<platform>.zip + dua sidik jari untuk berita acara
 
 # 2) Di posko tanpa internet: ekstrak zip, masuk ke foldernya, lalu
 python pasang_luring.py --periksa-saja    # cocokkan sidik jari SHA256SUMS dengan berita acara

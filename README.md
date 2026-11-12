@@ -1,4 +1,4 @@
-# Nusantara Shield v5.4.1
+# Nusantara Shield v5.4.2
 
 <p align="center"><img src="docs/logo/banner.png" width="100%" alt="Nusantara Shield: perisai berisi Merah Putih, radar dua cincin, peta Nusantara, dan titik ancaman yang terkunci di cincin luar. Mendeteksi, mencegah, membantu merespons. Kartika Cyber Hackathon 2026, Kategori 02 Penangkalan."></p>
 
@@ -33,7 +33,7 @@ kunci/          kunci PUBLIK rilis (kunci privat tidak pernah ada di repo)
 docs/           Proposal, Dokumentasi Teknis, Panduan Belajar (PDF), contoh LAPSIT dan log, diagram alur, logo
 presentation/   dek presentasi: index.html (satu berkas mandiri, bisa dibuka luring)
 LICENSE         GNU GPL v3.0 (GPL-3.0-only)
-CHANGELOG.md    riwayat versi v1.0 (15 Okt 2026) sampai v5.4.1 (10 Nov 2026)
+CHANGELOG.md    riwayat versi v1.0 (15 Okt 2026) sampai v5.4.2 (12 Nov 2026)
 ```
 
 > **Folder proyek dipindah lalu muncul `cannot execute: No such file or directory` atau `No module named 'numpy'`?**
@@ -67,7 +67,7 @@ CHANGELOG.md    riwayat versi v1.0 (15 Okt 2026) sampai v5.4.1 (10 Nov 2026)
 
 ```bash
 # 1. Masuk ke folder proyek
-cd nusantara-shield-v5.4.1
+cd nusantara-shield-v5.4.2
 
 # 2. Buat ruang kerja Python milik Anda sendiri (sekali saja)
 python3 -m venv .venv
@@ -83,7 +83,7 @@ python -m uvicorn app.main:app --host 127.0.0.1 --port 8000 --no-access-log --no
 ### Windows (PowerShell)
 
 ```powershell
-cd nusantara-shield-v5.4.1
+cd nusantara-shield-v5.4.2
 python -m venv .venv
 .venv\Scripts\Activate.ps1          # CMD: .venv\Scripts\activate.bat
 pip install -r requirements.txt
@@ -118,6 +118,20 @@ disebut letaknya (misalnya "Sidik jari entri #2 tidak cocok"). `--cocokkan` mema
 di LAPSIT ada di rantai, sehingga log yang dipotong di ujungnya juga ketahuan. Kode keluar: 0 utuh, 1 rusak
 atau tidak cocok, 2 tidak bisa memeriksa. Kunci tidak diterima sebagai argumen dan tidak pernah dicetak.
 
+### Buka Insiden dari temuan log asli, dan tahan yang dijaga *server* (v5.4.2)
+
+Temuan dari log asli (auth.log, UFW, CSV, Wazuh, Suricata) kini bisa dibuka **langsung** menjadi insiden. Baris
+temuannya di tabel Peringatan memuat tombol **Buka Insiden**. *Server* mengusulkan layanan (pemilik aset) dan playbook
+(aturan IT → **Intrusi dari log asli**, aturan OT → **Sabotase OT**), lalu Operator yang memutuskan. Insiden hanya
+memuat aset, kronologi, dan label ATT&CK dari temuan itu; tidak ada perangkat atau alamat rekaan. Berita acara bukti
+mencatat SHA-256 asli berkas log yang diimpor, dan LAPSIT menyebut asal insidennya. Doktrin sesudahnya sama: bukti dulu,
+baru putus.
+
+Tombol pemutus kini dijaga *server*: saat **Eksekusi Isolasi** (0,6 detik) atau **Isolasi Darurat** (1,5 detik) mulai
+ditahan, peramban meminta token sekali pakai. Eksekusi tanpa token sah, atau yang datang terlalu cepat, ditolak 428,
+termasuk tindakan pemutus satuan lewat API. Ini menegakkan doktrin dari klien mana pun, bukan pengaman terhadap skrip
+yang sengaja menunggu (Dokumentasi Teknis §3.6–§3.7).
+
 ### Saksi Berjenjang Luring (v5.4.1)
 
 Penyerang yang menguasai *server* posko bisa mengembalikan log **dan** berkas titik periksa ke keadaan lama; hasilnya
@@ -141,7 +155,7 @@ menerima rekap juga menangkap bila jenjang bawah menulis ulang Buku Saksinya sen
 ### Mengemas zip untuk juri / repositori
 
 ```bash
-python tools/kemas_rilis.py            # → dist/nusantara-shield-v5.4.1.zip (versi dari app/versi.py)
+python tools/kemas_rilis.py            # → dist/nusantara-shield-v5.4.2.zip (versi dari app/versi.py)
 python tools/kemas_rilis.py --periksa  # hanya menampilkan daftar berkas
 ```
 
@@ -157,7 +171,7 @@ Untuk posko yang sama sekali tidak tersambung internet, kode dan seluruh pustaka
 python tools/kemas_luring.py --platform win_amd64 --python 3.12           # posko Windows 64-bit
 python tools/kemas_luring.py --platform macosx_14_0_arm64 --python 3.12   # posko Mac Apple Silicon
 python tools/kemas_luring.py                                              # posko sama dengan komputer ini
-#    → dist/nusantara-shield-v5.4.1-luring-<platform>.zip + dua sidik jari untuk berita acara
+#    → dist/nusantara-shield-v5.4.2-luring-<platform>.zip + dua sidik jari untuk berita acara
 
 # 2) Di posko tanpa internet: ekstrak zip, masuk ke foldernya, lalu
 python pasang_luring.py --periksa-saja    # cocokkan sidik jari SHA256SUMS dengan berita acara
@@ -182,13 +196,13 @@ sidik jari kunci (berita acara) → SHA256SUMS.sig (Ed25519) → SHA256SUMS → 
 python3 tools/kunci_rilis.py buat
 # Setiap rilis (pohon kerja git harus bersih):
 python3 tools/kemas_installer.py susun                         # payload + manifest + SHA256SUMS
-python3 tools/kunci_rilis.py tandatangani dist/nusantara-shield-5.4.1-ubuntu24.04-amd64/SHA256SUMS
-python3 tools/kemas_installer.py bungkus dist/nusantara-shield-5.4.1-ubuntu24.04-amd64
-#   → dist/nusantara-shield-5.4.1-ubuntu24.04-amd64.tar + SIDIK-JARI-PAKET-<tanggal>-v5.4.1.txt
+python3 tools/kunci_rilis.py tandatangani dist/nusantara-shield-5.4.2-ubuntu24.04-amd64/SHA256SUMS
+python3 tools/kemas_installer.py bungkus dist/nusantara-shield-5.4.2-ubuntu24.04-amd64
+#   → dist/nusantara-shield-5.4.2-ubuntu24.04-amd64.tar + SIDIK-JARI-PAKET-<tanggal>-v5.4.2.txt
 
 # Di Ubuntu 24.04 tanpa internet (langkah lengkap ada di BACA-SAYA.txt dalam paket):
-sha256sum nusantara-shield-5.4.1-ubuntu24.04-amd64.tar      # cocokkan dengan berita acara
-tar -xf nusantara-shield-5.4.1-ubuntu24.04-amd64.tar && cd nusantara-shield-5.4.1-ubuntu24.04-amd64
+sha256sum nusantara-shield-5.4.2-ubuntu24.04-amd64.tar      # cocokkan dengan berita acara
+tar -xf nusantara-shield-5.4.2-ubuntu24.04-amd64.tar && cd nusantara-shield-5.4.2-ubuntu24.04-amd64
 openssl pkeyutl -verify -pubin -inkey kunci-publik-rilis.pem -rawin -in SHA256SUMS -sigfile SHA256SUMS.sig
 sudo sh pasang.sh            # --uji: jalankan seluruh uji dulu · --kembali · --hapus · --bantuan
 ```
@@ -339,7 +353,7 @@ sequenceDiagram
 
 | Aturan | Cara sistem menegakkannya |
 | --- | --- |
-| **Pre-authorized containment** | Isolasi tidak menunggu izin; tombol ⚡ cukup **ditahan 0,6 detik** (mencegah klik tak sengaja) |
+| **Pre-authorized containment** | Isolasi tidak menunggu izin; tombol ⚡ cukup **ditahan 0,6 detik** (mencegah klik tak sengaja); sejak v5.4.2 dijaga *server* lewat token tahan sekali pakai |
 | **Bukti sebelum pemutusan** | Setiap playbook diawali *Amankan bukti*: salinan (simulasi), SHA-256 tiap berkas, berita acara di Buku Rantai Bukti. Pemutusan tanpa bukti ditolak **409** di semua jalur |
 | **Isolasi darurat** | Bila bukti gagal diamankan: alasan tertulis (min. 15 karakter) + tahan **1,5 detik**. Alasan tercatat di Buku Rantai Bukti, log audit, dan LAPSIT |
 | **LAPSIT otomatis** | Terbit hanya setelah SEMUA tindakan pemutus tuntas; nomor `IR-2026-001` tidak pernah berulang (+ UUID) |
@@ -532,6 +546,8 @@ dibatasi lajunya dan dicatat di log audit.
 | `GET /api/audit` · `GET /api/audit/verifikasi` | semua | Log audit + verifikasi rantai |
 | `POST /api/lapsit` | semua | Ekspor LAPSIT PDF |
 | `POST /api/saksi` | Operator | Berkas Saksi (rantai titik periksa) untuk satuan atasan; 409 di mode demo |
+| `POST /api/insiden/dari-temuan` | Operator | Buka insiden dari temuan log asli (aset, kronologi, sidik jari berkas dari temuan) |
+| `POST /api/tahan` | Operator | Token tahan sekali pakai saat tombol pemutus mulai ditahan; tanpanya pemutusan ditolak 428 |
 | `POST /api/indikator/cari`, `/api/backup/catat`, `/api/demo/majukan-waktu`, `/api/reset-demo` | campuran | Alat Operator |
 | `GET /api/health` · `GET /api/istilah` | publik | Status minimal · kamus label |
 
@@ -610,11 +626,11 @@ pytest.ini            pengaturan tampilan pytest
 
 **Status fitur — jujur dan tegas.**
 
-| Sudah berjalan (purwarupa v5.4.1) | Belum dibangun (peta jalan: Mode Hybrid dan eskalasi) |
+| Sudah berjalan (purwarupa v5.4.2) | Belum dibangun (peta jalan: Mode Hybrid dan eskalasi) |
 | --- | --- |
 | Operasi luring penuh di 1 satuan/RS (*on-premise*) | Pengiriman LAPSIT otomatis berjenjang ke Sansidam (Kodam) dan Kartika CSIRT (Pussiberad) |
 | Peran Pengamat dan Operator | Akses dan tampilan lintas satuan untuk pemantauan serentak di Mabes |
-| Isolasi dengan tombol ditahan 0,6 detik | Mesin Asisten Narasi: LLM lokal (Llama 3 8B lewat Ollama) untuk draf LAPSIT |
+| Isolasi dengan tombol ditahan 0,6 detik, dijaga *server* | Mesin Asisten Narasi: LLM lokal (Llama 3 8B lewat Ollama) untuk draf LAPSIT |
 | Rantai bukti HMAC-SHA256 | |
 | Korelasi CTI dan Mesin Deteksi Anomali (_anomaly detection engine_; Isolation Forest, luring) | **Respons bertingkat menurut kritikalitas aset:** aset vital tetap dua kunci; endpoint kantor berisiko rendah diisolasi otomatis dengan praotorisasi |
 | Mesin Deteksi Aturan: login gagal berulang, login tembus, pemindaian port, aturan OT (atas peristiwa sintetis), dan **impor log asli** (auth.log, firewall, CSV, keluaran Wazuh dan Suricata) | Aliran langsung dari sensor (Wazuh, Suricata, Zeek) dan peristiwa identitas dari Active Directory |
