@@ -66,6 +66,9 @@ class Temuan:
     rincian: dict = field(default_factory=dict)
     asal: str = "latihan"        # "latihan" (peristiwa sintetis) atau "impor" (log asli dari Operator)
     berkas: str | None = None    # nama berkas log bila asal = "impor"
+    sha256_berkas: str | None = None   # v5.4.2: SHA-256 berkas log seperti diterima saat impor
+    baris_berkas: int | None = None
+    drill: bool = False          # v5.4.2: log cerita sintetis latihan drill (lewat jalur impor, tetapi BUKAN log asli)
 
     @property
     def nama(self) -> str:

@@ -2,6 +2,26 @@
 
 Seluruh kode dikembangkan sejak **15 Oktober 2026**, setelah publikasi program Kartika Cyber Hackathon 2026 (12 Oktober 2026), sesuai Deklarasi di Proposal §6.1 (Rulebook bagian G). Repositori Git ini dimulai pada **20 Oktober 2026**; riwayat sebelumnya disusun dari folder versi dan folder cadangan per fase yang tersimpan di laptop pengembang (beserta catatan `BACA-SAYA.txt`), bukan dari commit.
 
+## v5.4.2 — 12 November 2026
+
+Dua batas yang paling mungkin ditanyakan Dewan Juri ditutup. Rilis v5.4.1 tidak diubah.
+
+### Buka Insiden dari temuan log asli
+- **Tombol Buka Insiden** di baris temuan tabel Peringatan, dan loket `POST /api/insiden/dari-temuan` (hanya Operator). _Server_ mengusulkan layanan (pemilik aset) dan playbook dari aturan: aturan IT → playbook baru **Intrusi dari log asli**, aturan OT → **Sabotase OT**. Operator yang memutuskan; impor saja tetap hanya menaikkan WASPADA.
+- **Tanpa data rekaan:** aset terdampak, kronologi (waktu kejadian), label ATT&CK, judul, teks dampak LAPSIT, dan barang bukti mengikuti temuan, bukan templat latihan. Lapisan AI tidak memberi pola lalu lintas latihan ke aset itu; peta global tidak menggambar asal serangan.
+- **SHA-256 asli berkas log** dicatat di berita acara bukti (sama dengan `sha256sum` berkas aslinya; isi impor kini tidak dipangkas). LAPSIT menyebut asal insiden dan sidik jarinya.
+- Hanya temuan impor yang aktif, belum ditutup lewat triase, bukan Drill, dan belum pernah dibuka; satu insiden per layanan.
+
+### Tahan tombol dijaga _server_
+- `POST /api/tahan`: token sekali pakai saat tombol pemutus mulai ditahan, terikat akun, layanan, tombol, dan insiden; berlaku 15 detik.
+- **Semua jalur pemutus** ditolak 428 tanpa token sah atau sebelum 0,5 detik (isolasi darurat 1,4 detik): Eksekusi Isolasi, tindakan pemutus satuan, centang manual langkah pemutus, dan Isolasi Darurat. Lencana langkah pemutus di Action Center kini terkunci; pemutusan hanya lewat tombol yang ditahan. Lama tahan dicatat di log audit.
+- Ditulis jujur: menegakkan doktrin dari klien mana pun, bukan pengaman terhadap skrip yang sengaja menunggu.
+
+### Pemeriksaan
+- Pemeriksa terpisah yang tidak ikut membangun menemukan sembilan celah (terberat: centang manual langkah pemutus tanpa token, dan temuan Drill yang bisa dibuka sebagai log asli); semuanya ditambal dan dikunci uji.
+- Diuji di peramban: impor auth.log → **Buka Insiden** → klik cepat tidak mengeksekusi → tahan penuh mengeksekusi dengan token → aset **TERISOLASI** dengan bukti tercatat.
+- **26 uji baru** (`tests/test_insiden_temuan.py` 14, `tests/test_tahan.py` 11, rantai bukti +1). Total **485** (23 kelompok, ≈60 detik): Tangkal 135, Manusia 148, Bukti 37, Jejak 62, Luring 32, Pendukung 71.
+
 ## v5.4.1 — 11 November 2026
 
 Tambalan dari tinjauan independen (sudut pandang Dewan Juri), ditambah satu fitur yang langsung menutup celah terbesarnya: Saksi Berjenjang Luring. Gagasan lain masuk peta jalan (Proposal §5.6).
