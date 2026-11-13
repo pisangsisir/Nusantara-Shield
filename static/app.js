@@ -1165,7 +1165,7 @@ async function imporLog(berkas) {
   const j = await coba(() => sibuk(tombol, () => api("/api/deteksi/impor", { metode: "POST", data: { nama: berkas.name, isi } })));
   if (!j) return;
   const naik = j.waspada.length ? ` ${j.waspada.join(", ")} naik ke WASPADA.` : "";
-  toast(`Impor «${j.berkas}» (${j.format}): ${j.dikenali} dari ${j.baris} baris dikenali → ${j.temuan.length} temuan.${naik}`,
+  toast(`Impor “${j.berkas}” (${j.format}): ${j.dikenali} dari ${j.baris} baris dikenali → ${j.temuan.length} temuan.${naik}`,
     j.temuan.length ? "peringatan" : "info");
   setelahAksi();
 }

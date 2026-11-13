@@ -273,7 +273,7 @@ def test_hasil_drill_tercetak_di_lapsit_sebagai_latihan(k):
 
 def test_lapsit_rutin_tanpa_drill_tidak_berubah(k):
     teks = teks_pdf(k.post("/api/lapsit", headers=masuk(k)).content)
-    assert ISTILAH["drill"].upper() not in teks and "Halaman 1 dari 1" in teks
+    assert ISTILAH["drill"].upper() not in teks and "Halaman 2 dari 2" in teks     # v5.4.3: + Tindak lanjut
 
 
 def test_reset_demo_membatalkan_drill_aktif_tetapi_riwayat_tetap(k):

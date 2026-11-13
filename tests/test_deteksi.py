@@ -244,7 +244,7 @@ def test_temuan_pada_aset_dalam_insiden_berlabel_jujur(k):
     assert k.post("/api/simulasi", headers=h, json={"layanan_id": "kesehatan", "skenario": "ransomware"}).status_code == 200
     p = potret(k, h)                      # ransomware menyeret ssh ke dalam insiden
     det = [x for x in p["peringatan"] if x["jenis"] == "deteksi"][0]
-    assert det["status"] == "Aset ditangani lewat playbook insiden"
+    assert det["status"] == "Aset ditangani melalui playbook insiden"
     assert not prediksi(p).get("ssh", {}).get("proaktif")
 
 

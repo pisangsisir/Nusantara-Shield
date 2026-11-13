@@ -80,7 +80,7 @@ from .impor_log import baca as baca_log
 # Label batasan (kejujuran) per jenis peringatan: dari mana datanya, dan apa yang masih simulasi.
 SUMBER_DATA = {
     "deteksi": "Sumber: peristiwa latihan sintetis · aturan deteksi berjalan nyata",
-    "impor": "Sumber: log impor «{berkas}» dari Operator · aturan deteksi berjalan nyata",
+    "impor": "Sumber: log impor “{berkas}” dari Operator · aturan deteksi berjalan nyata",
     "ai": "Sumber: ciri lalu lintas sintetis · model AI berjalan nyata di server ini",
     "insiden": "Sumber: skenario latihan · perintah ke perangkat jaringan masih simulasi",
 }
@@ -220,7 +220,7 @@ DAMPAK: dict[str, dict] = {
     # bukan pengendalinya; genset tetap menyala dengan kendali lokal.
     "sabotase_ot": {
         "perangkat": {"rdp": ("waspada", "Login jarak jauh dari 203.0.113.45 ke workstation teknisi"),
-                      "core": ("waspada", "Lalu lintas Modbus tak biasa dari jaringan kantor"),
+                      "core": ("waspada", "Lalu lintas Modbus tidak biasa dari jaringan kantor"),
                       "genset": ("kritis", "Perintah tulis Modbus asing")},
         "ancaman": [{"ip": "203.0.113.45", "port": 502, "nama": "Pengirim perintah Modbus", "ioc": "IOC-001",
                      "asal": "timur_tengah"}],
@@ -1314,7 +1314,7 @@ class Menara:
                                          f"(log impor {nama})" + (f" [ATT&CK {attck}]" if attck else ""), jenis="deteksi")
         prediksi = self._prediksi(layanan)
         naik = sorted({a for tm in baru for a in tm.aset if prediksi.get(a, {}).get("proaktif")})
-        self.catat("info", f"Impor log «{nama}»: {ringkasan['dikenali']} dari {ringkasan['baris']} baris dikenali "
+        self.catat("info", f"Impor log “{nama}”: {ringkasan['dikenali']} dari {ringkasan['baris']} baris dikenali "
                            f"({ringkasan['format']}) → {len(baru)} temuan", jenis="deteksi")
         self.ubah()
         return {**ringkasan, "berkas": nama,
@@ -1372,7 +1372,7 @@ class Menara:
             elif tm.id in ditutup:
                 status, kelas = "Ditutup lewat triase", "selesai"
             elif tm.aset and all(a in dalam_insiden for a in tm.aset):
-                status, kelas = "Aset ditangani lewat playbook insiden", "ditahan"
+                status, kelas = "Aset ditangani melalui playbook insiden", "ditahan"
             elif terangkat:
                 status, kelas = "Aset dinaikkan ke WASPADA", "terbuka"
             else:

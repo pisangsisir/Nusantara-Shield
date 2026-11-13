@@ -1013,7 +1013,8 @@ def ekspor_lapsit(akun: Akun = Depends(butuh_izin("lihat"))) -> Response:
     titik = TITIK.buat("EKSPOR_LAPSIT")
     with _kunci_state:
         drill = list(DRILL.riwayat)[:3]
-    pdf = buat_pdf(data, LOG.verifikasi(), akun.nama, peringatan, rincian, titik=TITIK.ringkasan(titik), drill=drill)
+    pdf = buat_pdf(data, LOG.verifikasi(), akun.nama, peringatan, rincian, titik=TITIK.ringkasan(titik), drill=drill,
+                   peran=akun.peran)
     nama_berkas = f"LAPSIT-NusantaraShield-{datetime.now(timezone.utc):%Y%m%d-%H%M}.pdf"
     return Response(pdf, media_type="application/pdf",
                     headers={"Content-Disposition": f'attachment; filename="{nama_berkas}"'})
