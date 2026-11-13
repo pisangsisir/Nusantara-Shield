@@ -473,6 +473,12 @@ table.kamus.peta code { font-size: 13px; color: var(--teks); }
 .batas { color: var(--kuning); }
 .dokumen-lengkap { margin: 14px 0 0; font-size: 15px; color: var(--teks-redup); }
 .dokumen-lengkap a { color: var(--neon); text-decoration: none; font-family: var(--huruf-mono); }
+.prinsip { margin-top: 30px; display: grid; grid-template-columns: repeat(3, 1fr); gap: 22px; }
+.prinsip .kartu-dasar { padding: 24px 26px 22px; display: flex; flex-direction: column; gap: 12px; }
+.prinsip b { font-family: var(--huruf-mono); font-size: 15px; letter-spacing: .16em; text-transform: uppercase; color: var(--neon); }
+.prinsip strong { font-size: 25px; line-height: 1.25; color: var(--teks); }
+.prinsip span { font-size: 17px; line-height: 1.5; color: var(--teks-redup); flex: 1; }
+.prinsip code { font-family: var(--huruf-mono); font-size: 14px; color: var(--biru-terang); border-top: 1px solid var(--garis-lembut); padding-top: 10px; }
 table.kamus { width: 100%; border-collapse: collapse; font-size: 14.5px; }
 table.kamus td { padding: 5px 10px; border-bottom: 1px solid var(--garis-lembut); color: var(--teks-redup); vertical-align: top; }
 table.kamus td:first-child { color: var(--neon); white-space: nowrap; width: 1%; font-family: var(--huruf-mono); }
@@ -646,7 +652,7 @@ table.kamus td:first-child { color: var(--neon); white-space: nowrap; width: 1%;
       <li><b>Dua panel di kanan adalah ilustrasi</b> yang diolah dari pemberitaan (detikINET, CNBC Indonesia, Bisnis.com), bukan tangkapan layar berita. Angka "1,5 TB" adalah klaim pelaku yang belum terverifikasi.</li>
     </ul>
   </aside>
-  <div class="kaki"><span>NUSANTARA SHIELD v5.4.2 · PROPOSAL DAN DOKUMENTASI TEKNIS</span><span>01 / 08</span></div>
+  <div class="kaki"><span>NUSANTARA SHIELD v5.4.2 · PROPOSAL DAN DOKUMENTASI TEKNIS</span><span>01 / 09</span></div>
 </section>
 
 <!-- =============================== SLIDE 2 =============================== -->
@@ -730,7 +736,7 @@ table.kamus td:first-child { color: var(--neon); white-space: nowrap; width: 1%;
       <li>Kategori: <b>02 Penangkalan</b>, sesuai contoh panitia: <i class="asing">Threat Intelligence Platform</i> dan <i class="asing">Automated Incident Response</i>.</li>
     </ul>
   </aside>
-  <div class="kaki"><span>NUSANTARA SHIELD v5.4.2 · PROPOSAL DAN DOKUMENTASI TEKNIS</span><span>02 / 08</span></div>
+  <div class="kaki"><span>NUSANTARA SHIELD v5.4.2 · PROPOSAL DAN DOKUMENTASI TEKNIS</span><span>02 / 09</span></div>
 </section>
 
 <!-- =============================== SLIDE 2 =============================== -->
@@ -816,7 +822,7 @@ table.kamus td:first-child { color: var(--neon); white-space: nowrap; width: 1%;
       <li>Semua label (jabatan penerima laporan, nama satuan) berasal dari satu kamus istilah <code>app/istilah.py</code>, sehingga bisa disesuaikan tanpa mengubah logika.</li>
     </ul>
   </aside>
-  <div class="kaki"><span>NUSANTARA SHIELD v5.4.2 · PROPOSAL DAN DOKUMENTASI TEKNIS</span><span>03 / 08</span></div>
+  <div class="kaki"><span>NUSANTARA SHIELD v5.4.2 · PROPOSAL DAN DOKUMENTASI TEKNIS</span><span>03 / 09</span></div>
 </section>
 
 <!-- =============================== SLIDE 3 =============================== -->
@@ -879,7 +885,7 @@ table.kamus td:first-child { color: var(--neon); white-space: nowrap; width: 1%;
       <li>Kebutuhan minimum: Python 3.10+, 2 inti, 512 MB memori bebas, 1 GB penyimpanan (terukur ≈400 MB setelah terpasang: pustaka Python ≈380 MB, kode dan dokumen ≈12 MB; paket pasang Ubuntu 95 MB). Memori terukur ≈207 MB untuk 300 layar, termasuk pustaka scikit-learn dan numpy (≈130 MB).</li>
     </ul>
   </aside>
-  <div class="kaki"><span>NUSANTARA SHIELD v5.4.2 · PROPOSAL DAN DOKUMENTASI TEKNIS</span><span>04 / 08</span></div>
+  <div class="kaki"><span>NUSANTARA SHIELD v5.4.2 · PROPOSAL DAN DOKUMENTASI TEKNIS</span><span>04 / 09</span></div>
 </section>
 
 <!-- =============================== SLIDE 4 =============================== -->
@@ -959,7 +965,7 @@ table.kamus td:first-child { color: var(--neon); white-space: nowrap; width: 1%;
       <li>Variabel penting: <code>NS_OPERATOR_PASSWORD</code>/<code>NS_VIEWER_PASSWORD</code> (sandi bawaan, min. 12), <code>NS_AUDIT_KEY</code> (kunci HMAC, mengaktifkan penyimpanan permanen), <code>NS_KODE_OPERATOR</code> (kode undangan operator).</li>
     </ul>
   </aside>
-  <div class="kaki"><span>NUSANTARA SHIELD v5.4.2 · PROPOSAL DAN DOKUMENTASI TEKNIS</span><span>05 / 08</span></div>
+  <div class="kaki"><span>NUSANTARA SHIELD v5.4.2 · PROPOSAL DAN DOKUMENTASI TEKNIS</span><span>05 / 09</span></div>
 </section>
 
 <!-- =============================== SLIDE 5 =============================== -->
@@ -1032,7 +1038,7 @@ table.kamus td:first-child { color: var(--neon); white-space: nowrap; width: 1%;
       <li>Saat demo: isi <code>NS_AUDIT_KEY</code> agar nomor LAPSIT dan buku HMAC berlanjut setelah <i class="asing">server</i> dinyalakan ulang.</li>
     </ul>
   </aside>
-  <div class="kaki"><span>NUSANTARA SHIELD v5.4.2 · PROPOSAL DAN DOKUMENTASI TEKNIS</span><span>06 / 08</span></div>
+  <div class="kaki"><span>NUSANTARA SHIELD v5.4.2 · PROPOSAL DAN DOKUMENTASI TEKNIS</span><span>06 / 09</span></div>
 </section>
 
 <!-- =============================== SLIDE 7 · LAMPIRAN =============================== -->
@@ -1045,7 +1051,7 @@ table.kamus td:first-child { color: var(--neon); white-space: nowrap; width: 1%;
   <div class="dua-kolom kamus-kolom"><table class="kamus"><tbody><tr><td><b>AAR</b></td><td>After-Action Review</td></tr><tr><td><b>API</b></td><td>Application Programming Interface</td></tr><tr><td><b>ASGI</b></td><td>Asynchronous Server Gateway Interface</td></tr><tr><td><b>ATT&amp;CK</b></td><td>Adversarial Tactics, Techniques, and Common Knowledge (MITRE)</td></tr><tr><td><b>BSSN</b></td><td>Badan Siber dan Sandi Negara</td></tr><tr><td><b>CDN</b></td><td>Content Delivery Network</td></tr><tr><td><b>CDOC</b></td><td>Cyber Defense Operation Center</td></tr><tr><td><b>CPU</b></td><td>Central Processing Unit</td></tr><tr><td><b>CSF</b></td><td>Cybersecurity Framework (NIST)</td></tr><tr><td><b>CSIRT</b></td><td>Computer Security Incident Response Team</td></tr><tr><td><b>CTI</b></td><td>Cyber Threat Intelligence</td></tr><tr><td><b>Dansat</b></td><td>Komandan Satuan</td></tr><tr><td><b>DDoS</b></td><td>Distributed Denial of Service</td></tr><tr><td><b>DMZ</b></td><td>Demilitarized Zone</td></tr><tr><td><b>HMAC</b></td><td>Hash-based Message Authentication Code</td></tr><tr><td><b>IP</b></td><td>Internet Protocol</td></tr><tr><td><b>IT</b></td><td>Information Technology</td></tr><tr><td><b>Kesdam</b></td><td>Kesehatan Daerah Militer</td></tr><tr><td><b>Kodam</b></td><td>Komando Daerah Militer</td></tr><tr><td><b>LAPSIT</b></td><td>Laporan Situasi</td></tr></tbody></table><table class="kamus"><tbody><tr><td><b>LLM</b></td><td>Large Language Model</td></tr><tr><td><b>Mabes</b></td><td>Markas Besar</td></tr><tr><td><b>MISP</b></td><td>Malware Information Sharing Platform</td></tr><tr><td><b>NIST</b></td><td>National Institute of Standards and Technology</td></tr><tr><td><b>OODA</b></td><td>Observe–Orient–Decide–Act</td></tr><tr><td><b>OSINT</b></td><td>Open Source Intelligence</td></tr><tr><td><b>OT</b></td><td>Operational Technology</td></tr><tr><td><b>PDNS</b></td><td>Pusat Data Nasional Sementara</td></tr><tr><td><b>Pussiberad</b></td><td>Pusat Siber Angkatan Darat</td></tr><tr><td><b>RDP</b></td><td>Remote Desktop Protocol</td></tr><tr><td><b>RFC</b></td><td>Request for Comments</td></tr><tr><td><b>RSPAD</b></td><td>Rumah Sakit Pusat Angkatan Darat</td></tr><tr><td><b>Sansidam</b></td><td>Sandi dan Siber Kodam</td></tr><tr><td><b>SHA-256</b></td><td>Secure Hash Algorithm 256-bit</td></tr><tr><td><b>SIMRS</b></td><td>Sistem Informasi Manajemen Rumah Sakit</td></tr><tr><td><b>SOAR</b></td><td>Security Orchestration, Automation and Response</td></tr><tr><td><b>SOC</b></td><td>Security Operations Center</td></tr><tr><td><b>SPK</b></td><td>Sistem Pendukung Keputusan</td></tr><tr><td><b>SSE</b></td><td>Server-Sent Events</td></tr></tbody></table></div>
   <p class="dokumen-lengkap">Dokumen lengkap (Proposal, Dokumentasi Teknis, Panduan Belajar) dan kode: <a href="https://github.com/pisangsisir/Nusantara-Shield">github.com/pisangsisir/Nusantara-Shield</a> → folder <code>docs/</code></p>
   <aside class="catatan"><h4>Catatan pembicara · Lampiran</h4><p>Tampilkan slide ini bila juri bertanya arti sebuah singkatan. Arti sederhana tiap istilah ada di lampiran Proposal dan Dokumentasi Teknis.</p></aside>
-  <div class="kaki"><span>NUSANTARA SHIELD v5.4.2 · PROPOSAL DAN DOKUMENTASI TEKNIS</span><span>07 / 08</span></div>
+  <div class="kaki"><span>NUSANTARA SHIELD v5.4.2 · PROPOSAL DAN DOKUMENTASI TEKNIS</span><span>07 / 09</span></div>
 </section>
 
 <!-- =============================== SLIDE 8 · LAMPIRAN B =============================== -->
@@ -1074,7 +1080,37 @@ table.kamus td:first-child { color: var(--neon); white-space: nowrap; width: 1%;
   </div>
   <p class="dokumen-lengkap">Rincian lengkap: Proposal §7 di <a href="https://github.com/pisangsisir/Nusantara-Shield">github.com/pisangsisir/Nusantara-Shield</a></p>
   <aside class="catatan"><h4>Catatan pembicara · Lampiran B</h4><p>Tampilkan bila juri menanyakan asal sebuah angka atau kecocokan dengan kriteria. Kalimat kunci: "Angka di dasbor kami bukan animasi. Setiap angka punya alamat: berkas, uji, atau alat ukur yang bisa dijalankan ulang Dewan Juri."</p></aside>
-  <div class="kaki"><span>NUSANTARA SHIELD v5.4.2 · PROPOSAL DAN DOKUMENTASI TEKNIS</span><span>08 / 08</span></div>
+  <div class="kaki"><span>NUSANTARA SHIELD v5.4.2 · PROPOSAL DAN DOKUMENTASI TEKNIS</span><span>08 / 09</span></div>
+</section>
+
+<!-- =============================== SLIDE 9 · LAMPIRAN C =============================== -->
+<section class="slide" data-judul="Lampiran: Prinsip yang Bisa Diuji">
+  <div class="kepala">
+    <div class="penanda"><b>09</b>Lampiran C · Prinsip yang Bisa Diuji</div>
+    <div class="merek"><svg class="logo" aria-hidden="true"><use href="#logo"/></svg>NUSANTARA SHIELD</div>
+  </div>
+  <h2>Prinsip, bukan slogan. <em>Dilanggar, server menolak.</em></h2>
+  <div class="prinsip">
+    <div class="kartu-dasar" style="--i:0"><b>01 · Bukti dulu</b><strong>Tanpa bukti, tidak ada pemutusan.</strong><span>Isolasi, pemulihan, dan penutupan insiden ditolak sebelum bukti diamankan dan disegel SHA-256.</span><code>test_rantai_bukti</code></div>
+    <div class="kartu-dasar" style="--i:1"><b>02 · Manusia memutus</b><strong>AI hanya menaikkan WASPADA.</strong><span>Isolasi wajib ditahan dan dijaga <i class="asing">server</i> (428). Akun Pengamat ditolak (403). AI dan CTI tidak pernah memutus.</span><code>test_tahan · test_ai · test_keamanan</code></div>
+    <div class="kartu-dasar" style="--i:2"><b>03 · Luring penuh</b><strong>Tetap berpikir saat internet putus.</strong><span>AI dilatih dan menilai tanpa satu pun koneksi. Pemasangan dilarang menghubungi internet.</span><code>test_ai · test_paket_luring</code></div>
+    <div class="kartu-dasar" style="--i:3"><b>04 · Tanpa tuduhan</b><strong>Tidak ada IP sungguhan yang dicap penyerang.</strong><span>Data latihan hanya memakai blok dokumentasi RFC 5737. Temuan dari log asli membawa SHA&#8209;256 berkasnya.</span><code>test_insiden_temuan</code></div>
+    <div class="kartu-dasar" style="--i:4"><b>05 · Laporan dari jejak</b><strong>LAPSIT bukan teks tetap.</strong><span>Disusun dari log audit dan Buku Rantai Bukti; nomornya berurutan dan bertahan setelah <i class="asing">restart</i>.</span><code>test_komando · test_ot_mitre_lapsit</code></div>
+    <div class="kartu-dasar" style="--i:5"><b>06 · Riwayat terkunci</b><strong>Tidak bisa digulung diam-diam.</strong><span>Log berantai HMAC: diubah, dihapus, disisipkan, atau digulung mundur, tertangkap. Salinannya disimpan satuan atasan lewat Saksi Berjenjang.</span><code>test_verifikasi_audit · test_saksi</code></div>
+  </div>
+  <p class="dokumen-lengkap" style="margin-top:22px">Jalankan sendiri: <code>./run_tests.sh</code> di <a href="https://github.com/pisangsisir/Nusantara-Shield">github.com/pisangsisir/Nusantara-Shield</a></p>
+  <aside class="catatan">
+    <h4>Catatan pembicara · Lampiran C · Prinsip yang bisa diuji</h4>
+    <p>Tampilkan bila juri membandingkan dengan sistem lain atau bertanya "apa bedanya". Kalimat kunci: "Setiap prinsip kami punya uji yang gagal bila prinsip itu dilanggar. Dewan Juri tidak perlu percaya kata-kata kami; cukup jalankan ujinya." Jangan menyebut tim lain.</p>
+    <ul>
+      <li><b>"Kenapa tidak memakai LLM awan yang lebih pintar?"</b> Kedaulatan data dan ketahanan: posko harus tetap berpikir saat jalur internasional putus, dan data operasi satuan tidak boleh keluar ke <i class="asing">server</i> asing. Asisten Narasi dengan LLM lokal ada di peta jalan; keluarannya akan diperiksa formatnya sebelum tampil dan tidak bisa memicu tindakan apa pun.</li>
+      <li><b>"Kalau AI salah tebak, apa akibatnya?"</b> Paling jauh status WASPADA dengan alasan tertulis. AI kami tidak memutus, tidak menulis skrip pemblokiran, dan tidak menulis pernyataan resmi.</li>
+      <li><b>"IP penyerang di demo itu milik siapa?"</b> Bukan milik siapa pun: blok dokumentasi RFC 5737 yang memang disediakan untuk contoh. Kami tidak menempelkan label C2 pada IP sungguhan. Di lapangan, atribusi butuh log mentah dan sidik jari berkas, dan itu yang dicatat temuan impor log.</li>
+      <li><b>"Kenapa tidak ada peta seluruh Kodam atau patroli media sosial?"</b> Kami memilih kedalaman di Kategori 02 Penangkalan: satu posko yang benar dari deteksi sampai bukti, keputusan, dan laporan. Peta Kesiapan lintas satuan ada di peta jalan dan akan dibangun luring. Patroli opini publik termasuk siber sosial, di luar lingkup kami.</li>
+      <li><b>"Bagaimana Dewan Juri tahu angkanya bukan animasi?"</b> Lihat Lampiran B: setiap angka menunjuk berkas, uji, atau alat ukur yang bisa dijalankan ulang.</li>
+    </ul>
+  </aside>
+  <div class="kaki"><span>NUSANTARA SHIELD v5.4.2 · PROPOSAL DAN DOKUMENTASI TEKNIS</span><span>09 / 09</span></div>
 </section>
 
 </main>

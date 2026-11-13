@@ -11,7 +11,7 @@ lampiran, lalu memperbarui daftar isi map. Tidak ada lampiran yang ditulis tanga
 
 Yang dibuat:
   - Proposal dan Dokumentasi Teknis: Markdown → PDF A4, memakai huruf situs (tanpa internet).
-  - Dek presentasi: 9 slide → PDF dan PPTX (tiap slide satu gambar; sumbernya presentation/index.html).
+  - Dek presentasi: 10 slide → PDF dan PPTX (tiap slide satu gambar; sumbernya presentation/index.html).
   - Disalin apa adanya: Panduan Belajar PDF, poster PDF, dua contoh LAPSIT, dan contoh log (zip).
 
 Kebutuhan (hanya di komputer pembuat rilis, bukan di server satuan): python-markdown, Playwright + Chromium,
@@ -33,7 +33,7 @@ AKAR = Path(__file__).resolve().parent.parent
 SITUS = AKAR / "situs"
 UNDUH = SITUS / "unduh"
 MULAI, AKHIR = "<!-- UNDUH:MULAI -->", "<!-- UNDUH:AKHIR -->"
-JUMLAH_SLIDE = 9
+JUMLAH_SLIDE = 10
 
 GAYA_DOKUMEN = """
 @font-face { font-family: Bricolage; src: url("%(huruf)s/bricolage-grotesque.woff2"); font-weight: 200 800; }

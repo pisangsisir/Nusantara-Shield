@@ -2,6 +2,12 @@
 
 Seluruh kode dikembangkan sejak **15 Oktober 2026**, setelah publikasi program Kartika Cyber Hackathon 2026 (12 Oktober 2026), sesuai Deklarasi di Proposal §6.1 (Rulebook bagian G). Repositori Git ini dimulai pada **20 Oktober 2026**; riwayat sebelumnya disusun dari folder versi dan folder cadangan per fase yang tersimpan di laptop pengembang (beserta catatan `BACA-SAYA.txt`), bukan dari commit.
 
+## Dokumen — 13 November 2026 (tanpa perubahan kode; versi tetap v5.4.2)
+
+- **Dek: slide Lampiran C · Prinsip yang Bisa Diuji** (dek kini 10 slide). Enam prinsip, masing-masing dengan uji yang gagal bila prinsip itu dilanggar: bukti dulu, manusia memutus, luring penuh, tanpa tuduhan (hanya alamat RFC 5737), laporan dari jejak, dan riwayat terkunci. Catatan pembicaranya memuat lima jawaban tanya jawab baru (LLM awan, AI salah tebak, asal IP penyerang, peta lintas Kodam dan patroli media sosial, asal angka).
+- **Contoh LAPSIT dibuat ulang** dari v5.4.2 (sebelumnya v5.3.0); isinya tidak disunting.
+- Unduhan situs (dek PDF dan PPTX, contoh LAPSIT) dan sidik jarinya diperbarui. Proposal dan Dokumentasi Teknis tidak berubah.
+
 ## v5.4.2 — 12 November 2026
 
 Dua batas yang paling mungkin ditanyakan Dewan Juri ditutup. Rilis v5.4.1 tidak diubah.
