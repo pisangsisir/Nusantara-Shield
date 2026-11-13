@@ -186,7 +186,7 @@ def test_impor_auth_log_menaikkan_waspada_tanpa_memutus(k):
     ssh = {x["id"]: x for x in p["cti"]["prediksi"]}["ssh"]
     assert ssh["proaktif"]
     det = [x for x in p["peringatan"] if x["jenis"] == "deteksi"]
-    assert det and all(x["sumber_data"] == "Sumber: log impor «auth.log» dari Operator · aturan deteksi berjalan nyata"
+    assert det and all(x["sumber_data"] == "Sumber: log impor “auth.log” dari Operator · aturan deteksi berjalan nyata"
                        for x in det)
     assert not any(l["insiden"] for l in main.LAYANAN.values())
     assert main.MENARA._antre_soar == [] and main.MENARA._bukti == {}

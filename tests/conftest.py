@@ -34,6 +34,7 @@ KELOMPOK = {
     "test_saksi.py": "Saksi Berjenjang Luring: posko → satuan atasan → jenjang di atasnya; mundur atau bercabang ditolak",
     "test_tahan.py": "Tahan dijaga server: token sekali pakai, batas 0,6 / 1,5 detik, semua jalur pemutus",
     "test_insiden_temuan.py": "Insiden dari temuan log asli: keputusan Operator, aset dan kronologi dari temuan, doktrin sama",
+    "test_tindak_lanjut.py": "Tindak lanjut LAPSIT: aturan tetap, berdasar data, saran bukan perintah, bukti dulu",
     "test_drill.py": "Drill kesiapan: log cerita sintetis lewat aturan yang sama, nilai dari jejak tercatat",
 }
 _berkas_terakhir = {"nama": None}
@@ -67,7 +68,7 @@ DOKTRIN = [
                                                        "test_triase_kesiapan.py", "test_impor_log.py", "test_ot_mitre_lapsit.py"]),
     ("Manusia memutuskan: peran, tombol ditahan, mesin tidak mengeksekusi", ["test_keamanan.py", "test_akun.py", "test_komando.py",
                                                                               "test_drill.py", "test_tahan.py",
-                                                                              "test_insiden_temuan.py"]),
+                                                                              "test_insiden_temuan.py", "test_tindak_lanjut.py"]),
     ("Bukti dulu, baru putus: tanpa bukti ditolak sistem", ["test_rantai_bukti.py"]),
     ("Jejak tidak bisa ditulis ulang: HMAC + titik periksa Ed25519", ["test_verifikasi_audit.py", "test_titik_periksa.py",
                                                                    "test_saksi.py"]),

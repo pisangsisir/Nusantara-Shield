@@ -56,7 +56,7 @@ DAMPAK_OPERASIONAL: dict[str, dict[str, str]] = {
     "imigrasi": {"misi": "pendaftaran daring dan jadwal kontrol pasien",
                  "kontinjensi": "pendaftaran dilayani di loket"},
     "perizinan": {"misi": "pemesanan dan pengadaan alat kesehatan",
-                  "kontinjensi": "pemesanan lewat surat dan telepon resmi"},
+                  "kontinjensi": "pemesanan melalui surat dan telepon resmi"},
     "pajak": {"misi": "pencairan anggaran dan pembayaran satuan",
               "kontinjensi": "pencatatan manual; pembayaran mendesak dengan persetujuan berjenjang"},
     "kesehatan": {"misi": "pendaftaran pasien, rekam medis elektronik, serta layanan laboratorium dan farmasi",
@@ -165,20 +165,20 @@ SKENARIO = {
 # juri bisa langsung mengeceknya di tab "Cek indikator".
 LOG_PERINGATAN = {
     "ransomware": [
-        (-2880, "sedang", "Login admin dari alamat tak biasa 203.0.113.45 (cocok IOC-001)"),
+        (-2880, "sedang", "Login admin dari alamat tidak biasa 203.0.113.45 (cocok IOC-001)"),
         (-1440, "sedang", "Akun layanan baru dibuat di luar jam kerja"),
         (-3, "tinggi", "Direktori cadangan dinonaktifkan"),
         (0, "kritis", "Enkripsi massal berkas terdeteksi"),
         (0, "kritis", "Catatan tebusan ditemukan di server"),
     ],
     "backup_dimatikan": [
-        (-60, "sedang", "Login admin dari alamat tak biasa 203.0.113.45 (cocok IOC-001)"),
+        (-60, "sedang", "Login admin dari alamat tidak biasa 203.0.113.45 (cocok IOC-001)"),
         (0, "tinggi", "Jadwal pencadangan dihentikan oleh akun layanan"),
         (0, "tinggi", "Direktori cadangan dilepas dari server"),
     ],
     "sabotase_ot": [
         (-120, "sedang", "Login jarak jauh ke workstation teknisi fasilitas dari 203.0.113.45 (cocok IOC-001)"),
-        (-15, "tinggi", "Kueri Modbus/TCP tak biasa dari jaringan kantor ke pengendali genset 192.0.2.120:502"),
+        (-15, "tinggi", "Kueri Modbus/TCP tidak biasa dari jaringan kantor ke pengendali genset 192.0.2.120:502"),
         (0, "kritis", "Perintah tulis Modbus asing: upaya mengubah jadwal start genset"),
     ],
     "ddos": [

@@ -49,12 +49,12 @@ RATA_NORMAL = np.array([1.0, 1.0, 4.0, 0.6, 6.0, 0.05])
 
 # --- pola latihan & pola insiden (nilai mutlak keenam ciri) ------------------------------
 POLA: dict[str, dict] = {
-    "modbus_tulis_asing": {"nama": "perintah Modbus tak wajar", "nilai": [2.5, 1.3, 4.0, 0.6, 60.0, 0.40]},
+    "modbus_tulis_asing": {"nama": "perintah Modbus tidak wajar", "nilai": [2.5, 1.3, 4.0, 0.6, 60.0, 0.40]},
     "eksfiltrasi":        {"nama": "pengiriman data besar ke luar", "nilai": [2.0, 9.0, 5.0, 0.6, 6.0, 0.75]},
     "enkripsi_massal":    {"nama": "penulisan berkas massal", "nilai": [1.5, 4.0, 9.0, 0.6, 80.0, 0.10]},
     "banjir":             {"nama": "banjir koneksi", "nilai": [25.0, 6.0, 4.0, 0.6, 6.0, 0.30]},
-    "akses_admin_aneh":   {"nama": "akses admin tak wajar", "nilai": [1.4, 1.2, 6.0, 15.0, 20.0, 0.10]},
-    "akses_jarak_jauh":   {"nama": "akses jarak jauh tak wajar", "nilai": [3.0, 1.5, 5.0, 10.0, 6.0, 0.25]},
+    "akses_admin_aneh":   {"nama": "akses admin tidak wajar", "nilai": [1.4, 1.2, 6.0, 15.0, 20.0, 0.10]},
+    "akses_jarak_jauh":   {"nama": "akses jarak jauh tidak wajar", "nilai": [3.0, 1.5, 5.0, 10.0, 6.0, 0.25]},
 }
 #  Skenario latihan insiden → pola lalu lintas aset yang terdampak
 POLA_SKENARIO: dict[str, str] = {

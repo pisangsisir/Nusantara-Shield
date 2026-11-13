@@ -112,7 +112,7 @@ def _soal_cadangan(j: dict[int, str]) -> list[dict]:
          "opsi": {"a": f"{j[0]} (login gagal pertama)", "b": f"{j[140]} (direktori cadangan dilepas)",
                   "c": f"{j[44]} (login diterima)", "d": f"{j[95]} (jadwal cadangan dihentikan)"},
          "kunci": "c",
-         "penjelasan": "Baris «Accepted password» adalah login yang berhasil. Sepuluh baris «Failed password» "
+         "penjelasan": "Baris “Accepted password” adalah login yang berhasil. Sepuluh baris “Failed password” "
                        f"sebelumnya adalah tebakan sandi yang gagal; {ISTILAH['mesin_aturan']} menandainya sebagai login "
                        "gagal berulang, lalu login tembus. Jam inilah awal kendali penyerang."},
         {"fase": "Analisis", "teks": "Akun mana yang dipakai penyerang untuk masuk dan mematikan cadangan?",
@@ -241,7 +241,7 @@ def awal_cerita(kode: str, sekarang: float) -> float:
 def log_cerita(kode: str, awal: float) -> str:
     """Teks log sintetis satu cerita; detik ke-0 = epoch `awal`, ditulis dalam zona waktu satuan (NS_ZONA_WAKTU)."""
     k, nama_zona = KATALOG[kode], zona()[0]
-    tanda = (f"SIMULASI drill kesiapan «{k['judul']}». Data sintetis, alamat RFC 5737, zona waktu {nama_zona}.")
+    tanda = (f"SIMULASI drill kesiapan “{k['judul']}”. Data sintetis, alamat RFC 5737, zona waktu {nama_zona}.")
     if k["format"] == "auth.log":
         baris = [f"# {tanda}"] + [f"{_iso_lokal(awal + dt)} {HOST} {isi}" for dt, isi in k["cerita"]]
     else:   # JSON per baris ala eve.json; stempel waktu bergaya Suricata (+0700). Penanda simulasi = event "stats".

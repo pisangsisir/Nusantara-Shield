@@ -1,4 +1,4 @@
-# Proposal Solusi — Nusantara Shield v5.4.2
+# Proposal Solusi — Nusantara Shield v5.4.3
 
 **Posko Pertahanan Siber Luring: Peringatan Dini, Isolasi Cepat, dan Rantai Bukti Forensik**
 
@@ -7,7 +7,7 @@
 | **Kompetisi** | Kartika Cyber Hackathon 2026 · Pusat Siber Angkatan Darat (Pussiberad) × CODEPOLITAN |
 | **Kategori** | 02 · **Penangkalan (_Defensive Shield_)** — *Threat Intelligence Platform* dan *Automated Incident Response* |
 | **Tim** | Muhammad Isa Ananta · Hasan Basri · Melia Fajar Hasanah |
-| **Status purwarupa** | **Berfungsi penuh** · 485 uji otomatis lulus · AI deteksi anomali dan aturan deteksi berjalan lokal · luring tanpa internet |
+| **Status purwarupa** | **Berfungsi penuh** · 492 uji otomatis lulus · AI deteksi anomali dan aturan deteksi berjalan lokal · luring tanpa internet |
 | **Tanggal** | 27 Oktober 2026 |
 
 ---
@@ -48,7 +48,7 @@ Setiap langkah tercatat permanen dalam buku berantai Hash-based Message Authenti
 | Beban Central Processing Unit (CPU) _server_ untuk **300 layar** pemantau serentak, versi akhir | **≈1,5%** siaga · **≈1,7%** saat serangan |
 | Lalu lintas jaringan ke 300 layar saat serangan intensif, berkat siaran ralat (uji beban 17 Okt 2026) | **−80%** (8,4 → 1,7 MB/s) |
 | Waktu AI lokal menilai lalu lintas 9 aset (_Isolation Forest_, tanpa internet) | **≈10 milidetik** |
-| Perilaku sistem yang dikunci uji otomatis | **485 uji** |
+| Perilaku sistem yang dikunci uji otomatis | **492 uji** |
 
 <p class="sumber-kecil">Angka CPU diukur ulang 26 Okt 2026 dengan tools/ukur_beban.py (Linux 2 inti, 300 siaran SSE sungguhan). Angka 2,8% pada versi dokumen sebelumnya diukur dengan alat dan mesin lain, sehingga tidak dibandingkan langsung. Asal setiap angka dan pemetaan ke lima kriteria penilaian ada di §7.</p>
 
@@ -391,7 +391,7 @@ Seluruh keunggulan berikut **sudah berjalan** di purwarupa dan dapat didemonstra
 
 ### 5.1 Kedaulatan Sistem dan Mode Hybrid/Luring
 
-> **"Berjalan luring penuh" merujuk pada Aplikasi Inti (Nusantara Shield Core v5.4.2)**, yaitu purwarupa yang diserahkan dan didemonstrasikan dalam lomba ini.
+> **"Berjalan luring penuh" merujuk pada Aplikasi Inti (Nusantara Shield Core v5.4.3)**, yaitu purwarupa yang diserahkan dan didemonstrasikan dalam lomba ini.
 
 - **Tidak membutuhkan awan atau _server_ luar untuk beroperasi.** Seluruh pemrosesan berjalan di _server_ atau laptop milik satuan (*on-premise*): layanan web, penyimpanan akun dan data (berkas lokal), sidik jari SHA-256 barang bukti, log audit HMAC, tombol isolasi, LAPSIT, dan AI deteksi anomali. Kode _server_ tidak memuat satu pun pemanggilan ke alamat luar.
 - **Tanpa ketergantungan eksternal di layar.** Antarmuka tidak memanggil skrip CDN, Google Fonts, atau sumber daring apa pun. Bila internet diputus, dasbor dan _playbook_ respons insiden tetap berjalan penuh. Bahkan bila kabel LAN dicabut, _server_ dan dasbor di laptop yang sama tetap bekerja.
@@ -407,7 +407,7 @@ Seluruh keunggulan berikut **sudah berjalan** di purwarupa dan dapat didemonstra
 ### 5.2 Kesiapan Penerapan
 
 - **Ringan:** satu laptop atau _server_ kecil; satu proses Python. Untuk 300 layar serentak, CPU _server_ ≈1,5% saat siaga dan ≈1,7% saat serangan, dengan memori ≈207 MB termasuk pustaka AI (scikit-learn dan numpy), jauh di bawah 512 MB; diukur ulang 26 Okt 2026 dengan `tools/ukur_beban.py` (Linux 2 inti, 300 siaran SSE sungguhan). AI menambah kerja _server_ hanya ≈0,05 milidetik per detik karena model baru dijalankan saat keadaan lalu lintas berubah.
-- **Teruji:** 485 uji otomatis mengunci setiap aturan, termasuk ambang deteksi yang tertulis di dokumen ini, dan dapat dijalankan ulang oleh siapa pun dalam kurang dari satu menit (≈30 detik di Mac, ≈60 detik di Linux ruang kerja awan).
+- **Teruji:** 492 uji otomatis mengunci setiap aturan, termasuk ambang deteksi yang tertulis di dokumen ini, dan dapat dijalankan ulang oleh siapa pun dalam kurang dari satu menit (≈30 detik di Mac, ≈60 detik di Linux ruang kerja awan).
 - **Cakupan OT saat ini:** purwarupa memantau **pengendali genset rumah sakit** (Modbus/TCP, _port_ 502) di **zona kendali** topologi. Kabar ancaman Modbus menaikkannya ke **WASPADA (≈66%)** sebelum ada serangan. Pada skenario **Sabotase OT**, bukti diamankan, lalu jalur kantor → zona kendali diputus lewat _webhook_ (simulasi) ke sakelar terkelola ≈1,2 detik kemudian; genset tetap menyala dengan kendali lokal. Pemulihan jalur kendali terkunci sampai sidik jari bukti cocok.
 - **Langkah lanjutan** (semuanya sumber terbuka dan dapat berjalan _air-gapped_ atau _on-premise_). Urutan terdekat: konektor lokal baca-saja (API Wazuh, Suricata `eve.json` terus-menerus, _syslog_), lalu Paket Intelijen Bertanda Tangan, lalu perintah sungguhan ke sakelar terkelola (Dokumentasi Teknis §4.5):
     - telemetri nyata dari sensor dan SIEM satuan (Wazuh, Suricata, Zeek) serta sensor protokol industri Modbus/DNP3;
@@ -438,7 +438,7 @@ Nusantara Shield dirancang dipasang **di posko siber atau _Security Operations C
 
 Pembedaan ini sengaja dibuat tegas agar juri dapat menilai apa yang benar-benar didemonstrasikan.
 
-| Sudah berjalan di purwarupa v5.4.2 | Belum dibangun (peta jalan: Mode Hybrid dan eskalasi) |
+| Sudah berjalan di purwarupa v5.4.3 | Belum dibangun (peta jalan: Mode Hybrid dan eskalasi) |
 | --- | --- |
 | Operasi luring penuh di satu satuan/rumah sakit (*on-premise*) | **(1) Pengiriman LAPSIT otomatis berjenjang** ke Sandi dan Siber Kodam (Sansidam) dan Kartika CSIRT (Pussiberad) |
 | Dua peran: Pengamat dan Operator | **(2) Akses dan tampilan lintas satuan** untuk pemantauan serentak di Mabes |
@@ -451,9 +451,10 @@ Pembedaan ini sengaja dibuat tegas agar juri dapat menilai apa yang benar-benar 
 | Mesin Deteksi Aturan: _login_ gagal berulang, _login_ tembus, pemindaian _port_, koneksi IT ke zona kendali OT tanpa izin, dan perintah tulis Modbus di luar jendela pemeliharaan (ambang terbuka; atas peristiwa sintetis) | |
 | **Impor log luring** (auth.log OpenSSH, log firewall UFW/iptables, CSV, serta keluaran sensor **Wazuh `alerts.json`** dan **Suricata `eve.json`**; maks. ≈2 MB) dinilai Mesin Deteksi Aturan yang sama; temuan berlabel sumber berkasnya | |
 | Label teknik MITRE ATT&CK (termasuk ATT&CK for ICS) di peringatan, log, dan LAPSIT; label sumber data di setiap peringatan; pengesahan dua tanda tangan di LAPSIT PDF | |
-| **Saksi Berjenjang Luring**: rantai titik periksa diserahkan ke satuan atasan, dicatat di Buku Saksi bertanda tangan, dan direkap berjenjang; riwayat mundur atau bercabang ditolak (`tools/saksi.py`, v5.4.2) | |
+| **Saksi Berjenjang Luring**: rantai titik periksa diserahkan ke satuan atasan, dicatat di Buku Saksi bertanda tangan, dan direkap berjenjang; riwayat mundur atau bercabang ditolak (`tools/saksi.py`, v5.4.1) | |
 | **Buka Insiden dari temuan log asli**: aset, kronologi, label ATT&CK, dan SHA-256 berkas diambil dari temuan; doktrin bukti → putus sama (v5.4.2) | |
 | **Tahan tombol dijaga _server_**: token sekali pakai, semua jalur pemutus ditolak tanpa tahan 0,6 / 1,5 detik (v5.4.2) | |
+| **Tindak lanjut yang disarankan di LAPSIT**: SEGERA, HARI INI, RUTIN, masing-masing dengan dasar datanya; aturan tetap, bukan AI; saran, bukan perintah (v5.4.3) | |
 | Linimasa 60 menit (data latihan), pita anomali AI per aset, KPI Waktu respons (MTTC) dan Insiden sejak posko aktif | |
 | Nilai Kesiapan Siber A–E (dua sub-skor: Kerawanan dan Insiden) dan triase peringatan: Selesai ditangani atau Positif Palsu (_False Positive_), beralasan dan tercatat di Buku Rantai Bukti | |
 | **Drill Kesiapan** untuk Operator: log sintetis lewat aturan deteksi yang sama, pertanyaan per fase penanganan insiden, nilai 0–100 dari jejak tercatat (dua skenario: cadangan dilepas lewat auth.log; perintah asing ke genset lewat Suricata `eve.json`) | **_Tabletop exercise_ untuk pimpinan** (Dansat, Kepala RS): *inject* bertahap, doktrin sebagai rubrik; skenario drill lain (*phishing*, perubahan halaman situs satuan) |
@@ -539,7 +540,7 @@ Bagian ini memudahkan Dewan Juri memeriksa klaim kami sendiri: setiap kriteria R
 | --- | --- | --- |
 | **Relevansi dan Manfaat** (25%) | Menjaga aset IT dan OT rumah sakit TNI AD dalam satu layar; alat lapis taktis (CDOC satuan) dengan LAPSIT untuk Dansat; usulan alur laporan ke Sansidam dan Kartika CSIRT (§5.3); label satuan diatur dari satu kamus istilah | §2 dan §5.3 dokumen ini; Dokumentasi Teknis §3 (SOP respons insiden) |
 | **Inovasi Teknis** (25%) | "Bukti dulu, baru putus" dikunci _server_ (isolasi tanpa bukti ditolak 409); rantai HMAC-SHA256 untuk log audit dan Buku Rantai Bukti; dua kunci (mesin hanya menaikkan WASPADA, manusia memutus); AI _Isolation Forest_ luring yang menjelaskan alasannya; korelasi kabar ancaman × aset sebelum serangan; aturan OT deterministik (jalur IT ke OT tanpa izin, perintah tulis Modbus di luar jendela pemeliharaan) yang hanya menaikkan WASPADA; label MITRE ATT&CK; isolasi OT dengan memutus **jalur**, bukan mematikan genset; siaran ralat (_delta_) yang menekan beban _server_ | Uji `test_rantai_bukti` (36), `test_ai` (10), `test_ot` (6), `test_deteksi` (24), `test_ot_mitre_lapsit` (23); Dokumentasi Teknis §2.3–2.8 |
-| **Fungsionalitas Purwarupa** (25%) | Aplikasi berjalan penuh dari satu perintah; 4 skenario latihan dan latihan deteksi di dasbor; **impor log asli** (auth.log OpenSSH, log firewall, CSV) dinilai aturan yang sama; **Drill Kesiapan** bernilai untuk Operator; 485 uji otomatis lulus; paket luring dipasang dan diuji tanpa internet di Mac dan di Ubuntu 24.04 (paket bertanda tangan). **Batas yang kami akui:** telemetri langsung dan kabar ancaman masih sintetis (log asli baru masuk lewat impor berkas, belum sensor terus-menerus), dan perintah ke sakelar jaringan masih simulasi | `./run_tests.sh`; halaman rilis v5.1.2 beserta sidik jari paket; video demo |
+| **Fungsionalitas Purwarupa** (25%) | Aplikasi berjalan penuh dari satu perintah; 4 skenario latihan dan latihan deteksi di dasbor; **impor log asli** (auth.log OpenSSH, log firewall, CSV) dinilai aturan yang sama; **Drill Kesiapan** bernilai untuk Operator; 492 uji otomatis lulus; paket luring dipasang dan diuji tanpa internet di Mac dan di Ubuntu 24.04 (paket bertanda tangan). **Batas yang kami akui:** telemetri langsung dan kabar ancaman masih sintetis (log asli baru masuk lewat impor berkas, belum sensor terus-menerus), dan perintah ke sakelar jaringan masih simulasi | `./run_tests.sh`; halaman rilis v5.1.2 beserta sidik jari paket; video demo |
 | **Kelayakan Implementasi** (15%) | Satu proses Python di laptop atau _server_ kecil; ≈1,5% CPU untuk 300 layar; berjalan dan dipasang tanpa internet dengan sidik jari SHA-256, dan untuk Ubuntu 24.04 dengan paket bertanda tangan Ed25519 serta layanan systemd yang dikeraskan; peran Operator dan Pengamat; peta jalan ke sensor sumber terbuka (Wazuh, Suricata, Zeek) dan MISP | §5 dokumen ini; Dokumentasi Teknis §4.4 (pemasangan luring) |
 | **Kualitas Dokumentasi** (10%) | Proposal ini, Dokumentasi Teknis, Panduan Belajar (PDF), dek presentasi, poster A4, README, CHANGELOG per perubahan, dan deklarasi serta atribusi (§6) | Folder `docs/` dan `presentation/` di repositori |
 
@@ -555,7 +556,7 @@ Bagian ini memudahkan Dewan Juri memeriksa klaim kami sendiri: setiap kriteria R
 | **≈1,5% siaga · ≈1,7% serangan**, **≈207 MB**, **0,28–0,40 MB/s** | CPU, memori, dan lalu lintas _server_ untuk 300 layar | `tools/ukur_beban.py`, 26 Okt 2026, Linux 2 inti, 300 siaran SSE sungguhan; Dokumentasi Teknis §2.3 | Bisa diulang siapa pun dengan alat yang sama |
 | **−80% (8,4 → 1,7 MB/s)** | Efek optimasi siaran ralat | Uji beban 15–17 Okt 2026; Dokumentasi Teknis §2.3 | Riwayat optimasi dengan mesin dan alat ukur awal yang tidak disertakan di repositori; tidak dibandingkan langsung dengan angka versi akhir |
 | **≈10 milidetik** | Waktu AI menilai 9 aset | `skor_ms` di `app/ai_anomali.py`; dikunci `test_ai` (di bawah 100 ms) | Ukuran di mesin pengembang; uji sengaja memberi batas longgar |
-| **485 uji** | Perilaku yang dikunci uji otomatis | `./run_tests.sh`; 485 lulus pada 12 Nov 2026 (Linux ≈60 detik) | Rilis v5.2.0 (334 uji saat itu) juga lulus semua setelah paket Ubuntu 24.04 bertanda tangan dipasang sebagai root dengan jaringan diputus |
+| **492 uji** | Perilaku yang dikunci uji otomatis | `./run_tests.sh`; 492 lulus pada 13 Nov 2026 (Linux ≈60 detik) | Rilis v5.2.0 (334 uji saat itu) juga lulus semua setelah paket Ubuntu 24.04 bertanda tangan dipasang sebagai root dengan jaringan diputus |
 | **200.000 putaran**, **5 percobaan/menit**, **16 KB** | PBKDF2-SHA256 untuk kata sandi, batas _login_, batas kiriman | `app/keamanan.py`; dikunci `test_keamanan` (`test_tebak_sandi_dibatasi`, uji batas kiriman) | — |
 
 ## Lampiran: Kamus Istilah

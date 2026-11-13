@@ -2,6 +2,33 @@
 
 Seluruh kode dikembangkan sejak **15 Oktober 2026**, setelah publikasi program Kartika Cyber Hackathon 2026 (12 Oktober 2026), sesuai Deklarasi di Proposal §6.1 (Rulebook bagian G). Repositori Git ini dimulai pada **20 Oktober 2026**; riwayat sebelumnya disusun dari folder versi dan folder cadangan per fase yang tersimpan di laptop pengembang (beserta catatan `BACA-SAYA.txt`), bukan dari commit.
 
+## v5.4.3 — 13 November 2026
+
+LAPSIT kini ditutup dengan rekomendasi, seperti laporan situasi militer. Rilis v5.4.2 tidak diubah.
+
+### Tindak lanjut yang disarankan di LAPSIT
+- **Bagian baru (bagian 6)**: tabel berprioritas **SEGERA**, **HARI INI**, dan **RUTIN**; setiap butir menyebut dasarnya (data yang memicunya) dan pelaksananya. Bagian sesudahnya bergeser: Integritas log audit 7, Pengesahan 8.
+- **Aturan tetap, bukan AI** (`tindak_lanjut()` di `app/lapsit.py`), dihitung dari keadaan yang sama dengan isi laporan:
+  - rantai audit tidak utuh → periksa tanpa server (selalu paling atas);
+  - insiden tanpa bukti → amankan bukti dulu; bukti disegel → selesaikan pemutus; isolasi darurat tanpa bukti → bukti susulan;
+  - aset terisolasi → kontinjensi dan pemulihan, uji pulih cadangan bila lewat 24 jam atau belum diuji, serahkan berita acara bukti ke satuan atasan;
+  - temuan terbuka → triase (dengan usulan _server_ untuk temuan log asli); anomali AI → periksa, pertimbangkan Perketat;
+  - cadangan lewat 24 jam atau belum diuji; belum ada Berkas Saksi → ekspor.
+- **Saran, bukan perintah**: mengekspor LAPSIT tidak menjalankan apa pun; satu-satunya jejak di log audit tetap `EKSPOR_LAPSIT`.
+- Laporan rutin kini dua halaman (sebelumnya satu).
+
+### Penulisan LAPSIT menurut PUEBI
+- Judul bagian berhuruf kapital pada awal kata (kecuali kata tugas), misalnya **Status Layanan dan Dampak Operasional**.
+- Waktu: pukul dipisah titik (08.02.01); di kalimat memakai nama bulan (13 November 2026 pukul 08.02 WIB), di tabel ringkas (13-11-2026 08.02.01 WIB).
+- Istilah asing dicetak miring (_ransomware_, _server_, _login_, _playbook_, _firewall_, nama teknik ATT&CK); nama berkas dan jalur tidak disentuh.
+- Kata baku: **prosedur darurat** (menggantikan _kontinjensi_, yang tidak ada di KBBI), _antartindakan_, _melalui_, _tidak biasa_; tanda petik “…” menggantikan «…»; garis miring tanpa spasi (Kasi Siber/Dansat).
+- Peran berhuruf kapital, nama akun dicetak sebagai pengenal (huruf mesin): "Dibuat oleh: **Operator** (akun `operator`)".
+- Lebar setiap tabel tepat selebar isi halaman (174 mm); kolom waktu muat waktu terpanjang (zona WITA) tanpa terlipat; dikunci uji.
+
+### Pemeriksaan
+- **7 uji baru** (`tests/test_tindak_lanjut.py`); dua uji lama disesuaikan dengan laporan rutin dua halaman. Total **492** (24 kelompok, ≈60 detik): Tangkal 135, Manusia 155, Bukti 37, Jejak 62, Luring 32, Pendukung 71.
+- Contoh LAPSIT, poster, dek, Proposal, Dokumentasi Teknis (§3.8 baru), dan unduhan situs diperbarui.
+
 ## Dokumen — 13 November 2026 (tanpa perubahan kode; versi tetap v5.4.2)
 
 - **Dek: slide Lampiran C · Prinsip yang Bisa Diuji** (dek kini 10 slide). Enam prinsip, masing-masing dengan uji yang gagal bila prinsip itu dilanggar: bukti dulu, manusia memutus, luring penuh, tanpa tuduhan (hanya alamat RFC 5737), laporan dari jejak, dan riwayat terkunci. Catatan pembicaranya memuat lima jawaban tanya jawab baru (LLM awan, AI salah tebak, asal IP penyerang, peta lintas Kodam dan patroli media sosial, asal angka).

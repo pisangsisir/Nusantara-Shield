@@ -82,7 +82,7 @@ def teks_pdf(pdf: bytes) -> str:
         except zlib.error:
             continue
         hasil += [re.sub(r"\\([()\\])", r"\1", s) for s in re.findall(r"\(((?:\\.|[^\\)])*)\) Tj", isi)]
-    return " ".join(hasil)
+    return re.sub(r" {2,}", " ", " ".join(hasil))      # v5.4.3: istilah asing dicetak miring = potongan teks sendiri
 
 
 # ---------------------------------------------------------------- aturan OT (unit, tanpa server)
@@ -228,24 +228,37 @@ def test_lapsit_memuat_attck_sumber_data_dan_dua_tanda_tangan(k):
     r = k.post("/api/lapsit", headers=h)
     assert r.status_code == 200 and r.content.startswith(b"%PDF")
     teks = teks_pdf(r.content)
-    for kata in ("T0886", "T0855", "Unauthorized Command Message", "Peringatan terbaru", "peristiwa latihan sintetis",
+    for kata in ("T0886", "T0855", "Unauthorized Command Message", "Peringatan Terbaru", "peristiwa latihan sintetis",
                  ISTILAH["ttd_judul"], ISTILAH["ttd_pembuat"], ISTILAH["ttd_mengetahui"], *nama_manajemen(),
                  "NUSANTARA SHIELD", ISTILAH["laporan"].upper(), "Laporan insiden (1 aktif)", "LAPSIT/NS/",
                  # LAPSIT formal: ringkasan naratif, dampak, IoC, tindakan bercap waktu dan beraktor, cara verifikasi
-                 "Ringkasan eksekutif", "terjadi insiden", "Dampak operasional", "genset TIDAK dimatikan",
-                 "Indikator kompromi (IoC)", "203.0.113.45:502", "Diblokir di firewall (simulasi)",
-                 "Write Multiple Registers", "Waktu penahanan (MTTC)", "otomatis lewat SOAR", "WIB",
+                 "Ringkasan Eksekutif", "terjadi insiden", "Dampak operasional", "genset TIDAK dimatikan",
+                 "Indikator Kompromi (IoC)", "203.0.113.45:502", "Diblokir di firewall (simulasi)",
+                 "Write Multiple Registers", "Waktu penahanan (MTTC)", "otomatis melalui SOAR", "WIB",
                  "Cara memverifikasi", "HMAC-SHA256", ISTILAH["buku_bukti"], "tools/verifikasi_audit.py --cocokkan"):
         assert kata in teks, kata
     assert re.search(r"T\+\d+ dtk", teks) and "BB-2026-" in teks              # tindakan bercap T+ dan nomor bukti
     assert re.search(r"Halaman 1 dari \d", teks)                   # kop dan kaki di setiap halaman
+    # v5.4.3 · PUEBI: pukul dipisah titik, tanggal di kalimat memakai nama bulan, judul bagian berhuruf kapital,
+    # kata baku (prosedur darurat, antartindakan, melalui), garis miring tanpa spasi
+    assert re.search(r"\d{1,2} [A-Z][a-z]+ \d{4} pukul \d{2}\.\d{2}\.\d{2} WIB", teks)
+    assert re.search(r"\d{2}-\d{2}-\d{4} \d{2}\.\d{2}\.\d{2} WIB", teks)
+    assert not re.search(r"\d{2}:\d{2}(:\d{2})? WIB", teks)
+    for kata in ("Status Layanan dan Dampak Operasional", "Insiden Aktif dan Tindakan", "Integritas Log Audit",
+                 "Prosedur darurat", "antartindakan", "Kasi Siber/Dansat", "Aset/konteks"):
+        assert kata in teks, kata
+    assert "Dibuat oleh: Operator (akun operator" in teks and "disegel oleh akun operator" in teks
+    for salah in ("ontinjensi", "antar-tindakan", " lewat ", " tak biasa", " / "):
+        assert salah not in teks, salah
 
 
 def test_lapsit_tanpa_peringatan_tetap_berpengesahan(k, monkeypatch, tmp_path):
     r = k.post("/api/lapsit", headers=masuk(k, "pengamat", "sandi-pengamat-uji-123"))
     teks = teks_pdf(r.content)
     assert r.status_code == 200 and "Tidak ada peringatan." in teks and ISTILAH["ttd_pembuat"] in teks
-    assert "Laporan rutin" in teks and "Halaman 1 dari 1" in teks      # laporan rutin muat satu halaman
+    # v5.4.3: bagian Tindak lanjut membuat laporan rutin dua halaman; pengesahan tetap utuh dalam satu halaman
+    assert "Laporan rutin" in teks and "Halaman 2 dari 2" in teks and "Halaman 1 dari 3" not in teks
+    assert "Dibuat oleh: Pengamat (akun pengamat" in teks           # peran berhuruf kapital, nama akun apa adanya
     assert "Pemeriksaan rutin" in teks and "Tidak ada insiden aktif." in teks and "Tidak ada indikator kompromi" in teks
     # logo kop digambar sebagai vektor dari static/logo.svg; bila berkasnya hilang, LAPSIT tetap terbit tanpa logo
     from reportlab.pdfgen.canvas import Canvas
